@@ -150,15 +150,15 @@
             <!-- Contenido del Héroe -->
             <div class="container mx-auto px-6 py-24 md:py-32 text-center md:text-left">
                 <div class="max-w-3xl">
-                    <p class="text-sm font-bold uppercase tracking-wider text-yellow-300">#1 EN REVIEW AI</p>
-                    <h1 class="text-4xl md:text-6xl font-extrabold text-white mt-4 leading-tight">
-                        Automate Reviews with Kaezyn AI
+                    <p class="text-sm font-bold uppercase tracking-wider text-yellow-300"> #1 EN PROTECCIÓN DE REPUTACIÓN ONLINE</p>
+                    <h1 id="hero-headline" class="text-4xl md:text-6xl font-extrabold text-white mt-4 leading-tight">
+                        Cada mala reseña cuesta dinero. Kaezyn las detiene antes de que se publiquen.
                     </h1>
-                    <p class="text-lg md:text-xl mt-6 max-w-2xl text-gray-300">
-                        Kaezyn brings AI to your reviews, turning feedback into fortunes.
+                    <p id="hero-subheadline" class="text-lg md:text-xl mt-6 max-w-2xl text-gray-300">
+                       Protege la reputación de tu negocio filtrando clientes insatisfechos antes de que lleguen a Google.
                     </p>
                     <div class="mt-10">
-                        <a href="#" class="btn-gold inline-block">Sign Up Today</a>
+                        <a id="hero-cta" href="#" class="btn-gold inline-block">Proteger mi reputación</a>
                     </div>
                 </div>
             </div>
@@ -328,7 +328,18 @@
             </div>
         </div>
     </footer>
+    
+<script>
+fetch('/content/home.json')
+  .then(res => res.json())
+  .then(data => {
+    document.getElementById('hero-headline').innerText = data.headline;
+    document.getElementById('hero-subheadline').innerText = data.subheadline;
+    document.getElementById('hero-cta').innerText = data.cta;
+  });
+</script>
 
 </body>
 
 </html>
+
