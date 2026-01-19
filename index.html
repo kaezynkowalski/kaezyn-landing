@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kaezyn - Automatiza Reseñas con IA</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Poppins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        /* Estilos personalizados y paleta de colores */
+        :root {
+            --color-night-blue: #0b0f2a;
+            --color-violet: #4d2a7a;
+            --color-gold: #FFD700;
+            --color-gold-dark: #d4af37;
+            --color-light-gray: #EAEAEA;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--color-night-blue);
+            color: var(--color-light-gray);
+            overflow-x: hidden;
+        }
+
+        /* Degradado de fondo tipo nebulosa */
+        .nebula-bg {
+            background: radial-gradient(ellipse at 70% 30%, var(--color-violet) 0%, var(--color-night-blue) 60%);
+        }
+        
+        .hero-bg {
+            background-image: linear-gradient(to right, rgba(11, 15, 42, 0.95), rgba(11, 15, 42, 0.6)), url('https://images.unsplash.com/photo-1556761175-5973dc0f32e7?q=80&w=2832&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+        }
+
+        /* Estilo para botones dorados */
+        .btn-gold {
+            background: linear-gradient(145deg, var(--color-gold), var(--color-gold-dark));
+            color: #1a1a1a;
+            font-weight: 600;
+            border-radius: 8px;
+            padding: 12px 32px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2);
+        }
+        .btn-gold:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4);
+        }
+
+        /* Animación de estrellas */
+        .stars-container {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 50%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .star {
+            position: absolute;
+            color: var(--color-gold);
+            opacity: 0;
+            animation: sparkle 15s infinite linear;
+            text-shadow: 0 0 10px var(--color-gold);
+        }
+
+        .star:nth-child(1) { top: 10%; left: 80%; font-size: 2rem; animation-delay: 0s; }
+        .star:nth-child(2) { top: 25%; left: 60%; font-size: 1.5rem; animation-delay: 2s; }
+        .star:nth-child(3) { top: 5%; left: 40%; font-size: 1rem; animation-delay: 4s; }
+        .star:nth-child(4) { top: 50%; left: 90%; font-size: 1.8rem; animation-delay: 6s; }
+        .star:nth-child(5) { top: 70%; left: 75%; font-size: 1.2rem; animation-delay: 8s; }
+        .star:nth-child(6) { top: 90%; left: 50%; font-size: 2.2rem; animation-delay: 10s; }
+        .star:nth-child(7) { top: 40%; left: 30%; font-size: 1.3rem; animation-delay: 12s; }
+
+        @keyframes sparkle {
+            0% { transform: translateY(20px) scale(0.5); opacity: 0; }
+            25% { opacity: 1; }
+            75% { opacity: 1; }
+            100% { transform: translateY(-100px) scale(1.5); opacity: 0; }
+        }
+        
+        .feature-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--color-gold);
+        }
+        
+        .testimonial-card {
+             background: #f8f9fa;
+             color: #333;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Encabezado y Sección Héroe -->
+    <header class="relative hero-bg">
+        <div class="stars-container">
+            <i class="fas fa-star star"></i>
+            <i class="fas fa-star star"></i>
+            <i class="fas fa-star star"></i>
+            <i class="fas fa-star star"></i>
+            <i class="fas fa-star star"></i>
+            <i class="fas fa-star star"></i>
+            <i class="fas fa-star star"></i>
+        </div>
+
+        <div class="relative z-10">
+            <!-- Navegación -->
+            <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+                <div class="text-2xl font-bold tracking-widest text-white">KAEZYN</div>
+                <div class="hidden md:flex items-center space-x-8 text-sm">
+                    <a href="#" class="hover:text-yellow-300 transition-colors">Home</a>
+                    <a href="#" class="hover:text-yellow-300 transition-colors">About Us</a>
+                    <a href="#" class="hover:text-yellow-300 transition-colors">Features</a>
+                    <a href="#" class="hover:text-yellow-300 transition-colors">Pricing</a>
+                    <a href="#" class="hover:text-yellow-300 transition-colors">Contact Us</a>
+                </div>
+                <div class="hidden md:flex items-center space-x-4">
+                    <a href="#" class="hover:text-yellow-300 transition-colors text-sm">Log In</a>
+                    <a href="#" class="bg-white text-gray-900 font-semibold px-5 py-2 rounded-md text-sm hover:bg-yellow-300 transition-colors">Sign Up</a>
+                </div>
+                 <div class="md:hidden">
+                    <button class="text-white focus:outline-none">
+                        <i class="fas fa-bars text-2xl"></i>
+                    </button>
+                </div>
+            </nav>
+
+            <!-- Contenido del Héroe -->
+            <div class="container mx-auto px-6 py-24 md:py-32 text-center md:text-left">
+                <div class="max-w-3xl">
+                    <p class="text-sm font-bold uppercase tracking-wider text-yellow-300">#1 EN REVIEW AI</p>
+                    <h1 class="text-4xl md:text-6xl font-extrabold text-white mt-4 leading-tight">
+                        Automate Reviews with Kaezyn AI
+                    </h1>
+                    <p class="text-lg md:text-xl mt-6 max-w-2xl text-gray-300">
+                        Kaezyn brings AI to your reviews, turning feedback into fortunes.
+                    </p>
+                    <div class="mt-10">
+                        <a href="#" class="btn-gold inline-block">Sign Up Today</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- Banner #1 AI -->
+        <section class="bg-white/5 py-8">
+            <div class="container mx-auto px-6 text-center">
+                <h2 class="text-xl md:text-2xl font-semibold text-white">
+                    The #1 AI for <span class="text-yellow-300">Review Automation</span>
+                </h2>
+                <p class="text-sm text-gray-400 mt-1">As recognized by the world's top review platforms and businesses</p>
+            </div>
+        </section>
+        
+        <!-- Sección de Revolución -->
+        <section class="py-20 md:py-28 nebula-bg">
+            <div class="container mx-auto px-6 text-center">
+                <h2 class="text-3xl md:text-5xl font-bold">Revolutionize Review Management</h2>
+                <p class="mt-4 max-w-3xl mx-auto text-gray-300">
+                    Seamlessly manage reviews across platforms with AI-crafted insights and responsive automation.
+                </p>
+                <div class="mt-10">
+                    <a href="#" class="border-2 border-yellow-300 text-yellow-300 font-semibold px-8 py-3 rounded-lg hover:bg-yellow-300 hover:text-gray-900 transition-all">
+                        Explore Free
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sección de Características -->
+        <section class="py-20 md:py-28 bg-night-blue">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl md:text-5xl font-bold">Discover Our Features</h2>
+                    <p class="mt-4 text-gray-400">Beyond AI — comprehensive review management tools.</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Feature Card -->
+                    <div class="feature-card p-8 rounded-xl text-center">
+                        <i class="fas fa-republican text-4xl text-yellow-300 mb-4"></i>
+                        <h3 class="text-xl font-bold mb-2">AI Replies</h3>
+                        <p class="text-gray-400 text-sm">Craft AI-driven replies to enhance engagements.</p>
+                        <a href="#" class="text-yellow-300 mt-4 inline-block font-semibold text-sm">Learn More <i class="fas fa-arrow-right ml-1"></i></a>
+                    </div>
+                    <!-- Feature Card -->
+                    <div class="feature-card p-8 rounded-xl text-center">
+                        <i class="fas fa-chart-pie text-4xl text-yellow-300 mb-4"></i>
+                        <h3 class="text-xl font-bold mb-2">Sentiment Analysis</h3>
+                        <p class="text-gray-400 text-sm">Identify trends with intuitive sentiment analysis.</p>
+                        <a href="#" class="text-yellow-300 mt-4 inline-block font-semibold text-sm">Learn More <i class="fas fa-arrow-right ml-1"></i></a>
+                    </div>
+                    <!-- Feature Card -->
+                    <div class="feature-card p-8 rounded-xl text-center">
+                        <i class="fas fa-layer-group text-4xl text-yellow-300 mb-4"></i>
+                        <h3 class="text-xl font-bold mb-2">Cross-Platform</h3>
+                        <p class="text-gray-400 text-sm">Seamlessly sync reviews on all major platforms.</p>
+                        <a href="#" class="text-yellow-300 mt-4 inline-block font-semibold text-sm">Learn More <i class="fas fa-arrow-right ml-1"></i></a>
+                    </div>
+                     <!-- Feature Card -->
+                    <div class="feature-card p-8 rounded-xl text-center">
+                        <i class="fas fa-palette text-4xl text-yellow-300 mb-4"></i>
+                        <h3 class="text-xl font-bold mb-2">Tone Matching</h3>
+                        <p class="text-gray-400 text-sm">Align responses with your brand's unique tone.</p>
+                        <a href="#" class="text-yellow-300 mt-4 inline-block font-semibold text-sm">Learn More <i class="fas fa-arrow-right ml-1"></i></a>
+                    </div>
+                     <!-- Feature Card -->
+                    <div class="feature-card p-8 rounded-xl text-center">
+                        <i class="fas fa-sync-alt text-4xl text-yellow-300 mb-4"></i>
+                        <h3 class="text-xl font-bold mb-2">Review Sync</h3>
+                        <p class="text-gray-400 text-sm">Sync and streamline your review workflow.</p>
+                        <a href="#" class="text-yellow-300 mt-4 inline-block font-semibold text-sm">Learn More <i class="fas fa-arrow-right ml-1"></i></a>
+                    </div>
+                     <!-- Feature Card -->
+                    <div class="feature-card p-8 rounded-xl text-center">
+                        <i class="fas fa-brain text-4xl text-yellow-300 mb-4"></i>
+                        <h3 class="text-xl font-bold mb-2">AI Insights</h3>
+                        <p class="text-gray-400 text-sm">Gain deeper insights with AI-powered analytics.</p>
+                        <a href="#" class="text-yellow-300 mt-4 inline-block font-semibold text-sm">Learn More <i class="fas fa-arrow-right ml-1"></i></a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sección de Testimonios -->
+        <section class="py-20 md:py-28 bg-gray-100">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl md:text-5xl font-bold text-gray-900">Client Praises</h2>
+                    <p class="mt-4 text-gray-600">Trusted by global brands for AI-driven reputation transformation.</p>
+                </div>
+                <div class="max-w-4xl mx-auto testimonial-card rounded-2xl p-8 md:p-12 shadow-2xl flex flex-col md:flex-row items-center gap-8">
+                    <img src="https://placehold.co/150x150/333333/FFFFFF?text=JF" alt="Foto de James Franco" class="w-32 h-32 rounded-full object-cover border-4 border-yellow-400">
+                    <div class="text-center md:text-left">
+                        <div class="text-yellow-400 mb-2">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <p class="text-lg italic text-gray-700">
+                            "Kaezyn transformed our business reputation almost overnight. The AI's ability to collect and respond to reviews across platforms with speed and accuracy was something we never imagined... Simply fantastic."
+                        </p>
+                        <p class="mt-6 font-bold text-gray-900">James Franco, CEO</p>
+                        <p class="text-sm text-gray-500">RedBoost</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sección de CTA Final -->
+        <section class="py-20 md:py-32 nebula-bg">
+            <div class="container mx-auto px-6 text-center">
+                <h2 class="text-3xl md:text-5xl font-bold text-white">Join Kaezyn's Innovators</h2>
+                <p class="mt-4 max-w-2xl mx-auto text-gray-300">
+                    Stay updated with our latest AI advancements and review management insights.
+                </p>
+                <form class="mt-10 max-w-xl mx-auto flex flex-col sm:flex-row gap-4">
+                    <input type="email" placeholder="your.email@company.com" class="w-full px-5 py-3 rounded-lg bg-white/10 border border-white/20 focus:ring-2 focus:ring-yellow-300 focus:outline-none placeholder-gray-400 text-white">
+                    <button type="submit" class="btn-gold flex-shrink-0">Sign Up</button>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900/50 text-gray-400">
+        <div class="container mx-auto px-6 py-12">
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-8">
+                <div class="col-span-2 md:col-span-1">
+                    <h3 class="text-xl font-bold text-white mb-2">KAEZYN</h3>
+                    <p class="text-sm">&copy; 2024 Kaezyn. All rights reserved.</p>
+                </div>
+                <div>
+                    <h4 class="font-bold text-white mb-4">Product</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" class="hover:text-yellow-300">Features</a></li>
+                        <li><a href="#" class="hover:text-yellow-300">Pricing</a></li>
+                        <li><a href="#" class="hover:text-yellow-300">Customers</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold text-white mb-4">Company</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" class="hover:text-yellow-300">About</a></li>
+                        <li><a href="#" class="hover:text-yellow-300">Careers</a></li>
+                        <li><a href="#" class="hover:text-yellow-300">Press</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold text-white mb-4">Support</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" class="hover:text-yellow-300">Contact</a></li>
+                        <li><a href="#" class="hover:text-yellow-300">FAQs</a></li>
+                    </ul>
+                </div>
+                 <div>
+                    <h4 class="font-bold text-white mb-4">Legal</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" class="hover:text-yellow-300">Privacy</a></li>
+                        <li><a href="#" class="hover:text-yellow-300">Terms</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>
