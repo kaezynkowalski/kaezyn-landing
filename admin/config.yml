@@ -1,0 +1,19 @@
+backend:
+  name: github
+  repo: kaezynkowalski/kaezyn-landing
+  branch: main
+
+media_folder: "images/uploads"
+public_folder: "/images/uploads"
+
+collections:
+  - name: "landing"
+    label: "Landing Page"
+    files:
+      - label: "Contenido Principal"
+        name: "home"
+        file: "content/home.json"
+        fields:
+          - { label: "Headline", name: "headline", widget: "string" }
+          - { label: "Subheadline", name: "subheadline", widget: "text" }
+          - { label: "Texto CTA", name: "cta", widget: "string" }
