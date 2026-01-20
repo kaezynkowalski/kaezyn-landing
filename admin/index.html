@@ -5,24 +5,12 @@
     <title>Kaezyn CMS</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <!-- NETLIFY IDENTITY (OBLIGATORIO) -->
+    <!-- Netlify Identity -->
     <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-
-    <!-- DECAP CMS -->
-    <script src="https://unpkg.com/decap-cms@3.10.0/dist/decap-cms.js"></script>
   </head>
 
   <body>
-    <script>
-      if (window.netlifyIdentity) {
-        window.netlifyIdentity.on("init", user => {
-          if (!user) {
-            window.netlifyIdentity.on("login", () => {
-              document.location.href = "/admin/";
-            });
-          }
-        });
-      }
-    </script>
+    <!-- Decap CMS: SIEMPRE AL FINAL DEL BODY -->
+    <script src="https://unpkg.com/decap-cms@3.10.0/dist/decap-cms.js"></script>
   </body>
 </html>
