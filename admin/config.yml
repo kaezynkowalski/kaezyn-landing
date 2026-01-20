@@ -1,5 +1,5 @@
 backend:
-  name: github
+  name: git-gateway
   repo: kaezynkowalski/kaezyn-landing
   branch: main
 
