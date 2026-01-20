@@ -1,0 +1,37 @@
+{
+  "plans": [
+    {
+      "name": "Starter",
+      "price": "$29 USD / mes",
+      "features": [
+        "1 ubicación",
+        "QR personalizado",
+        "Filtro de reseñas negativas",
+        "Alertas por email"
+      ],
+      "cta": "Empezar ahora"
+    },
+    {
+      "name": "Pro",
+      "price": "$79 USD / mes",
+      "features": [
+        "Hasta 5 ubicaciones",
+        "WhatsApp al gerente",
+        "Dashboard de insights",
+        "Reportes mensuales"
+      ],
+      "cta": "Escalar mi reputación"
+    },
+    {
+      "name": "Enterprise",
+      "price": "Custom",
+      "features": [
+        "Ubicaciones ilimitadas",
+        "White-label",
+        "Integraciones API",
+        "Soporte prioritario"
+      ],
+      "cta": "Hablar con ventas"
+    }
+  ]
+}
