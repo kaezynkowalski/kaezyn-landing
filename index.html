@@ -130,11 +130,11 @@
             <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
                 <div class="text-2xl font-bold tracking-widest text-white">KAEZYN</div>
                 <div class="hidden md:flex items-center space-x-8 text-sm">
-                    <a href="#" class="hover:text-yellow-300 transition-colors">Inicio</a>
-                    <a href="#" class="hover:text-yellow-300 transition-colors">About Us</a>
-                    <a href="#" class="hover:text-yellow-300 transition-colors">Features</a>
-                    <a href="#" class="hover:text-yellow-300 transition-colors">Pricing</a>
-                    <a href="#" class="hover:text-yellow-300 transition-colors">Contact Us</a>
+                    <a href="#hero" class="hover:text-yellow-300 transition-colors">Inicio</a>
+                    <a href="#about" class="hover:text-yellow-300 transition-colors">About</a>
+                    <a href="#features" class="hover:text-yellow-300 transition-colors">Features</a>
+                    <a href="#pricing" class="hover:text-yellow-300 transition-colors">Pricing</a>
+                    <a href="#contact" class="hover:text-yellow-300 transition-colors">Contact</a>
                 </div>
                 <div class="hidden md:flex items-center space-x-4">
                     <a href="#" class="hover:text-yellow-300 transition-colors text-sm">Log In</a>
@@ -166,6 +166,26 @@
     </header>
 
     <main>
+
+        <section id="hero">
+        <section id="about">
+        <section id="features">
+
+        <section id="pricing" class="py-20 md:py-28 bg-night-blue">
+          <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+              <h2 class="text-3xl md:text-5xl font-bold">Planes diseñados para crecer</h2>
+              <p class="mt-4 text-gray-400">
+                Escoge el plan que protege y multiplica tu reputación online.
+              </p>
+            </div>
+            <!-- PRICING DINÁMICO -->
+            <div id="pricing-container" class="grid grid-cols-1 md:grid-cols-3 gap-8"></div>
+          </div>
+        </section>
+
+        <section id="contact">
+            
         <!-- Banner #1 AI -->
         <section class="bg-white/5 py-8">
             <div class="container mx-auto px-6 text-center">
@@ -339,7 +359,39 @@ fetch('/content/home.json')
   });
 </script>
 
+<script>
+  fetch('/content/pricing.json')
+    .then(res => res.json())
+    .then(data => {
+      const container = document.getElementById('pricing-container');
+      if (!container) return;
+
+      container.innerHTML = '';
+
+      data.plans.forEach(plan => {
+        const card = document.createElement('div');
+        card.className =
+          "feature-card p-8 rounded-xl text-center flex flex-col";
+
+        card.innerHTML = `
+          <h3 class="text-2xl font-bold mb-4">${plan.name}</h3>
+          <p class="text-3xl font-extrabold text-yellow-300 mb-6">${plan.price}</p>
+          <ul class="text-gray-300 space-y-2 mb-8 flex-grow">
+            ${plan.features.map(f => `<li>✓ ${f}</li>`).join('')}
+          </ul>
+          <a href="#contact" class="btn-gold inline-block mt-auto">
+            ${plan.cta}
+          </a>
+        `;
+
+        container.appendChild(card);
+      });
+    })
+    .catch(err => console.error('Pricing error:', err));
+</script>
+
 </body>
 
 </html>
+
 
