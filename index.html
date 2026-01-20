@@ -353,7 +353,8 @@
 fetch('/content/home.json')
   .then(res => res.json())
   .then(data => {
-    document.getElementById('hero-headline').innerText = data.headline;
+    document.getElementById('hero-headline').innerHTML =
+      data.headline.split('. ').join('.<br>');
     document.getElementById('hero-subheadline').innerText = data.subheadline;
     document.getElementById('hero-cta').innerText = data.cta;
   });
@@ -393,5 +394,6 @@ fetch('/content/home.json')
 </body>
 
 </html>
+
 
 
