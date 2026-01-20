@@ -3,17 +3,36 @@ backend:
   repo: kaezynkowalski/kaezyn-landing
   branch: main
 
-media_folder: "images/uploads"
-public_folder: "/images/uploads"
+media_folder: "assets/uploads"
+public_folder: "/assets/uploads"
 
 collections:
-  - name: "landing"
-    label: "Landing Page"
+  - name: "home"
+    label: "Landing Principal"
     files:
-      - label: "Contenido Principal"
-        name: "home"
+      - name: "hero"
+        label: "Hero"
         file: "content/home.json"
         fields:
           - { label: "Headline", name: "headline", widget: "string" }
           - { label: "Subheadline", name: "subheadline", widget: "text" }
-          - { label: "Texto CTA", name: "cta", widget: "string" }
+          - { label: "CTA", name: "cta", widget: "string" }
+
+  - name: "pricing"
+    label: "Pricing"
+    files:
+      - name: "plans"
+        label: "Planes"
+        file: "content/pricing.json"
+        fields:
+          - label: "Planes"
+            name: "plans"
+            widget: "list"
+            fields:
+              - { label: "Nombre", name: "name", widget: "string" }
+              - { label: "Precio", name: "price", widget: "string" }
+              - label: "Beneficios"
+                name: "features"
+                widget: "list"
+                field: { label: "Item", name: "item", widget: "string" }
+              - { label: "CTA", name: "cta", widget: "string" }
