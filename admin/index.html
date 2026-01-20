@@ -4,18 +4,25 @@
     <meta charset="utf-8" />
     <title>Kaezyn CMS</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-  </head>
-  <body>
-    <!-- ROOT PARA DECAP CMS -->
-    <div id="cms"></div>
 
-    <!-- CARGAR CMS DESPUÉS DEL DOM -->
-    <script>
-      window.CMS_MANUAL_INIT = true;
-    </script>
+    <!-- NETLIFY IDENTITY (OBLIGATORIO) -->
+    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+
+    <!-- DECAP CMS -->
     <script src="https://unpkg.com/decap-cms@3.10.0/dist/decap-cms.js"></script>
+  </head>
+
+  <body>
     <script>
-      window.initCMS();
+      if (window.netlifyIdentity) {
+        window.netlifyIdentity.on("init", user => {
+          if (!user) {
+            window.netlifyIdentity.on("login", () => {
+              document.location.href = "/admin/";
+            });
+          }
+        });
+      }
     </script>
   </body>
 </html>
