@@ -1,0 +1,7 @@
+[build]
+  functions = "netlify/functions"
+
+[[redirects]]
+  from = "/r/*"
+  to = "/.netlify/functions/qr-redirect"
+  status = 200
