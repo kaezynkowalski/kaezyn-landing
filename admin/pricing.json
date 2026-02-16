@@ -1,35 +1,63 @@
 {
+  "setup_fee": "$3,500 MXN",
   "plans": [
     {
+      "id": "starter",
       "name": "Starter",
-      "price": "$29 USD / mes",
+      "tagline": "El Blindaje Esencial",
+      "price_monthly": 2900,
+      "price_yearly": 2417,
+      "currency": "MXN",
       "features": [
-        "1 ubicación",
-        "QR personalizado",
-        "Filtro de reseñas negativas",
-        "Alertas por email"
+        "1 Ubicación incluida",
+        "150 Interacciones procesadas/mes",
+        "Filtro Anti-Reseñas Negativas",
+        "Alertas por Email instantáneas",
+        "Reporte Mensual de rendimiento"
       ],
-      "cta": "Empezar ahora"
+      "cta": "Proteger mi reputación",
+      "most_popular": false
     },
     {
+      "id": "pro",
       "name": "Pro",
-      "price": "$79 USD / mes",
+      "tagline": "Inteligencia Operativa en Tiempo Real",
+      "price_monthly": 4900,
+      "price_yearly": 4083,
+      "currency": "MXN",
       "features": [
-        "Hasta 5 ubicaciones",
-        "WhatsApp al gerente",
-        "Dashboard de insights",
-        "Reportes mensuales"
+        "1 Ubicación incluida",
+        "500 Interacciones procesadas/mes",
+        "Alertas VIP por SMS",
+        "Dashboard de Inteligencia en Vivo",
+        "Resumen Semanal IA (Insights)",
+        "Ranking de Staff por desempeño",
+        "Ubicación adicional: $2,900 MXN"
       ],
-      "cta": "Escalar mi reputación"
+      "cta": "Proteger mi reputación",
+      "most_popular": true,
+      "badge": "Más elegido"
     },
     {
-      "name": "Enterprise",
-      "price": "Custom",
+      "id": "scale",
+      "name": "Scale",
+      "tagline": "Estrategia Corporativa",
+      "price_monthly": "Desde 8,900",
+      "price_yearly": "Consultar",
+      "currency": "MXN",
       "features": [
-        "Ubicaciones ilimitadas",
-        "White-label",
-        "Integraciones API",
-        "Soporte prioritario"
+        "Precio Base Corporativo",
+        "Benchmark Multi-sucursal",
+        "Ranking de Riesgo operativo",
+        "Insights Ejecutivos Predictivos",
+        "Reporte PDF para Junta Directiva",
+        "Account Manager dedicado"
+      ],
+      "cta": "Contactar Consultor Scale",
+      "most_popular": false
+    }
+  ]
+}
       ],
       "cta": "Hablar con ventas"
     }
