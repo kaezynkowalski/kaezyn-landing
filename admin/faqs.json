@@ -1,0 +1,26 @@
+{
+  "section_title": "Preguntas Frecuentes",
+  "section_subtitle": "Todo lo que necesitas saber sobre la inteligencia que protege tu negocio.",
+  "faqs": [
+    {
+      "question": "¿Por qué hay un costo de implementación inicial (Setup Fee)?",
+      "answer": "En Kaezyn no solo entregamos software; entregamos una solución 'llave en mano'. El Setup Fee cubre el diseño de tus dispositivos físicos (Acrílicos Premium + NFC/QR) y el entrenamiento de nuestra IA con tu menú y estándares específicos para asegurar precisión total desde el día uno."
+    },
+    {
+      "question": "¿Qué recibo exactamente por el pago de implementación?",
+      "answer": "Recibes el Kit Físico Kaezyn listo para tus mesas y la configuración técnica de todo tu ecosistema (Supabase, Make, WhatsApp). Nosotros hacemos la ingeniería pesada para que tú solo te preocupes por mejorar tu negocio."
+    },
+    {
+      "question": "¿Cómo funciona el Filtro Anti-Reseñas Negativas?",
+      "answer": "Si un cliente califica con 1, 2 o 3 estrellas, el sistema abre un canal de comunicación privado directo con tu gerencia. Esto te permite resolver la queja en tiempo real y salvar al cliente antes de que publique un comentario negativo en Google."
+    },
+    {
+      "question": "¿Tengo que instalar alguna aplicación?",
+      "answer": "No. Kaezyn es 100% basado en la nube. Tus clientes no descargan nada (lo que aumenta la participación) y tú recibes todo por WhatsApp o Email. Control total sin fricción."
+    },
+    {
+      "question": "¿Hay un contrato forzoso?",
+      "answer": "En los planes mensuales no, puedes cancelar cuando quieras. Sin embargo, el 92% de nuestros clientes eligen el Plan Anual para asegurar sus 2 meses gratis y prioridad en soporte técnico."
+    }
+  ]
+}
