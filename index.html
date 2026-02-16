@@ -175,7 +175,7 @@
           <div class="container mx-auto px-6">
             <div class="text-center mb-10">
               <h2 class="text-3xl md:text-5xl font-bold">Planes de Inteligencia Empresarial</h2>
-              <p class="mt-4 text-gray-400">Protege y multiplica tu reputación con IA.</p>
+              <p class="mt-4 text-gray-400">Protege y multiplica tu reputación con BI</p>
       
               <div class="flex items-center justify-center mt-10 space-x-4">
                 <span id="label-monthly" class="text-white font-medium">Mensual</span>
@@ -193,9 +193,21 @@
             </p>
           </div>
         </section>
-
-        <section id="contact">
             
+         <!-- Sección Faqs -->
+        <section id="faqs" class="py-20 bg-night-blue">
+            <div class="container mx-auto px-6 max-w-4xl">
+                <div class="text-center mb-12">
+                    <h2 id="faq-title" class="text-3xl md:text-4xl font-bold text-white">Preguntas Frecuentes</h2>
+                    <p id="faq-subtitle" class="mt-4 text-gray-400 font-medium"></p>
+                </div>
+
+                <div id="faq-container" class="space-y-4">
+                    </div>
+            </div>
+        </section>
+            
+        <section id="contact">   
         <!-- Banner #1 AI -->
         <section class="bg-white/5 py-8">
             <div class="container mx-auto px-6 text-center">
@@ -442,9 +454,56 @@
           renderPricing();
         })
         .catch(err => console.error('Error cargando pricing:', err));
+
+        // 3. Lógica para FAQs (Acordeón dinámico)
+        fetch('/admin/faqs.json')
+            .then(res => res.json())
+            .then(data => {
+                const faqContainer = document.getElementById('faq-container');
+                document.getElementById('faq-title').innerText = data.section_title;
+                document.getElementById('faq-subtitle').innerText = data.section_subtitle;
+
+                data.faqs.forEach((item, index) => {
+                    const faqItem = document.createElement('div');
+                    faqItem.className = "border-b border-white/10";
+            
+                    faqItem.innerHTML = `
+                        <button class="w-full py-6 flex justify-between items-center text-left focus:outline-none group" onclick="toggleFaq(${index})">
+                            <span class="text-lg font-medium text-gray-200 group-hover:text-yellow-300 transition-colors">${item.question}</span>
+                            <i id="icon-${index}" class="fas fa-chevron-down text-gray-500 transition-transform duration-300"></i>
+                        </button>
+                        <div id="answer-${index}" class="max-h-0 overflow-hidden transition-all duration-500 ease-in-out">
+                            <p class="pb-6 text-gray-400 leading-relaxed">
+                                ${item.answer}
+                            </p>
+                        </div>
+            `        ;
+                    faqContainer.appendChild(faqItem);
+                });
+            });
+
+        // Función para abrir/cerrar acordeón
+        function toggleFaq(index) {
+            const answer = document.getElementById(`answer-${index}`);
+            const icon = document.getElementById(`icon-${index}`);
+    
+            // Cerrar otros (opcional, si quieres que solo uno esté abierto a la vez)
+            // const allAnswers = document.querySelectorAll('[id^="answer-"]');
+            // ... lógica para cerrar otros ...
+
+            if (answer.style.maxHeight && answer.style.maxHeight !== '0px') {
+                answer.style.maxHeight = '0px';
+                icon.style.transform = 'rotate(0deg)';
+            } else {
+                answer.style.maxHeight = answer.scrollHeight + "px";
+                icon.style.transform = 'rotate(180deg)';
+                icon.classList.add('text-yellow-300');
+            }
+        }        
     </script>
 </body>
 </html>
+
 
 
 
