@@ -2,64 +2,32 @@
   "setup_fee": "$3,500 MXN",
   "plans": [
     {
-      "id": "starter",
       "name": "Starter",
       "tagline": "El Blindaje Esencial",
       "price_monthly": 2900,
       "price_yearly": 2417,
-      "currency": "MXN",
-      "features": [
-        "1 Ubicación incluida",
-        "150 Interacciones procesadas/mes",
-        "Filtro Anti-Reseñas Negativas",
-        "Alertas por Email instantáneas",
-        "Reporte Mensual de rendimiento"
-      ],
+      "features": ["1 Ubicación incluida", "150 Interacciones/mes", "Filtro Anti-Reseñas Negativas", "Alertas por Email", "Reporte Mensual"],
       "cta": "Proteger mi reputación",
-      "most_popular": false
+      "popular": false
     },
     {
-      "id": "pro",
       "name": "Pro",
-      "tagline": "Inteligencia Operativa en Tiempo Real",
+      "tagline": "Inteligencia Operativa",
       "price_monthly": 4900,
       "price_yearly": 4083,
-      "currency": "MXN",
-      "features": [
-        "1 Ubicación incluida",
-        "500 Interacciones procesadas/mes",
-        "Alertas VIP por SMS",
-        "Dashboard de Inteligencia en Vivo",
-        "Resumen Semanal IA (Insights)",
-        "Ranking de Staff por desempeño",
-        "Ubicación adicional: $2,900 MXN"
-      ],
+      "badge": "MÁS ELEGIDO",
+      "features": ["1 Ubicación incluida", "500 Interacciones/mes", "Alertas VIP por WhatsApp", "Dashboard de Insights", "Resumen Semanal IA", "Ranking de Staff"],
       "cta": "Proteger mi reputación",
-      "most_popular": true,
-      "badge": "Más elegido"
+      "popular": true
     },
     {
-      "id": "scale",
       "name": "Scale",
       "tagline": "Estrategia Corporativa",
       "price_monthly": "Desde 8,900",
       "price_yearly": "Consultar",
-      "currency": "MXN",
-      "features": [
-        "Precio Base Corporativo",
-        "Benchmark Multi-sucursal",
-        "Ranking de Riesgo operativo",
-        "Insights Ejecutivos Predictivos",
-        "Reporte PDF para Junta Directiva",
-        "Account Manager dedicado"
-      ],
-      "cta": "Contactar Consultor Scale",
-      "most_popular": false
-    }
-  ]
-}
-      ],
-      "cta": "Hablar con ventas"
+      "features": ["Precio Base Corporativo", "Benchmark Multi-sucursal", "Ranking de Riesgo", "Insights Predictivos", "Reporte PDF Ejecutivo", "Account Manager"],
+      "cta": "Contactar Consultor",
+      "popular": false
     }
   ]
 }
