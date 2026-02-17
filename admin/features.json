@@ -1,0 +1,42 @@
+{
+  "title": "El Sistema Operativo de Reputación para tu Restaurante",
+  "subtitle": "Captura, filtra y transforma la experiencia de tus clientes en crecimiento real.",
+  "features": [
+    {
+      "icon": "fas fa-shield-alt",
+      "name": "Blindaje Anti-Crisis",
+      "description": "Detén las críticas negativas antes de que toquen tu perfil público de Google.",
+      "details": "Si un cliente califica con 1–3 estrellas, Kaezyn intercepta la queja y abre un canal de resolución privada. Evitas el daño a tu reputación y salvas al cliente en tiempo real."
+    },
+    {
+      "icon": "fas fa-rocket",
+      "name": "Monetización de Lealtad",
+      "description": "Convierte el entusiasmo de tus mejores clientes en un imán de ventas.",
+      "details": "Dirigimos automáticamente a los clientes satisfechos a Google Maps. Más reseñas de 5 estrellas equivalen a un mejor ranking y un flujo constante de nuevos comensales."
+    },
+    {
+      "icon": "fas fa-bolt",
+      "name": "Kit Zero-Fricción NFC + QR",
+      "description": "Tecnología de proximidad que elimina las barreras para el cliente.",
+      "details": "Diseñamos acrílicos premium con chips NFC y QR. Sin descargas, sin registros pesados. Un solo toque desde la mesa activa todo el ecosistema de feedback."
+    },
+    {
+      "icon": "fas fa-microchip",
+      "name": "Auditoría Operativa",
+      "description": "Descubre qué mesero, horario o platillo está afectando tu rentabilidad.",
+      "details": "Nuestro sistema realiza un análisis forense de los comentarios para identificar patrones, nombres específicos y tendencias operativas que el ojo humano no detecta."
+    },
+    {
+      "icon": "fas fa-file-invoice-dollar",
+      "name": "Inteligencia de Negocio Semanal",
+      "description": "Recibe un resumen ejecutivo con acciones claras para vender más.",
+      "details": "Transformamos el feedback en decisiones estratégicas. Recibe cada lunes un reporte que te dice exactamente dónde invertir esfuerzo para mejorar el servicio y los procesos."
+    },
+    {
+      "icon": "fas fa-mobile-alt",
+      "name": "Alertas VIP Instantáneas",
+      "description": "Recibe notificaciones críticas directo a tu Celular o Email.",
+      "details": "Olvida los dashboards complejos. Cuando algo requiere tu atención inmediata, el sistema te avisa personalmente para que actúes con la velocidad de un líder."
+    }
+  ]
+}
