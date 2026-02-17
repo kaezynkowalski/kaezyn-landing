@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kaezyn - Automatiza Reseñas con IA</title>
+    <title>Kaezyn | Sistema Inteligente de Reputación</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -131,10 +131,10 @@
                 <div class="text-2xl font-bold tracking-widest text-white">KAEZYN</div>
                 <div class="hidden md:flex items-center space-x-8 text-sm">
                     <a href="#hero" class="hover:text-yellow-300 transition-colors">Inicio</a>
-                    <a href="#about" class="hover:text-yellow-300 transition-colors">About</a>
-                    <a href="#features" class="hover:text-yellow-300 transition-colors">Features</a>
-                    <a href="#pricing" class="hover:text-yellow-300 transition-colors">Pricing</a>
-                    <a href="#contact" class="hover:text-yellow-300 transition-colors">Contact</a>
+                    <a href="#about" class="hover:text-yellow-300 transition-colors">Cómo Funciona</a>
+                    <a href="#features" class="hover:text-yellow-300 transition-colors">Sistema</a>
+                    <a href="#pricing" class="hover:text-yellow-300 transition-colors">Planes</a>
+                    <a href="#contact" class="hover:text-yellow-300 transition-colors">Contacto</a>
                 </div>
                 <div class="hidden md:flex items-center space-x-4">
                     <a href="#" class="hover:text-yellow-300 transition-colors text-sm">Log In</a>
@@ -150,15 +150,16 @@
             <!-- Contenido del Héroe -->
             <div class="container mx-auto px-6 py-24 md:py-32 text-center md:text-left">
                 <div class="max-w-3xl">
-                    <p class="text-sm font-bold uppercase tracking-wider text-yellow-300"> #1 EN PROTECCIÓN DE REPUTACIÓN ONLINE</p>
+                    <p class="text-sm font-bold uppercase tracking-wider text-yellow-300">Sistema Inteligente de Protección de Reputación</p>
                     <h1 id="hero-headline" class="text-4xl md:text-6xl font-extrabold text-white mt-4 leading-tight">
-                        Cada mala reseña cuesta dinero. Kaezyn las detiene antes de que se publiquen.
+                        Convierte clientes felices en 5 estrellas.
+                        Detén las malas reseñas antes de que lleguen a Google.
                     </h1>
                     <p id="hero-subheadline" class="text-lg md:text-xl mt-6 max-w-2xl text-gray-300">
-                       Protege la reputación de tu negocio filtrando clientes insatisfechos antes de que lleguen a Google.
+                       Kaezyn instala en tus mesas un sistema físico + digital que captura opiniones en tiempo real, protege tu reputación y te da inteligencia operativa para crecer.
                     </p>
                     <div class="mt-10">
-                        <a id="hero-cta" href="#" class="btn-gold inline-block">Proteger mi reputación</a>
+                        <a id="hero-cta" href="#" class="btn-gold inline-block">Solicitar Implementación</a>
                     </div>
                 </div>
             </div>
@@ -212,78 +213,37 @@
         <section class="bg-white/5 py-8">
             <div class="container mx-auto px-6 text-center">
                 <h2 class="text-xl md:text-2xl font-semibold text-white">
-                    The #1 AI for <span class="text-yellow-300">Review Automation</span>
+                    Tecnología de Inteligencia Aplicada <span class="text-yellow-300">a la Experiencia del Cliente</span>
                 </h2>
-                <p class="text-sm text-gray-400 mt-1">As recognized by the world's top review platforms and businesses</p>
+                <p class="text-sm text-gray-400 mt-1">Diseñado específicamente para restaurantes que quieren proteger y escalar su reputación.</p>
             </div>
         </section>
         
         <!-- Sección de Revolución -->
         <section class="py-20 md:py-28 nebula-bg">
             <div class="container mx-auto px-6 text-center">
-                <h2 class="text-3xl md:text-5xl font-bold">Revolutionize Review Management</h2>
+                <h2 class="text-3xl md:text-5xl font-bold">Un Nuevo Estándar en Gestión de Reputación</h2>
                 <p class="mt-4 max-w-3xl mx-auto text-gray-300">
-                    Seamlessly manage reviews across platforms with AI-crafted insights and responsive automation.
+                    Desde el momento en que el cliente escanea el código en tu mesa, Kaezyn activa un sistema inteligente que clasifica la experiencia, filtra riesgos y convierte satisfacción en visibilidad pública.
                 </p>
                 <div class="mt-10">
                     <a href="#" class="border-2 border-yellow-300 text-yellow-300 font-semibold px-8 py-3 rounded-lg hover:bg-yellow-300 hover:text-gray-900 transition-all">
-                        Explore Free
+                        Ver Cómo Funciona
                     </a>
                 </div>
             </div>
         </section>
 
         <!-- Sección de Características -->
-        <section class="py-20 md:py-28 bg-night-blue">
+        <section id="features" class="py-20 md:py-28 bg-night-blue">
             <div class="container mx-auto px-6">
                 <div class="text-center mb-16">
-                    <h2 class="text-3xl md:text-5xl font-bold">Discover Our Features</h2>
-                    <p class="mt-4 text-gray-400">Beyond AI — comprehensive review management tools.</p>
+                    <h2 id="features-title" class="text-3xl md:text-5xl font-bold"></h2>
+                    <p id="features-subtitle" class="mt-4 text-gray-400"></p>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    <!-- Feature Card -->
-                    <div class="feature-card p-8 rounded-xl text-center">
-                        <i class="fas fa-republican text-4xl text-yellow-300 mb-4"></i>
-                        <h3 class="text-xl font-bold mb-2">AI Replies</h3>
-                        <p class="text-gray-400 text-sm">Craft AI-driven replies to enhance engagements.</p>
-                        <a href="#" class="text-yellow-300 mt-4 inline-block font-semibold text-sm">Learn More <i class="fas fa-arrow-right ml-1"></i></a>
+        
+                <div id="features-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     </div>
-                    <!-- Feature Card -->
-                    <div class="feature-card p-8 rounded-xl text-center">
-                        <i class="fas fa-chart-pie text-4xl text-yellow-300 mb-4"></i>
-                        <h3 class="text-xl font-bold mb-2">Sentiment Analysis</h3>
-                        <p class="text-gray-400 text-sm">Identify trends with intuitive sentiment analysis.</p>
-                        <a href="#" class="text-yellow-300 mt-4 inline-block font-semibold text-sm">Learn More <i class="fas fa-arrow-right ml-1"></i></a>
-                    </div>
-                    <!-- Feature Card -->
-                    <div class="feature-card p-8 rounded-xl text-center">
-                        <i class="fas fa-layer-group text-4xl text-yellow-300 mb-4"></i>
-                        <h3 class="text-xl font-bold mb-2">Cross-Platform</h3>
-                        <p class="text-gray-400 text-sm">Seamlessly sync reviews on all major platforms.</p>
-                        <a href="#" class="text-yellow-300 mt-4 inline-block font-semibold text-sm">Learn More <i class="fas fa-arrow-right ml-1"></i></a>
-                    </div>
-                     <!-- Feature Card -->
-                    <div class="feature-card p-8 rounded-xl text-center">
-                        <i class="fas fa-palette text-4xl text-yellow-300 mb-4"></i>
-                        <h3 class="text-xl font-bold mb-2">Tone Matching</h3>
-                        <p class="text-gray-400 text-sm">Align responses with your brand's unique tone.</p>
-                        <a href="#" class="text-yellow-300 mt-4 inline-block font-semibold text-sm">Learn More <i class="fas fa-arrow-right ml-1"></i></a>
-                    </div>
-                     <!-- Feature Card -->
-                    <div class="feature-card p-8 rounded-xl text-center">
-                        <i class="fas fa-sync-alt text-4xl text-yellow-300 mb-4"></i>
-                        <h3 class="text-xl font-bold mb-2">Review Sync</h3>
-                        <p class="text-gray-400 text-sm">Sync and streamline your review workflow.</p>
-                        <a href="#" class="text-yellow-300 mt-4 inline-block font-semibold text-sm">Learn More <i class="fas fa-arrow-right ml-1"></i></a>
-                    </div>
-                     <!-- Feature Card -->
-                    <div class="feature-card p-8 rounded-xl text-center">
-                        <i class="fas fa-brain text-4xl text-yellow-300 mb-4"></i>
-                        <h3 class="text-xl font-bold mb-2">AI Insights</h3>
-                        <p class="text-gray-400 text-sm">Gain deeper insights with AI-powered analytics.</p>
-                        <a href="#" class="text-yellow-300 mt-4 inline-block font-semibold text-sm">Learn More <i class="fas fa-arrow-right ml-1"></i></a>
-                    </div>
-                </div>
             </div>
         </section>
 
@@ -291,8 +251,8 @@
         <section class="py-20 md:py-28 bg-gray-100">
             <div class="container mx-auto px-6">
                 <div class="text-center mb-16">
-                    <h2 class="text-3xl md:text-5xl font-bold text-gray-900">Client Praises</h2>
-                    <p class="mt-4 text-gray-600">Trusted by global brands for AI-driven reputation transformation.</p>
+                    <h2 class="text-3xl md:text-5xl font-bold text-gray-900">Lo que dicen nuestros primeros restaurantes</h2>
+                    <p class="mt-4 text-gray-600">Negocios que decidieron proteger su reputación antes de que fuera un problema.</p>
                 </div>
                 <div class="max-w-4xl mx-auto testimonial-card rounded-2xl p-8 md:p-12 shadow-2xl flex flex-col md:flex-row items-center gap-8">
                     <img src="https://placehold.co/150x150/333333/FFFFFF?text=JF" alt="Foto de James Franco" class="w-32 h-32 rounded-full object-cover border-4 border-yellow-400">
@@ -305,10 +265,10 @@
                             <i class="fas fa-star"></i>
                         </div>
                         <p class="text-lg italic text-gray-700">
-                            "Kaezyn transformed our business reputation almost overnight. The AI's ability to collect and respond to reviews across platforms with speed and accuracy was something we never imagined... Simply fantastic."
+                            "Antes respondíamos quejas cuando ya estaban en Google. Ahora las resolvemos en el momento. Hemos visto más reseñas positivas en solo semanas."
                         </p>
-                        <p class="mt-6 font-bold text-gray-900">James Franco, CEO</p>
-                        <p class="text-sm text-gray-500">RedBoost</p>
+                        <p class="mt-6 font-bold text-gray-900">Propietario de Restaurante Casual</p>
+                        <p class="text-sm text-gray-500">Ciudad de México</p>
                     </div>
                 </div>
             </div>
@@ -317,13 +277,13 @@
         <!-- Sección de CTA Final -->
         <section class="py-20 md:py-32 nebula-bg">
             <div class="container mx-auto px-6 text-center">
-                <h2 class="text-3xl md:text-5xl font-bold text-white">Join Kaezyn's Innovators</h2>
+                <h2 class="text-3xl md:text-5xl font-bold text-white">¿Listo para proteger tu reputación?</h2>
                 <p class="mt-4 max-w-2xl mx-auto text-gray-300">
-                    Stay updated with our latest AI advancements and review management insights.
+                    Agenda una llamada estratégica y descubre cómo implementar Kaezyn en tu restaurante en menos de 7 días.
                 </p>
                 <form class="mt-10 max-w-xl mx-auto flex flex-col sm:flex-row gap-4">
                     <input type="email" placeholder="your.email@company.com" class="w-full px-5 py-3 rounded-lg bg-white/10 border border-white/20 focus:ring-2 focus:ring-yellow-300 focus:outline-none placeholder-gray-400 text-white">
-                    <button type="submit" class="btn-gold flex-shrink-0">Sign Up</button>
+                    <button type="submit" class="btn-gold flex-shrink-0">Agendar Llamada Estratégica</button>
                 </form>
             </div>
         </section>
@@ -335,36 +295,34 @@
             <div class="grid grid-cols-2 md:grid-cols-5 gap-8">
                 <div class="col-span-2 md:col-span-1">
                     <h3 class="text-xl font-bold text-white mb-2">KAEZYN</h3>
-                    <p class="text-sm">&copy; 2024 Kaezyn. All rights reserved.</p>
+                    <p class="text-sm">&copy; 2026 Kaezyn. Todos los derechos reservados.</p>
                 </div>
                 <div>
-                    <h4 class="font-bold text-white mb-4">Product</h4>
+                    <h4 class="font-bold text-white mb-4">Sistema</h4>
                     <ul class="space-y-2 text-sm">
-                        <li><a href="#" class="hover:text-yellow-300">Features</a></li>
-                        <li><a href="#" class="hover:text-yellow-300">Pricing</a></li>
-                        <li><a href="#" class="hover:text-yellow-300">Customers</a></li>
+                        <li><a href="#" class="hover:text-yellow-300">Cómo Funciona</a></li>
+                        <li><a href="#" class="hover:text-yellow-300">Planes</a></li>
+                        <li><a href="#" class="hover:text-yellow-300">Protección de Reputación</a></li>
                     </ul>
                 </div>
                 <div>
-                    <h4 class="font-bold text-white mb-4">Company</h4>
+                    <h4 class="font-bold text-white mb-4">Empresa</h4>
                     <ul class="space-y-2 text-sm">
-                        <li><a href="#" class="hover:text-yellow-300">About</a></li>
-                        <li><a href="#" class="hover:text-yellow-300">Careers</a></li>
-                        <li><a href="#" class="hover:text-yellow-300">Press</a></li>
+                        <li><a href="#" class="hover:text-yellow-300">Nuestra Visión</a></li>
+                        <li><a href="#" class="hover:text-yellow-300">Contacto</a></li>
                     </ul>
                 </div>
                 <div>
-                    <h4 class="font-bold text-white mb-4">Support</h4>
+                    <h4 class="font-bold text-white mb-4">Soporte</h4>
                     <ul class="space-y-2 text-sm">
-                        <li><a href="#" class="hover:text-yellow-300">Contact</a></li>
                         <li><a href="#" class="hover:text-yellow-300">FAQs</a></li>
                     </ul>
                 </div>
                  <div>
                     <h4 class="font-bold text-white mb-4">Legal</h4>
                     <ul class="space-y-2 text-sm">
-                        <li><a href="#" class="hover:text-yellow-300">Privacy</a></li>
-                        <li><a href="#" class="hover:text-yellow-300">Terms</a></li>
+                        <li><a href="#" class="hover:text-yellow-300">Aviso de Privacidad</a></li>
+                        <li><a href="#" class="hover:text-yellow-300">Términos y Condiciones</a></li>
                     </ul>
                 </div>
             </div>
@@ -499,10 +457,58 @@
                 icon.style.transform = 'rotate(180deg)';
                 icon.classList.add('text-yellow-300');
             }
-        }        
+        }
+
+        // 4. Lógica para Features Dinámicas con expansión (Acordeón)
+        fetch('/admin/features.json')
+            .then(res => res.json())
+            .then(data => {
+                const container = document.getElementById('features-container');
+                document.getElementById('features-title').innerText = data.title;
+                document.getElementById('features-subtitle').innerText = data.subtitle;
+
+                data.features.forEach((feature, index) => {
+                    const card = document.createElement('div');
+                    card.className = "feature-card p-8 rounded-xl text-center flex flex-col cursor-pointer transition-all duration-300";
+            
+                    // Evento para abrir/cerrar detalles al hacer clic en "Learn More"
+                    card.innerHTML = `
+                        <i class="${feature.icon} text-4xl text-yellow-300 mb-4"></i>
+                        <h3 class="text-xl font-bold mb-2">${feature.name}</h3>
+                        <p class="text-gray-400 text-sm mb-4">${feature.description}</p>
+                
+                        <div id="feat-detail-${index}" class="max-h-0 overflow-hidden transition-all duration-500 ease-in-out">
+                            <p class="text-xs text-yellow-300/80 pt-2 pb-4 border-t border-white/10 italic">
+                                ${feature.details}
+                            </p>
+                        </div>
+
+                        <button class="text-yellow-300 mt-auto font-semibold text-sm flex items-center justify-center gap-2 hover:gap-3 transition-all" onclick="toggleFeature(${index}, event)">
+                            Saber más <i id="feat-icon-${index}" class="fas fa-chevron-down text-xs"></i>
+                        </button>
+            `        ;
+                    container.appendChild(card);
+                });
+            });
+
+        function toggleFeature(index, event) {
+            event.stopPropagation(); // Evita conflictos si la tarjeta tuviera otros links
+            const detail = document.getElementById(`feat-detail-${index}`);
+            const icon = document.getElementById(`feat-icon-${index}`);
+
+            if (detail.style.maxHeight && detail.style.maxHeight !== '0px') {
+                detail.style.maxHeight = '0px';
+                icon.style.transform = 'rotate(0deg)';
+            } else {
+                detail.style.maxHeight = detail.scrollHeight + "px";
+                icon.style.transform = 'rotate(180deg)';
+            }
+        }
     </script>
+            
 </body>
 </html>
+
 
 
 
