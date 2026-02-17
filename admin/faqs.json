@@ -1,26 +1,42 @@
 {
   "section_title": "Preguntas Frecuentes",
-  "section_subtitle": "Todo lo que necesitas saber sobre la inteligencia que protege tu negocio.",
+  "section_subtitle": "La inteligencia que protege y escala la reputación de tu imperio comercial.",
   "faqs": [
     {
-      "question": "¿Por qué hay un costo de implementación inicial (Setup Fee)?",
-      "answer": "En Kaezyn no solo entregamos software; entregamos una solución 'llave en mano'. El Setup Fee cubre el diseño de tus dispositivos físicos (Acrílicos Premium + NFC/QR) y el entrenamiento de nuestra IA con tu menú y estándares específicos para asegurar precisión total desde el día uno."
+      "question": "¿Por qué existe un costo de implementación (Setup Fee)?",
+      "answer": "Porque no vendemos solo software. Entregamos un ecosistema listo para operar: diseño personalizado, kit físico premium (Acrílicos + NFC/QR) y entrenamiento de nuestra IA con tus estándares. Es una inversión única para garantizar la perfección desde el día uno."
     },
     {
-      "question": "¿Qué recibo exactamente por el pago de implementación?",
-      "answer": "Recibes el Kit Físico Kaezyn listo para tus mesas y la configuración técnica de todo tu ecosistema (Supabase, Make, WhatsApp). Nosotros hacemos la ingeniería pesada para que tú solo te preocupes por mejorar tu negocio."
+      "question": "¿Qué incluye exactamente el Setup Fee de $3,500 MXN?",
+      "answer": "• <b>Kit Físico Kaezyn:</b> Dispositivos premium para tus mesas.<br>• <b>Ingeniería de Configuración:</b> Integración total de bases de datos.<br>• <b>Activación del Filtro Inteligente:</b> Blindaje contra reseñas negativas.<br>• <b>Personalización de Marca:</b> El sistema se adapta a tu identidad visual.<br><br><b>Tú no haces nada; nosotros lo entregamos funcionando al 100%.</b>"
+    },
+    {
+      "question": "¿Si abro otra sucursal debo pagar nuevamente?",
+      "answer": "Sí. Cada sucursal es un ecosistema independiente que requiere su propio kit físico, configuración de datos y entrenamiento de IA. En el Plan <b>SCALE</b> ofrecemos esquemas de descuentos por volumen para cadenas y franquicias."
     },
     {
       "question": "¿Cómo funciona el Filtro Anti-Reseñas Negativas?",
-      "answer": "Si un cliente califica con 1, 2 o 3 estrellas, el sistema abre un canal de comunicación privado directo con tu gerencia. Esto te permite resolver la queja en tiempo real y salvar al cliente antes de que publique un comentario negativo en Google."
+      "answer": "Cuando un cliente califica con 1-3 estrellas, Kaezyn intercepta la interacción y abre un canal de comunicación privado directo contigo. Esto te permite resolver el conflicto en el momento, salvar al cliente y mantener tu perfil de Google impecable."
     },
     {
-      "question": "¿Tengo que instalar alguna aplicación?",
-      "answer": "No. Kaezyn es 100% basado en la nube. Tus clientes no descargan nada (lo que aumenta la participación) y tú recibes todo por WhatsApp o Email. Control total sin fricción."
+      "question": "¿Mis clientes deben descargar alguna aplicación?",
+      "answer": "No. El sistema es <b>Zero-Friction</b>. Funciona directamente desde el navegador móvil al escanear el QR o acercar el teléfono al NFC. Menos pasos para el cliente significan 300% más interacciones para ti."
     },
     {
-      "question": "¿Hay un contrato forzoso?",
-      "answer": "En los planes mensuales no, puedes cancelar cuando quieras. Sin embargo, el 92% de nuestros clientes eligen el Plan Anual para asegurar sus 2 meses gratis y prioridad en soporte técnico."
+      "question": "¿Qué pasa si supero mi límite de interacciones?",
+      "answer": "Tu sistema nunca dejará de protegerte. Si excedes el límite, se aplica un cargo mínimo por interacción adicional según tu plan. Si tu crecimiento es constante, te ayudamos a migrar a un plan más eficiente."
+    },
+    {
+      "question": "¿Hay contrato forzoso o penalizaciones?",
+      "answer": "En planes mensuales tienes libertad total. Sin embargo, el <b>92% de nuestros socios</b> eligen el Plan Anual para obtener 2 meses gratis y prioridad absoluta en soporte técnico y actualizaciones."
+    },
+    {
+      "question": "¿Emiten factura fiscal en México?",
+      "answer": "Sí. Somos una empresa constituida. Emitimos CFDI por cada pago realizado. Todos los precios mostrados son más IVA."
+    },
+    {
+      "question": "¿Kaezyn realmente puede analizar el desempeño de mi staff?",
+      "answer": "Sí. Nuestro sistema detecta patrones semánticos: nombres de empleados, horarios críticos y tipos de quejas recurrentes. Recibirás un resumen ejecutivo con acciones claras para optimizar tu equipo de trabajo."
     }
   ]
 }
