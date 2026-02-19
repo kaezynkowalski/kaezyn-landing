@@ -168,27 +168,28 @@
 
     <main>
 
-        <section id="pricing" class="py-20 md:py-28 bg-night-blue">
-          <div class="container mx-auto px-6">
-            <div class="text-center mb-10">
-              <h2 class="text-3xl md:text-5xl font-bold">Planes de Inteligencia Empresarial</h2>
-              <p class="mt-4 text-gray-400">Protege y multiplica tu reputación con BI</p>
-      
-              <div class="flex items-center justify-center mt-10 space-x-4">
-                <span id="label-monthly" class="text-white font-medium">Mensual</span>
-                <button id="billing-toggle" class="relative w-14 h-7 bg-white/10 rounded-full p-1 transition-colors duration-300 focus:outline-none border border-white/20">
-                  <div id="toggle-circle" class="w-5 h-5 bg-yellow-300 rounded-full shadow-md transform transition-transform duration-300"></div>
-                </button>
-                <span id="label-yearly" class="text-gray-400 font-medium">Anual <span class="text-xs bg-yellow-300/20 text-yellow-300 px-2 py-1 rounded-full ml-1">2 MESES GRATIS</span></span>
-              </div>
-            </div>
+        <section id="pricing" class="py-20 md:py-28 bg-night-blue overflow-hidden">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl md:text-5xl font-bold text-white mb-4">Planes de Inteligencia Empresarial</h2>
+                    <p class="mt-4 text-gray-400">Protege y multiplica tu reputación con BI</p>
+                    
+                    <div class="flex items-center justify-center mt-10 space-x-4">
+                        <span id="label-monthly" class="text-white font-medium">Mensual</span>
+                        <button id="billing-toggle" class="relative w-14 h-7 bg-white/10 rounded-full p-1 transition-colors duration-300 focus:outline-none border border-white/20">
+                            <div id="toggle-circle" class="w-5 h-5 bg-yellow-300 rounded-full shadow-md transform transition-transform duration-300"></div>
+                        </button>
+                        <span id="label-yearly" class="text-gray-400 font-medium">Anual <span class="text-xs bg-yellow-300/20 text-yellow-300 px-2 py-1 rounded-full ml-1">AHORRA 2 MESES</span></span>
+                    </div>
+                </div>
 
-            <div id="pricing-container" class="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch"></div>
-    
-            <p class="text-center text-gray-500 mt-12 text-sm">
-              *Todos los planes requieren un <b>Setup Fee único de $3,500 MXN</b> por sucursal. Precios más IVA.
-            </p>
-          </div>
+                <div id="pricing-grid" class="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch max-w-7xl mx-auto">
+                    </div>
+
+                <p class="text-center text-gray-500 text-xs mt-12 max-w-3xl mx-auto leading-relaxed">
+                    *Precios más IVA. Setup Fee único de $3,500 MXN por ubicación. Las interacciones adicionales se facturan a mes vencido según el plan activo. Para implementaciones mayores a 10 sucursales, contacte a un consultor.
+                </p>
+            </div>
         </section>
             
          <!-- Sección Faqs -->
@@ -335,50 +336,63 @@
           document.getElementById('hero-cta').innerText = data.cta;
         });
 
-      // 2. Nueva Lógica de Pricing con Toggle (Mensual/Anual)
+      // 2. Nueva Lógica de Pricing con Toggle y Stripe
       let pricingData = null;
       let isYearly = false;
 
       function renderPricing() {
-        const container = document.getElementById('pricing-container');
-        const billingToggle = document.getElementById('billing-toggle');
-        const toggleCircle = document.getElementById('toggle-circle');
-        const labelMonthly = document.getElementById('label-monthly');
-        const labelYearly = document.getElementById('label-yearly');
+        const grid = document.getElementById('pricing-grid');
+        if (!grid || !pricingData) return;
 
-        if (!container || !pricingData) return;
-
-        container.innerHTML = '';
+        grid.innerHTML = '';
 
         pricingData.plans.forEach(plan => {
-          // Lógica de precios
-          let displayPrice = isYearly ? plan.price_yearly : plan.price_monthly;
-          const isNumber = typeof displayPrice === 'number';
-          
-          const priceText = isNumber 
-            ? `$${displayPrice.toLocaleString()} <span class="text-sm text-gray-400 font-normal">MXN / mes</span>`
-            : `${displayPrice} <span class="text-sm text-gray-400 font-normal">MXN</span>`;
+          // Si es anual, mostramos el precio mensualizado
+          const displayPrice = isYearly ? plan.price_yearly_monthly : plan.price_monthly;
+          const stripeLink = isYearly ? plan.stripe_yearly : plan.stripe_monthly;
 
           const card = document.createElement('div');
-          // Añadimos clases de Tailwind y estilos dinámicos
-          card.className = `feature-card p-8 rounded-2xl text-center flex flex-col relative transition-all duration-500 ${plan.popular ? 'border-2 border-yellow-300 scale-105 z-10 bg-white/10 shadow-2xl shadow-yellow-300/10' : 'bg-white/5'}`;
+          // Mantenemos tus estilos visuales originales
+          card.className = `feature-card p-8 rounded-2xl text-center flex flex-col relative transition-all duration-500 ${plan.popular ? 'border-2 border-yellow-300 scale-105 z-10 bg-white/10 shadow-2xl shadow-yellow-300/10' : 'bg-white/5 border border-white/10'}`;
 
           card.innerHTML = `
-            ${plan.badge ? `<span class="absolute -top-4 left-1/2 -translate-x-1/2 bg-yellow-300 text-night-blue text-xs font-bold px-4 py-1 rounded-full shadow-lg">${plan.badge}</span>` : ''}
+            ${plan.badge ? `<span class="absolute -top-4 left-1/2 -translate-x-1/2 bg-yellow-300 text-night-blue text-[10px] font-black px-4 py-1 rounded-full uppercase tracking-widest shadow-lg">${plan.badge}</span>` : ''}
             <h3 class="text-xl font-bold text-gray-400 uppercase tracking-widest">${plan.name}</h3>
             <p class="text-sm text-gray-500 mb-6 italic">${plan.tagline || ''}</p>
-            <p class="text-4xl font-extrabold text-white mb-2 transition-all duration-300">${priceText}</p>
-            ${isYearly && isNumber ? `<p class="text-xs text-yellow-300 mb-6 font-semibold animate-pulse">Facturado anualmente</p>` : '<p class="mb-6 h-4"></p>'}
             
-            <ul class="text-left text-gray-300 space-y-4 mb-10 flex-grow">
-              ${plan.features.map(f => `<li class="flex items-start"><i class="fas fa-check-circle text-yellow-300 mt-1 mr-3"></i> <span class="text-sm">${f}</span></li>`).join('')}
+            <div class="mb-6">
+                <div class="flex items-baseline justify-center">
+                    <span class="text-4xl font-extrabold text-white">$${displayPrice.toLocaleString()}</span>
+                    <span class="text-gray-400 ml-2 text-sm">/ mes</span>
+                </div>
+                ${isYearly ? `<p class="text-yellow-300 text-[10px] font-bold mt-2 animate-pulse">Facturado anualmente ($${plan.price_yearly_total.toLocaleString()} MXN)</p>` : '<p class="mt-2 h-4"></p>'}
+            </div>
+            
+            <ul class="text-left text-gray-300 space-y-4 mb-8 flex-grow">
+              ${plan.features.map(f => `<li class="flex items-start text-sm"><i class="fas fa-check-circle text-yellow-300 mt-1 mr-3"></i> <span>${f}</span></li>`).join('')}
             </ul>
             
-            <a href="#contact" class="${plan.popular ? 'btn-gold' : 'border-2 border-white/20 text-white hover:bg-white/10'} py-3 px-6 rounded-lg font-bold transition-all text-center">
+            <div class="pt-6 border-t border-white/10 text-left mb-6">
+                <div class="space-y-2">
+                    <div class="flex justify-between text-[11px] text-gray-400 font-medium">
+                        <span>Interacción extra:</span>
+                        <span class="text-yellow-300">$${plan.extra_interaction} MXN</span>
+                    </div>
+                    ${plan.extra_location ? `
+                    <div class="flex justify-between text-[11px] text-gray-400 font-medium mt-1">
+                        <span>Sucursal extra:</span>
+                        <span class="text-yellow-300">$${plan.extra_location.toLocaleString()}/mes</span>
+                    </div>
+                    <p class="text-[9px] text-gray-500 italic mt-1 leading-tight">*(Incluye límite de ${plan.extra_location_limit} reseñas)*</p>
+                    ` : ''}
+                </div>
+            </div>
+            
+            <a href="${stripeLink}" class="${plan.popular ? 'btn-gold' : 'border-2 border-white/20 text-white hover:bg-white/10'} py-3 px-6 rounded-lg font-bold transition-all text-center mt-auto">
               ${plan.cta}
             </a>
           `;
-          container.appendChild(card);
+          grid.appendChild(card);
         });
       }
 
@@ -400,8 +414,8 @@
         }
       });
 
-      // Carga inicial del JSON
-      fetch('/admin/pricing.json') // Asegúrate que esta ruta sea correcta en tu repo
+      // Fetch de tu archivo pricing.json
+      fetch('/admin/pricing.json') 
         .then(res => res.json())
         .then(data => {
           pricingData = data;
@@ -504,6 +518,7 @@
             
 </body>
 </html>
+
 
 
 
