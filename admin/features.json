@@ -12,7 +12,7 @@
       "icon": "fas fa-rocket",
       "name": "Monetización de Lealtad",
       "description": "Convierte el entusiasmo de tus mejores clientes en un imán de ventas.",
-      "details": "Dirigimos automáticamente a los clientes satisfechos a Google Maps. Más reseñas de 5 estrellas equivalen a un mejor ranking y un flujo constante de nuevos comensales."
+      "details": "Dirigimos automáticamente a los clientes satisfechos a Google. Más reseñas de 5 estrellas equivalen a un mejor ranking y un flujo constante de nuevos clientes."
     },
     {
       "icon": "fas fa-bolt",
@@ -24,7 +24,7 @@
       "icon": "fas fa-microchip",
       "name": "Auditoría Operativa",
       "description": "Descubre qué mesero, horario o platillo está afectando tu rentabilidad.",
-      "details": "Nuestro sistema realiza un análisis forense de los comentarios para identificar patrones, nombres específicos y tendencias operativas que el ojo humano no detecta."
+      "details": "Nuestro sistema realiza un análisis exhaustivo de los comentarios para identificar patrones, nombres específicos y tendencias operativas que el ojo humano no detecta."
     },
     {
       "icon": "fas fa-file-invoice-dollar",
