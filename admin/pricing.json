@@ -24,7 +24,7 @@
       "extra_location": 1900,
       "extra_location_limit": 400,
       "badge": "MÁS ELEGIDO",
-      "features": ["1 Ubicación incluida", "500 Interacciones/mes", "Filtro Anti-Reseñas Negativas", "Alertas Email y WhatsApp", "Análisis de Sentimiento", "Reporte Semanal","Ranking de Staff", "Sucursal extra: $1,900/mes"],
+      "features": ["1 Ubicación incluida", "400 Interacciones/mes", "Filtro Anti-Reseñas Negativas", "Alertas Email y WhatsApp", "Análisis de Sentimiento", "Reporte Semanal", "Sucursal extra: $1,900/mes"],
       "stripe_monthly": "https://buy.stripe.com/00w8wPgRTab8fw49VpabK02",
       "stripe_yearly": "https://buy.stripe.com/8x23cv4572IG83C2sXabK03",
       "cta": "Proteger mi reputación",
