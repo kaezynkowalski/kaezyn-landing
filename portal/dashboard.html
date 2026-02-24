@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kaezyn Portal</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+:root {
+    --color-night-blue: #0b0f2a;
+    --color-violet: #4d2a7a;
+    --color-gold: #FFD700;
+    --color-gold-dark: #d4af37;
+    --color-light-gray: #EAEAEA;
+}
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--color-night-blue);
+    color: var(--color-light-gray);
+}
+.card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+}
+.btn-gold {
+    background: linear-gradient(145deg, var(--color-gold), var(--color-gold-dark));
+    color: #1a1a1a;
+    font-weight: 600;
+    border-radius: 8px;
+    padding: 10px 20px;
+}
+</style>
+</head>
+
+<body class="min-h-screen">
+
+<div class="container mx-auto px-6 py-10">
+
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-10">
+        <img src="/assets/KAEZYN LOGO.png" class="h-10">
+        <div class="text-right">
+            <p id="planName" class="font-bold text-yellow-300"></p>
+            <p id="renewalDate" class="text-sm text-gray-400"></p>
+        </div>
+    </div>
+
+    <!-- Sucursales -->
+    <div class="card rounded-xl p-8 mb-8">
+        <h2 class="text-2xl font-bold mb-6">Sucursales</h2>
+
+        <table class="w-full text-left">
+            <thead>
+                <tr class="text-gray-400 border-b border-white/10">
+                    <th class="pb-3">Nombre</th>
+                    <th class="pb-3">Estado</th>
+                    <th class="pb-3">Acción</th>
+                </tr>
+            </thead>
+            <tbody id="branchesTable">
+            </tbody>
+        </table>
+
+        <div class="mt-6">
+            <button class="btn-gold" onclick="addBranch()">+ Agregar Sucursal</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const customerId = params.get("customer_id");
+
+if (!customerId) {
+    document.body.innerHTML = "<h1 class='text-center mt-20'>Acceso inválido</h1>";
+}
+
+fetch("https://hook.make.com/TU_WEBHOOK_DASHBOARD", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ customer_id: customerId })
+})
+.then(res => res.json())
+.then(data => {
+
+    document.getElementById("planName").innerText = "Plan " + data.plan;
+    document.getElementById("renewalDate").innerText = "Renovación: " + data.renewal;
+
+    const table = document.getElementById("branchesTable");
+
+    data.branches.forEach(branch => {
+
+        const row = document.createElement("tr");
+        row.className = "border-b border-white/5";
+
+        row.innerHTML = `
+            <td class="py-4">${branch.name || "Sucursal " + branch.branch_number}</td>
+            <td class="py-4 ${branch.status === 'active' ? 'text-green-400' : 'text-yellow-300'}">
+                ${branch.status === 'active' ? 'Activa' : 'Pendiente'}
+            </td>
+            <td class="py-4">
+                <button class="btn-gold"
+                onclick="window.location.href='${branch.form_link}'">
+                ${branch.status === 'active' ? 'Ver' : 'Configurar'}
+                </button>
+            </td>
+        `;
+        table.appendChild(row);
+    });
+
+});
+
+function addBranch() {
+    window.location.href = "https://TU_STRIPE_LINK_DE_SUCURSAL_EXTRA";
+}
+</script>
+
+</body>
+</html>
