@@ -74,52 +74,9 @@ body {
 
 </div>
 
+<script src="portal.js"></script>
 <script>
-const params = new URLSearchParams(window.location.search);
-const customerId = params.get("customer_id");
-
-if (!customerId) {
-    document.body.innerHTML = "<h1 class='text-center mt-20'>Acceso inválido</h1>";
-}
-
-fetch("https://hook.make.com/TU_WEBHOOK_DASHBOARD", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ customer_id: customerId })
-})
-.then(res => res.json())
-.then(data => {
-
-    document.getElementById("planName").innerText = "Plan " + data.plan;
-    document.getElementById("renewalDate").innerText = "Renovación: " + data.renewal;
-
-    const table = document.getElementById("branchesTable");
-
-    data.branches.forEach(branch => {
-
-        const row = document.createElement("tr");
-        row.className = "border-b border-white/5";
-
-        row.innerHTML = `
-            <td class="py-4">${branch.name || "Sucursal " + branch.branch_number}</td>
-            <td class="py-4 ${branch.status === 'active' ? 'text-green-400' : 'text-yellow-300'}">
-                ${branch.status === 'active' ? 'Activa' : 'Pendiente'}
-            </td>
-            <td class="py-4">
-                <button class="btn-gold"
-                onclick="window.location.href='${branch.form_link}'">
-                ${branch.status === 'active' ? 'Ver' : 'Configurar'}
-                </button>
-            </td>
-        `;
-        table.appendChild(row);
-    });
-
-});
-
-function addBranch() {
-    window.location.href = "https://TU_STRIPE_LINK_DE_SUCURSAL_EXTRA";
-}
+Portal.loadDashboard();
 </script>
 
 </body>
