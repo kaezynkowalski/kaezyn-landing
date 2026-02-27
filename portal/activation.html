@@ -2,40 +2,18 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Activación | Kaezyn</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<style>
-:root {
-    --color-night-blue: #0b0f2a;
-    --color-violet: #4d2a7a;
-    --color-gold: #FFD700;
-    --color-gold-dark: #d4af37;
-    --color-light-gray: #EAEAEA;
-}
-body {
-    font-family: 'Poppins', sans-serif;
-    background: radial-gradient(ellipse at 70% 30%, var(--color-violet) 0%, var(--color-night-blue) 60%);
-    color: var(--color-light-gray);
-}
-.card {
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.1);
-    backdrop-filter: blur(10px);
-}
-</style>
 </head>
 
-<body class="min-h-screen flex items-center justify-center">
+<body class="flex items-center justify-center min-h-screen bg-[#0b0f2a] text-white">
 
-<div class="card rounded-xl p-10 text-center max-w-xl w-full">
-    <img src="/assets/KAEZYN LOGO.png" class="h-10 mx-auto mb-6">
-    <h1 class="text-2xl font-bold mb-4">Validando activación...</h1>
-    <p id="statusText" class="text-gray-400">Procesando pago y creando sucursales.</p>
+<div class="text-center">
+  <h1 class="text-2xl font-bold mb-4">Activando cuenta...</h1>
+  <p id="statusText">Procesando...</p>
 </div>
 
 <script src="portal.js"></script>
