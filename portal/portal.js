@@ -1,143 +1,139 @@
 const Portal = (() => {
 
-const MAKE_ACTIVATION_WEBHOOK = "https://hook.make.com/TU_WEBHOOK_ACTIVATION";
-
 const SUPABASE_URL = "https://TU_PROJECT_ID.supabase.co";
 const SUPABASE_ANON_KEY = "TU_PUBLIC_ANON_KEY";
 
-function getParam(name) {
-    const params = new URLSearchParams(window.location.search);
-    return params.get(name);
+const supabase = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+);
+
+/* ================= LOGIN ================= */
+
+async function login() {
+
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  const { error } = await supabase.auth.signInWithPassword({
+    email,
+    password
+  });
+
+  if (error) {
+    document.getElementById("errorMsg").innerText = error.message;
+    return;
+  }
+
+  window.location.href = "/portal/dashboard.html";
 }
 
-async function postData(url, data) {
-    const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-    });
-    return res.json();
+/* ================= LOGOUT ================= */
+
+async function logout() {
+  await supabase.auth.signOut();
+  window.location.href = "/portal/login.html";
 }
 
-/* =========================
-   ACTIVATION FLOW
-========================= */
+/* ================= ACTIVATION ================= */
 
 async function handleActivation() {
 
-    const sessionId = getParam("session_id");
+  const params = new URLSearchParams(window.location.search);
+  const sessionId = params.get("session_id");
 
-    if (!sessionId) {
-        document.getElementById("statusText").innerText =
-            "Sesión inválida.";
-        return;
-    }
+  if (!sessionId) {
+    document.getElementById("statusText").innerText =
+      "Sesión inválida.";
+    return;
+  }
 
-    try {
+  const res = await fetch("https://hook.make.com/TU_WEBHOOK_ACTIVATION", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ session_id: sessionId })
+  });
 
-        const data = await postData(MAKE_ACTIVATION_WEBHOOK, {
-            session_id: sessionId
-        });
+  const data = await res.json();
 
-        if (!data.access_token) {
-            document.getElementById("statusText").innerText =
-                "No se pudo validar el pago.";
-            return;
-        }
+  if (!data.success) {
+    document.getElementById("statusText").innerText =
+      "Error activando cuenta.";
+    return;
+  }
 
-        document.getElementById("statusText").innerText =
-            "Activación confirmada. Redirigiendo al portal...";
+  document.getElementById("statusText").innerText =
+    "Cuenta creada. Redirigiendo a login...";
 
-        setTimeout(() => {
-            window.location.href =
-                `/portal/dashboard.html?token=${data.access_token}`;
-        }, 1500);
-
-    } catch (err) {
-        document.getElementById("statusText").innerText =
-            "Error procesando activación.";
-    }
+  setTimeout(() => {
+    window.location.href = "/portal/login.html";
+  }, 2000);
 }
 
-/* =========================
-   DASHBOARD FLOW
-========================= */
+/* ================= DASHBOARD ================= */
 
 async function loadDashboard() {
 
-    const token = getParam("token");
+  const { data: { user } } = await supabase.auth.getUser();
 
-    if (!token) {
-        document.body.innerHTML =
-            "<h1 class='text-center mt-20 text-white'>Acceso inválido</h1>";
-        return;
-    }
+  if (!user) {
+    window.location.href = "/portal/login.html";
+    return;
+  }
 
-    try {
+  const { data: branches, error } = await supabase
+    .from("businesses")
+    .select("*");
 
-        const res = await fetch(
-            `${SUPABASE_URL}/rest/v1/businesses?select=*`,
-            {
-                headers: {
-                    "apikey": SUPABASE_ANON_KEY,
-                    "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
-                    "access_token": token
-                }
-            }
-        );
+  if (error) {
+    document.body.innerHTML = "Error cargando datos";
+    return;
+  }
 
-        const branches = await res.json();
-
-        if (!branches || branches.length === 0) {
-            document.body.innerHTML =
-                "<h1 class='text-center mt-20 text-white'>Token inválido o expirado</h1>";
-            return;
-        }
-
-        renderDashboard(branches);
-
-    } catch (err) {
-        document.body.innerHTML =
-            "<h1 class='text-center mt-20 text-white'>Error cargando datos</h1>";
-    }
+  renderDashboard(branches);
 }
 
 function renderDashboard(branches) {
 
-    document.getElementById("planName").innerText =
-        "Plan " + branches[0].plan;
+  if (!branches || branches.length === 0) {
+    document.body.innerHTML = "No hay sucursales activas.";
+    return;
+  }
 
-    const table = document.getElementById("branchesTable");
-    table.innerHTML = "";
+  document.getElementById("planBox").innerHTML =
+    `Plan: ${branches[0].plan} | Permitidas: ${branches[0].allowed_quantity}`;
 
-    branches.forEach(branch => {
+  const table = document.getElementById("branchesTable");
+  table.innerHTML = "";
 
-        const row = document.createElement("tr");
-        row.className = "border-b border-white/5";
+  branches.forEach(branch => {
 
-        row.innerHTML = `
-            <td class="py-4">
-                ${branch.business_name || "Sucursal " + branch.branch_number}
-            </td>
-            <td class="py-4 ${branch.status === 'activo' ? 'text-green-400' : 'text-yellow-300'}">
-                ${branch.status}
-            </td>
-            <td class="py-4">
-                <button class="btn-gold"
-                onclick="alert('Configuración futura')">
-                Ver
-                </button>
-            </td>
-        `;
+    const row = document.createElement("tr");
 
-        table.appendChild(row);
-    });
+    row.innerHTML = `
+      <td class="py-4">
+        ${branch.business_name || "Sucursal " + branch.branch_number}
+      </td>
+      <td>
+        ${branch.activo ? "Activa" : "Desactivada"}
+      </td>
+      <td>
+        <button onclick="alert('Configuración futura')"
+          class="text-yellow-400">
+          Gestionar
+        </button>
+      </td>
+    `;
 
+    table.appendChild(row);
+  });
 }
 
 return {
-    handleActivation,
-    loadDashboard
+  login,
+  logout,
+  handleActivation,
+  loadDashboard
 };
 
 })();
