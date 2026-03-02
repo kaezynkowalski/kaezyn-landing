@@ -60,6 +60,8 @@ function renderDashboard(branches) {
 
     branches.forEach(branch => {
 
+        const isConfigured = branch.business_name !== null;
+
         const row = document.createElement("tr");
         row.className = "border-b border-white/5";
 
@@ -67,14 +69,29 @@ function renderDashboard(branches) {
             <td class="py-4">
                 ${branch.business_name || "Sucursal " + branch.branch_number}
             </td>
-            <td class="py-4 ${branch.activo ? 'text-green-400' : 'text-red-400'}">
-                ${branch.activo ? 'Activa' : 'Desactivada'}
+            <td class="py-4 ${
+                isConfigured
+                    ? (branch.activo ? 'text-green-400' : 'text-yellow-400')
+                    : 'text-gray-400'
+            }">
+                ${
+                    !isConfigured
+                        ? 'Pendiente de activación'
+                        : (branch.activo ? 'Activa' : 'Pausada')
+                }
             </td>
             <td class="py-4">
-                <button class="btn-gold"
-                onclick="alert('Próxima versión configuración sucursal')">
-                Gestionar
-                </button>
+                ${
+                    !isConfigured
+                        ? `<button class="btn-gold"
+                            onclick="Portal.activateBranch('${branch.id}')">
+                            Activar
+                           </button>`
+                        : `<button class="btn-gold"
+                            onclick="Portal.manageBranch('${branch.id}')">
+                            Gestionar
+                           </button>`
+                }
             </td>
         `;
 
