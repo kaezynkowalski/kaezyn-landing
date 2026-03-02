@@ -119,6 +119,31 @@ function activateBranch(branchId) {
 
     window.location.href = url;
 }
+    
+function configureAddBranchButton(activeBranches, allowedQuantity) {
+
+    const button = document.querySelector(".btn-gold");
+
+    if (!button) return;
+
+    if (activeBranches >= allowedQuantity) {
+
+        button.innerText = "Actualizar Plan para agregar sucursal";
+
+        button.onclick = () => {
+            Portal.openStripePortal(window.currentCustomerId);
+        };
+
+    } else {
+
+        button.innerText = "+ Activar Sucursal Disponible";
+
+        button.onclick = () => {
+            alert("Activa una sucursal pendiente desde la tabla.");
+        };
+    }
+}
+
 
 /* ================= STRIPE PORTAL ================= */
 
