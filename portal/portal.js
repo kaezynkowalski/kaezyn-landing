@@ -110,7 +110,7 @@ function activateBranch(branchId) {
 
 /* ================= STRIPE PORTAL ================= */
 
-async function openStripePortal() {
+async function openStripePortal(customerId) {
 
     const user = await requireAuth();
     if (!user) return;
@@ -118,7 +118,7 @@ async function openStripePortal() {
     const res = await fetch("https://hook.us2.make.com/4nwu1igjvf2casgekjsf24lujuse5i5s", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: user.id })
+        body: JSON.stringify({ customer_id: customerId })
     });
 
     const data = await res.json();
