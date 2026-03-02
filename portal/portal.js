@@ -99,6 +99,15 @@ function renderDashboard(branches) {
     });
 }
 
+function activateBranch(branchId) {
+
+    const filloutBaseUrl = "https://forms.fillout.com/t/421DwsCucCus";
+
+    const url = `${filloutBaseUrl}?branch_id=${branchId}`;
+
+    window.location.href = url;
+}
+
 /* ================= STRIPE PORTAL ================= */
 
 async function openStripePortal() {
@@ -120,6 +129,7 @@ async function openStripePortal() {
 }
 
 return {
+    handleActivation,
     loadDashboard,
     logout,
     openStripePortal
