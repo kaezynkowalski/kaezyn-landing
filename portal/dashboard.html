@@ -3,9 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kaezyn Portal</title>
+<title>Dashboard | Kaezyn</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
@@ -42,16 +43,15 @@ body {
 
 <div class="container mx-auto px-6 py-10">
 
-    <!-- Header -->
     <div class="flex justify-between items-center mb-10">
         <img src="/assets/KAEZYN LOGO.png" class="h-10">
         <div class="text-right">
             <p id="planName" class="font-bold text-yellow-300"></p>
             <p id="renewalDate" class="text-sm text-gray-400"></p>
+            <button onclick="Portal.logout()" class="text-sm text-gray-400 mt-2">Cerrar sesión</button>
         </div>
     </div>
 
-    <!-- Sucursales -->
     <div class="card rounded-xl p-8 mb-8">
         <h2 class="text-2xl font-bold mb-6">Sucursales</h2>
 
@@ -63,12 +63,13 @@ body {
                     <th class="pb-3">Acción</th>
                 </tr>
             </thead>
-            <tbody id="branchesTable">
-            </tbody>
+            <tbody id="branchesTable"></tbody>
         </table>
 
         <div class="mt-6">
-            <button class="btn-gold" onclick="addBranch()">+ Agregar Sucursal</button>
+            <button class="btn-gold" onclick="Portal.openStripePortal()">
+                Administrar Suscripción
+            </button>
         </div>
     </div>
 
