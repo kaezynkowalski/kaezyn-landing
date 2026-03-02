@@ -51,11 +51,19 @@ async function loadDashboard() {
 }
 
 function renderDashboard(branches) {
-    
+
     window.currentCustomerId = branches[0].stripe_customer_id;
+
+    const allowedQuantity = branches[0].allowed_quantity || 1;
+    const activeBranches = branches.filter(b => b.activo === true).length;
 
     document.getElementById("planName").innerText =
         "Plan " + branches[0].plan;
+
+    const renewalText = `
+        ${activeBranches} / ${allowedQuantity} sucursales activas
+    `;
+    document.getElementById("renewalDate").innerText = renewalText;
 
     const table = document.getElementById("branchesTable");
     table.innerHTML = "";
@@ -99,6 +107,8 @@ function renderDashboard(branches) {
 
         table.appendChild(row);
     });
+
+    configureAddBranchButton(activeBranches, allowedQuantity);
 }
 
 function activateBranch(branchId) {
