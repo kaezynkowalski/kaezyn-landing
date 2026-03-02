@@ -51,6 +51,8 @@ async function loadDashboard() {
 }
 
 function renderDashboard(branches) {
+    
+    window.currentCustomerId = branches[0].stripe_customer_id;
 
     document.getElementById("planName").innerText =
         "Plan " + branches[0].plan;
