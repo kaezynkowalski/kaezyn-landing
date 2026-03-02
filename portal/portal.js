@@ -1,139 +1,111 @@
 const Portal = (() => {
 
-const SUPABASE_URL = "https://TU_PROJECT_ID.supabase.co";
-const SUPABASE_ANON_KEY = "TU_PUBLIC_ANON_KEY";
+const SUPABASE_URL = "https://douynvwqijrlqzhbllcv.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRvdXludndxaWpybHF6aGJsbGN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxOTM0MDMsImV4cCI6MjA4NDc2OTQwM30.F_xAB9DUqmcy84I57693q63NY1chlQxPTOK6FtQkAkQ";
 
 const supabase = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_ANON_KEY
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY
 );
 
-/* ================= LOGIN ================= */
+/* ================= AUTH ================= */
 
-async function login() {
-
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-
-  const { error } = await supabase.auth.signInWithPassword({
-    email,
-    password
-  });
-
-  if (error) {
-    document.getElementById("errorMsg").innerText = error.message;
-    return;
-  }
-
-  window.location.href = "/portal/dashboard.html";
+async function requireAuth() {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+        window.location.href = "/portal/login.html";
+        return null;
+    }
+    return user;
 }
-
-/* ================= LOGOUT ================= */
 
 async function logout() {
-  await supabase.auth.signOut();
-  window.location.href = "/portal/login.html";
-}
-
-/* ================= ACTIVATION ================= */
-
-async function handleActivation() {
-
-  const params = new URLSearchParams(window.location.search);
-  const sessionId = params.get("session_id");
-
-  if (!sessionId) {
-    document.getElementById("statusText").innerText =
-      "Sesión inválida.";
-    return;
-  }
-
-  const res = await fetch("https://hook.make.com/TU_WEBHOOK_ACTIVATION", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ session_id: sessionId })
-  });
-
-  const data = await res.json();
-
-  if (!data.success) {
-    document.getElementById("statusText").innerText =
-      "Error activando cuenta.";
-    return;
-  }
-
-  document.getElementById("statusText").innerText =
-    "Cuenta creada. Redirigiendo a login...";
-
-  setTimeout(() => {
+    await supabase.auth.signOut();
     window.location.href = "/portal/login.html";
-  }, 2000);
 }
 
 /* ================= DASHBOARD ================= */
 
 async function loadDashboard() {
 
-  const { data: { user } } = await supabase.auth.getUser();
+    const user = await requireAuth();
+    if (!user) return;
 
-  if (!user) {
-    window.location.href = "/portal/login.html";
-    return;
-  }
+    const { data: branches, error } = await supabase
+        .from("businesses")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("branch_number", { ascending: true });
 
-  const { data: branches, error } = await supabase
-    .from("businesses")
-    .select("*");
+    if (error) {
+        document.body.innerHTML = "Error cargando datos.";
+        return;
+    }
 
-  if (error) {
-    document.body.innerHTML = "Error cargando datos";
-    return;
-  }
+    if (!branches || branches.length === 0) {
+        document.body.innerHTML = "No hay sucursales activas.";
+        return;
+    }
 
-  renderDashboard(branches);
+    renderDashboard(branches);
 }
 
 function renderDashboard(branches) {
 
-  if (!branches || branches.length === 0) {
-    document.body.innerHTML = "No hay sucursales activas.";
-    return;
-  }
+    document.getElementById("planName").innerText =
+        "Plan " + branches[0].plan;
 
-  document.getElementById("planBox").innerHTML =
-    `Plan: ${branches[0].plan} | Permitidas: ${branches[0].allowed_quantity}`;
+    const table = document.getElementById("branchesTable");
+    table.innerHTML = "";
 
-  const table = document.getElementById("branchesTable");
-  table.innerHTML = "";
+    branches.forEach(branch => {
 
-  branches.forEach(branch => {
+        const row = document.createElement("tr");
+        row.className = "border-b border-white/5";
 
-    const row = document.createElement("tr");
+        row.innerHTML = `
+            <td class="py-4">
+                ${branch.business_name || "Sucursal " + branch.branch_number}
+            </td>
+            <td class="py-4 ${branch.activo ? 'text-green-400' : 'text-red-400'}">
+                ${branch.activo ? 'Activa' : 'Desactivada'}
+            </td>
+            <td class="py-4">
+                <button class="btn-gold"
+                onclick="alert('Próxima versión configuración sucursal')">
+                Gestionar
+                </button>
+            </td>
+        `;
 
-    row.innerHTML = `
-      <td class="py-4">
-        ${branch.business_name || "Sucursal " + branch.branch_number}
-      </td>
-      <td>
-        ${branch.activo ? "Activa" : "Desactivada"}
-      </td>
-      <td>
-        <button onclick="alert('Configuración futura')"
-          class="text-yellow-400">
-          Gestionar
-        </button>
-      </td>
-    `;
+        table.appendChild(row);
+    });
+}
 
-    table.appendChild(row);
-  });
+/* ================= STRIPE PORTAL ================= */
+
+async function openStripePortal() {
+
+    const user = await requireAuth();
+    if (!user) return;
+
+    const res = await fetch("https://hook.us2.make.com/4nwu1igjvf2casgekjsf24lujuse5i5s", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: user.id })
+    });
+
+    const data = await res.json();
+
+    if (data.url) {
+        window.location.href = data.url;
+    }
 }
 
 return {
-  login,
-  logout,
-  handleActivation,
-  loadDashboard
+    loadDashboard,
+    logout,
+    openStripePortal
 };
 
 })();
