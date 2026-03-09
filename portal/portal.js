@@ -36,6 +36,14 @@ const Portal = (() => {
         window.location.href = "/portal/login.html";
     }
 
+    async function sendResetPassword(email) {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: 'https://kaezyn.com/portal/reset-password.html',
+        });
+        if (error) throw error;
+        return true;
+    }
+
     /* ================= DASHBOARD ================= */
 
     async function loadDashboard() {
@@ -171,7 +179,8 @@ const Portal = (() => {
         logout,
         activateBranch,
         manageBranch,
-        openStripePortal
+        openStripePortal,
+        sendResetPassword
     };
 
 })();
