@@ -115,6 +115,27 @@
     </form>
 
     <p id="errorMessage" class="text-red-400 text-sm mt-4"></p>
+
+    <div class="mt-6">
+    <a href="javascript:void(0)" onclick="showForgotPassword()" class="text-sm text-yellow-400/80 hover:text-yellow-400 transition underline decoration-1 underline-offset-4">
+        ¿Olvidaste tu contraseña?
+    </a>
+</div>
+
+<div id="recoveryModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="card p-8 rounded-xl max-w-sm w-full text-center border border-white/20">
+        <h3 class="text-xl font-bold mb-4">Recuperar Acceso</h3>
+        <p class="text-sm text-gray-400 mb-6">Ingresa tu correo y te enviaremos un enlace de restablecimiento.</p>
+        
+        <input type="email" id="recoveryEmail" placeholder="tu@email.com" 
+               class="w-full px-4 py-3 rounded-md bg-white/10 border border-white/20 focus:outline-none focus:border-yellow-400 text-white mb-4">
+        
+        <div class="flex gap-3">
+            <button onclick="hideForgotPassword()" class="flex-1 px-4 py-2 rounded-md bg-white/5 hover:bg-white/10 transition text-sm">Cancelar</button>
+            <button onclick="handleRecoverySubmit()" id="recoveryBtn" class="flex-1 btn-gold px-4 py-2 rounded-md bg-yellow-400 text-black font-bold text-sm">Enviar</button>
+        </div>
+        <p id="recoveryStatus" class="mt-4 text-xs font-medium"></p>
+    </div>
 </div>
 
 <script>
@@ -155,6 +176,47 @@
             btn.disabled = false;
         }
     });
+    
+    // Funciones visuales para el modal
+    function showForgotPassword() {
+        document.getElementById('recoveryModal').classList.remove('hidden');
+    }
+
+    function hideForgotPassword() {
+        document.getElementById('recoveryModal').classList.add('hidden');
+        document.getElementById('recoveryStatus').innerText = "";
+    }
+
+    async function handleRecoverySubmit() {
+        const email = document.getElementById('recoveryEmail').value;
+        const status = document.getElementById('recoveryStatus');
+        const btn = document.getElementById('recoveryBtn');
+
+        if (!email) {
+            status.innerText = "Por favor ingresa tu correo.";
+            status.className = "mt-4 text-xs text-yellow-400";
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerText = "Enviando...";
+
+        try {
+            // Llamamos a la nueva función que pondremos en portal.js
+            await Portal.sendResetPassword(email);
+        
+            status.innerText = "¡Enviado! Revisa tu bandeja de entrada.";
+            status.className = "mt-4 text-xs text-green-400";
+        
+            setTimeout(hideForgotPassword, 3000);
+        } catch (err) {
+            status.innerText = "Error: " + err.message;
+            status.className = "mt-4 text-xs text-red-400";
+        } finally {
+            btn.disabled = false;
+            btn.innerText = "Enviar";
+        }
+    }
 </script>
 
 </body>
