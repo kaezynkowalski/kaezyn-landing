@@ -157,28 +157,30 @@
             // Función para probar el enlace de Google en una pestaña nueva
             // Coloca esto al principio de tu <script> o bien arriba, 
         
-        function validatePlaceId(value) {
-            const check = document.getElementById('check_google');
-            // Si tiene más de 5 caracteres, mostramos el check (un Place ID real suele ser largo)
-            if (value.trim().length > 5) {
-                check.classList.remove('hidden');
-            } else {
-                check.classList.add('hidden');
+        
+            function validatePlaceId(value) {
+                const check = document.getElementById('check_google');
+                // Si tiene más de 5 caracteres, mostramos el check (un Place ID real suele ser largo)
+                if (value.trim().length > 5) {
+                    check.classList.remove('hidden');
+                } else {
+                    check.classList.add('hidden');
+                }
             }
-        }
             
-        function testGoogleLink() {
-            const input = document.getElementById('google_place_id');
-            const placeId = input ? input.value.trim() : "";
+        
+            function testGoogleLink() {
+                const input = document.getElementById('google_place_id');
+                const placeId = input ? input.value.trim() : "";
     
-            if (!placeId) {
-                alert("Por favor, ingresa un Place ID primero.");
-                return;
+                if (!placeId) {
+                    alert("Por favor, ingresa un Place ID primero.");
+                    return;
+                }
+    
+                const fullUrl = `https://search.google.com/local/writereview?placeid=${placeId}`;
+                window.open(fullUrl, '_blank');
             }
-    
-            const fullUrl = `https://search.google.com/local/writereview?placeid=${placeId}`;
-            window.open(fullUrl, '_blank');
-        }
     
             const fullUrl = `https://search.google.com/local/writereview?placeid=${placeId}`;
     
