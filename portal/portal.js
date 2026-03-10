@@ -98,7 +98,7 @@ const Portal = (() => {
                     <td class="py-4">
                         ${!isConfigured
                             ? `<button class="bg-yellow-400 text-black px-4 py-1 rounded font-bold text-xs"
-                                onclick="Portal.activateBranch('${branch.branch_number}')">Activar</button>`
+                                onclick="Portal.activateBranch('${branch.id}')">Activar</button>`
                             : `<button class="border border-yellow-400 text-yellow-400 px-4 py-1 rounded font-bold text-xs hover:bg-yellow-400 hover:text-black transition"
                                 onclick="Portal.manageBranch('${branch.id}')">Gestionar</button>`
                         }
@@ -110,14 +110,51 @@ const Portal = (() => {
     }
 
     // AJUSTE 3 (Continuación): Recibimos el número de sucursal y lo inyectamos en la URL
-    function activateBranch(branchNumber) {
+    function activateBranch(branchId) {
         const filloutBaseUrl = "https://forms.fillout.com/t/421DwsCucCus";
-        window.open(`${filloutBaseUrl}?branch_id=${branchNumber}`, '_blank');
+        window.open(`${filloutBaseUrl}?branch_id=${branchId}`, '_blank');
     }
 
     function manageBranch(branchId) {
         // Para gestionar, sí es mejor usar el ID (UUID) único de la base de datos
         window.location.href = `/portal/manage.html?id=${branchId}`;
+    }
+
+    /* ================= GESTIÓN DE SUCURSAL ================= */
+
+    async function getBranchDetails(id) {
+        const user = await requireAuth();
+        if (!user) return null;
+
+        const { data, error } = await supabase
+            .from("businesses")
+            .select("*")
+            .eq("id", id)
+            .eq("user_id", user.id) // SEGURIDAD: Solo si le pertenece al usuario
+            .single();
+
+        if (error) {
+            console.error("Error cargando sucursal:", error);
+            return null;
+        }
+        return data;
+    }
+
+    async function updateBranch(id, updates) {
+        const user = await requireAuth();
+        if (!user) return false;
+
+        const { error } = await supabase
+            .from("businesses")
+            .update(updates)
+            .eq("id", id)
+            .eq("user_id", user.id); // SEGURIDAD: Solo si le pertenece al usuario
+
+        if (error) {
+            console.error("Error actualizando sucursal:", error);
+            return false;
+        }
+        return true;
     }
 
     /* ================= STRIPE PORTAL ================= */
@@ -141,7 +178,7 @@ const Portal = (() => {
         const finalUrl = `${stripePortalBaseUrl}?prefilled_email=${encodeURIComponent(user.email)}`;
 
         // 4. REDIRIGIMOS
-        window.location.href = finalUrl;
+        window.open(finalUrl, '_blank');
         
         // Regresamos el botón a la normalidad por si el usuario regresa atrás
         setTimeout(() => {
@@ -153,8 +190,16 @@ const Portal = (() => {
     }
 
     return {
-        login, requireAuth, loadDashboard, logout,
-        activateBranch, manageBranch, openStripePortal, sendResetPassword
+        login, 
+        requireAuth, 
+        loadDashboard, 
+        logout,
+        activateBranch, 
+        manageBranch, 
+        openStripePortal, 
+        sendResetPassword,
+        getBranchDetails,
+        updateBranch
     };
 
 })();
