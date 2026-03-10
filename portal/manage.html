@@ -80,6 +80,34 @@
                     <input type="text" id="client_id" class="input-field w-full px-4 py-3 rounded-lg font-mono text-sm">
                 </div>
 
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-yellow-400 mb-2">Google Place ID</label>
+                    <div class="flex gap-2">
+                        <div class="flex grow">
+                            <span class="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-white/20 bg-white/10 text-gray-400 text-[10px] shrink-0">
+                                .../placeid=
+                            </span>
+                            <input type="text" id="google_place_id" class="input-field w-full px-4 py-3 rounded-r-lg text-sm" placeholder="ChIJAYP4EoH_0YUR...">
+                        </div>
+                        <button type="button" onclick="testGoogleLink()" class="px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-xs font-bold hover:bg-white/20 transition">
+                            Probar Enlace
+                        </button>
+                    </div>
+                    <p class="text-[10px] text-gray-500 mt-1">Ingresa el código Place ID y presiona "Probar" para verificar.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-yellow-400 mb-2">Email del Manager</label>
+                        <input type="email" id="manager_email" class="input-field w-full px-4 py-3 rounded-lg text-sm">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-yellow-400 mb-2">Teléfono (+52...)</label>
+                        <input type="tel" id="manager_phone" class="input-field w-full px-4 py-3 rounded-lg text-sm" placeholder="+52 5512345678">
+                    </div>
+                </div>
+
                 <div class="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10">
                     <span class="text-sm text-gray-300">Estado de Operación</span>
                     <span id="statusBadge" class="px-3 py-1 rounded-full text-xs font-bold uppercase"></span>
@@ -108,12 +136,29 @@
                 return;
             }
 
+            // Función para probar el enlace de Google en una pestaña nueva
+            function testGoogleLink() {
+                const placeId = document.getElementById('google_place_id').value.trim();
+                if (!placeId) {
+                    alert("Por favor, ingresa un Place ID primero.");
+                    return;
+                }
+                const fullUrl = `https://search.google.com/local/writereview?placeid=${placeId}`;
+                window.open(fullUrl, '_blank');
+            }
+
             // 2. Cargar datos
             const branch = await Portal.getBranchDetails(branchId);
+            const fullUrl = branch.google_review_url || "";
+            const placeId = fullUrl.includes('placeid=') ? fullUrl.split('placeid=')[1] : "";
+
             
             if (branch) {
                 document.getElementById('business_name').value = branch.business_name || "";
                 document.getElementById('client_id').value = branch.client_id || "";
+                document.getElementById('google_place_id').value = placeId;
+                document.getElementById('manager_email').value = branch.manager_email || "";
+                document.getElementById('manager_phone').value = branch.manager_phone || "";
                 document.getElementById('headerTitle').innerText = "Sucursal " + (branch.branch_number || "");
                 
                 const badge = document.getElementById('statusBadge');
@@ -127,33 +172,49 @@
             }
 
             // 3. Manejar el guardado
+            // Dentro del onsubmit del formulario, asegúrate de procesar el teléfono y el ID
             document.getElementById('manageForm').onsubmit = async (e) => {
                 e.preventDefault();
                 const btn = document.getElementById('saveBtn');
                 const msg = document.getElementById('msg');
-                
+    
+                const phone = document.getElementById('manager_phone').value.trim();
+                const placeId = document.getElementById('google_place_id').value.trim();
+
+                // VALIDACIÓN TELÉFONO: Debe tener '+' y al menos 10 dígitos
+                // Eliminamos espacios para la validación (ej: +52 55... -> +5255...)
+                const cleanPhone = phone.replace(/\s/g, "");
+                const phoneRegex = /^\+\d{10,15}$/; 
+    
+                if (!phoneRegex.test(cleanPhone)) {
+                    alert("Formato de teléfono inválido. Debe ser: +52 5512345678");
+                    return;
+                }
+
                 btn.disabled = true;
                 btn.innerText = "GUARDANDO...";
 
                 const updates = {
                     business_name: document.getElementById('business_name').value,
-                    client_id: document.getElementById('client_id').value
+                    client_id: document.getElementById('client_id').value,
+                    google_review_url: placeId ? `https://search.google.com/local/writereview?placeid=${placeId}` : null,
+                    manager_email: document.getElementById('manager_email').value,
+                    manager_phone: phone // Guardamos el formato con espacios si el usuario lo prefiere, pero validado
                 };
 
                 const success = await Portal.updateBranch(branchId, updates);
 
                 if (success) {
-                    msg.innerText = "¡Configuración actualizada con éxito!";
+                    msg.innerText = "¡Cambios guardados correctamente!";
                     msg.className = "mt-6 text-center text-sm font-medium text-green-400";
                 } else {
-                    msg.innerText = "Error al actualizar. Intenta de nuevo.";
+                    msg.innerText = "Hubo un error al guardar. Revisa tu conexión.";
                     msg.className = "mt-6 text-center text-sm font-medium text-red-400";
                 }
-                
+    
                 msg.classList.remove('hidden');
                 btn.disabled = false;
                 btn.innerText = "GUARDAR CAMBIOS";
-                
                 setTimeout(() => msg.classList.add('hidden'), 4000);
             };
         });
