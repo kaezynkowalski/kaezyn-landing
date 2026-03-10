@@ -1,21 +1,14 @@
 const Portal = (() => {
 
-    // Credenciales Sincronizadas
     const SUPABASE_URL = "https://douynvwqijrlqzhbllcv.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRvdXludndxaWpybHF6aGJsbGN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxOTM0MDMsImV4cCI6MjA4NDc2OTQwM30.F_xAB9DUqmcy84I57693q63NY1chlQxPTOK6FtQkAkQ";
 
-    const supabase = window.supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_ANON_KEY
-    );
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     /* ================= AUTH ================= */
 
     async function login(email, password) {
-        const { data, error } = await supabase.auth.signInWithPassword({
-            email,
-            password
-        });
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         return data;
     }
@@ -61,7 +54,7 @@ const Portal = (() => {
         }
 
         if (!branches || branches.length === 0) {
-            document.body.innerHTML = "<div style='color:white; padding:20px;'>No hay sucursales activas vinculadas a este usuario.</div>";
+            document.body.innerHTML = "<div style='color:white; padding:20px;'>No hay sucursales vinculadas a este usuario.</div>";
             return;
         }
 
@@ -79,46 +72,35 @@ const Portal = (() => {
         const table = document.getElementById("branchesTable");
 
         if(planNameEl) planNameEl.innerText = "Plan " + (branches[0].plan || "Pro");
-        
-        if(renewalDateEl) {
-            renewalDateEl.innerText = `${activeBranches} / ${allowedQuantity} sucursales activas`;
-        }
+        if(renewalDateEl) renewalDateEl.innerText = `${activeBranches} / ${allowedQuantity} sucursales activas`;
 
         if (table) {
             table.innerHTML = "";
             branches.forEach(branch => {
                 
-                // AJUSTE AQUÍ: Verificamos si es null O si está vacío ("")
-                const isConfigured = branch.business_name !== null && branch.business_name.trim() !== "";
+                // AJUSTE 1: Ahora evaluamos 'client_id' para saber si está configurado
+                let isConfigured = false;
+                if (branch.client_id && String(branch.client_id).trim() !== "" && String(branch.client_id).toLowerCase() !== "null") {
+                    isConfigured = true;
+                }
 
                 const row = document.createElement("tr");
                 row.className = "border-b border-white/5";
+                
+                // AJUSTE 3: Pasamos 'branch.branch_number' en lugar del ID largo a la función activateBranch
                 row.innerHTML = `
                     <td class="py-4">
-                        ${isConfigured ? branch.business_name : "Sucursal " + branch.branch_number}
+                        ${branch.business_name} <span class="text-xs text-gray-500 ml-2">(Sucursal ${branch.branch_number})</span>
                     </td>
-                    <td class="py-4 ${
-                        isConfigured
-                            ? (branch.activo ? 'text-green-400' : 'text-yellow-400')
-                            : 'text-gray-400'
-                    }">
-                        ${
-                            !isConfigured
-                                ? 'Pendiente de activación'
-                                : (branch.activo ? 'Activa' : 'Pausada')
-                        }
+                    <td class="py-4 ${isConfigured ? (branch.activo ? 'text-green-400' : 'text-yellow-400') : 'text-gray-400'}">
+                        ${!isConfigured ? 'Pendiente de activación' : (branch.activo ? 'Activa' : 'Pausada')}
                     </td>
                     <td class="py-4">
-                        ${
-                            !isConfigured
-                                ? `<button class="bg-yellow-400 text-black px-4 py-1 rounded font-bold text-xs"
-                                    onclick="Portal.activateBranch('${branch.id}')">
-                                    Activar
-                                   </button>`
-                                : `<button class="border border-yellow-400 text-yellow-400 px-4 py-1 rounded font-bold text-xs hover:bg-yellow-400 hover:text-black transition"
-                                    onclick="Portal.manageBranch('${branch.id}')">
-                                    Gestionar
-                                   </button>`
+                        ${!isConfigured
+                            ? `<button class="bg-yellow-400 text-black px-4 py-1 rounded font-bold text-xs"
+                                onclick="Portal.activateBranch('${branch.branch_number}')">Activar</button>`
+                            : `<button class="border border-yellow-400 text-yellow-400 px-4 py-1 rounded font-bold text-xs hover:bg-yellow-400 hover:text-black transition"
+                                onclick="Portal.manageBranch('${branch.id}')">Gestionar</button>`
                         }
                     </td>
                 `;
@@ -127,65 +109,52 @@ const Portal = (() => {
         }
     }
 
-    // AJUSTE: Ahora abre el formulario de Fillout en una NUEVA pestaña
-    function activateBranch(branchId) {
+    // AJUSTE 3 (Continuación): Recibimos el número de sucursal y lo inyectamos en la URL
+    function activateBranch(branchNumber) {
         const filloutBaseUrl = "https://forms.fillout.com/t/421DwsCucCus";
-        window.open(`${filloutBaseUrl}?branch_id=${branchId}`, '_blank');
+        window.open(`${filloutBaseUrl}?branch_id=${branchNumber}`, '_blank');
     }
 
     function manageBranch(branchId) {
+        // Para gestionar, sí es mejor usar el ID (UUID) único de la base de datos
         window.location.href = `/portal/manage.html?id=${branchId}`;
     }
 
     /* ================= STRIPE PORTAL ================= */
 
-    async function openStripePortal(customerId) {
-        // Validación de seguridad
-        if (!customerId) {
-            alert("Error: No se encontró el ID de facturación.");
-            return;
-        }
-
-        const btn = document.getElementById("btnStripe");
-        if(btn) {
-            btn.innerText = "Conectando...";
-            btn.disabled = true;
-        }
-
+    async function openStripePortal() {
+        // 1. OBTENEMOS AL USUARIO ACTUAL
         const user = await requireAuth();
         if (!user) return;
 
-        try {
-            const res = await fetch("https://hook.us2.make.com/4nwu1igjvf2casgekjsf24lujuse5i5s", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ customer_id: customerId })
-            });
-
-            const data = await res.json();
-            
-            if (data.url) {
-                window.location.href = data.url;
-            } else {
-                alert("Error al obtener la URL del portal de pagos.");
-                if(btn) { btn.innerText = "Administrar Suscripción"; btn.disabled = false; }
-            }
-        } catch (err) {
-            console.error(err);
-            alert("Hubo un error al intentar abrir Stripe.");
-            if(btn) { btn.innerText = "Administrar Suscripción"; btn.disabled = false; }
+        const btn = document.getElementById("btnStripe");
+        if(btn) {
+            btn.innerText = "Redirigiendo a Stripe...";
+            btn.disabled = true;
         }
+
+        // 2. PEGA AQUÍ TU ENLACE UNIVERSAL DE STRIPE
+        const stripePortalBaseUrl = "https://billing.stripe.com/p/login/test_cNi14n59bfvs5Vud7BabK00";
+
+        // 3. ARMAMOS LA URL CON EL CORREO PRE-LLENADO
+        // Esto le ahorra un paso a tu cliente
+        const finalUrl = `${stripePortalBaseUrl}?prefilled_email=${encodeURIComponent(user.email)}`;
+
+        // 4. REDIRIGIMOS
+        window.location.href = finalUrl;
+        
+        // Regresamos el botón a la normalidad por si el usuario regresa atrás
+        setTimeout(() => {
+            if(btn) {
+                btn.innerText = "Administrar Suscripción";
+                btn.disabled = false;
+            }
+        }, 3000);
     }
 
     return {
-        login,
-        requireAuth,
-        loadDashboard,
-        logout,
-        activateBranch,
-        manageBranch,
-        openStripePortal,
-        sendResetPassword
+        login, requireAuth, loadDashboard, logout,
+        activateBranch, manageBranch, openStripePortal, sendResetPassword
     };
 
 })();
