@@ -80,16 +80,34 @@
                     <input type="text" id="client_id" class="input-field w-full px-4 py-3 rounded-lg font-mono text-sm">
                 </div>
 
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-yellow-400 mb-2">Google Place ID</label>
+                <div class="relative">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-yellow-400">Google Place ID</label>
+                        <button type="button" onclick="window.open('https://developers.google.com/maps/documentation/javascript/examples/places-placeid-finder', '_blank')" 
+                                class="text-[10px] text-gray-400 hover:text-yellow-400 transition italic underline">
+                            ¿No sabes tu Place ID? Búscalo aquí
+                        </button>
+                    </div>
+
                     <div class="flex gap-2">
-                        <div class="flex grow">
+                        <div class="relative flex grow">
                             <span class="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-white/20 bg-white/10 text-gray-400 text-[10px] shrink-0">
                                 .../placeid=
                             </span>
-                            <input type="text" id="google_place_id" class="input-field w-full px-4 py-3 rounded-r-lg text-sm" placeholder="ChIJAYP4EoH_0YUR...">
+                            <input type="text" id="google_place_id" 
+                                   class="input-field w-full px-4 py-3 rounded-r-lg text-sm pr-10" 
+                                   placeholder="ChIJAYP4EoH_0YUR..."
+                                   oninput="validatePlaceId(this.value)">
+            
+                            <div id="check_google" class="absolute right-3 top-1/2 -translate-y-1/2 hidden">
+                                <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                            </div>
                         </div>
-                        <button type="button" onclick="testGoogleLink()" class="px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-xs font-bold hover:bg-white/20 transition">
+        
+                        <button type="button" onclick="testGoogleLink()" 
+                                class="px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-xs font-bold hover:bg-white/20 transition">
                             Probar Enlace
                         </button>
                     </div>
@@ -137,15 +155,36 @@
             }
 
             // Función para probar el enlace de Google en una pestaña nueva
-            function testGoogleLink() {
-                const placeId = document.getElementById('google_place_id').value.trim();
-                if (!placeId) {
-                    alert("Por favor, ingresa un Place ID primero.");
-                    return;
-                }
-                const fullUrl = `https://search.google.com/local/writereview?placeid=${placeId}`;
-                window.open(fullUrl, '_blank');
+            // Coloca esto al principio de tu <script> o bien arriba, 
+        
+        function validatePlaceId(value) {
+            const check = document.getElementById('check_google');
+            // Si tiene más de 5 caracteres, mostramos el check (un Place ID real suele ser largo)
+            if (value.trim().length > 5) {
+                check.classList.remove('hidden');
+            } else {
+                check.classList.add('hidden');
             }
+        }
+            
+        function testGoogleLink() {
+            const input = document.getElementById('google_place_id');
+            const placeId = input ? input.value.trim() : "";
+    
+            if (!placeId) {
+                alert("Por favor, ingresa un Place ID primero.");
+                return;
+            }
+    
+            const fullUrl = `https://search.google.com/local/writereview?placeid=${placeId}`;
+            window.open(fullUrl, '_blank');
+        }
+    
+            const fullUrl = `https://search.google.com/local/writereview?placeid=${placeId}`;
+    
+            console.log("Probando enlace:", fullUrl); // Esto te ayudará a ver si dispara en la consola
+            window.open(fullUrl, '_blank');
+        }
 
             // 2. Cargar datos
             const branch = await Portal.getBranchDetails(branchId);
