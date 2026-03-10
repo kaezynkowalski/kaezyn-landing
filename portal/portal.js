@@ -11,7 +11,6 @@ const Portal = (() => {
 
     /* ================= AUTH ================= */
 
-    // Función para el Login (Nueva/Ajustada)
     async function login(email, password) {
         const { data, error } = await supabase.auth.signInWithPassword({
             email,
@@ -22,7 +21,6 @@ const Portal = (() => {
     }
 
     async function requireAuth() {
-        // Usamos getSession para mayor rapidez en la verificación de ruta
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
             window.location.href = "/portal/login.html";
@@ -76,7 +74,6 @@ const Portal = (() => {
         const allowedQuantity = branches[0].allowed_quantity || 1;
         const activeBranches = branches.filter(b => b.activo === true).length;
 
-        // Asegúrate de que estos IDs existan en tu dashboard.html
         const planNameEl = document.getElementById("planName");
         const renewalDateEl = document.getElementById("renewalDate");
         const table = document.getElementById("branchesTable");
@@ -90,12 +87,15 @@ const Portal = (() => {
         if (table) {
             table.innerHTML = "";
             branches.forEach(branch => {
-                const isConfigured = branch.business_name !== null;
+                
+                // AJUSTE AQUÍ: Verificamos si es null O si está vacío ("")
+                const isConfigured = branch.business_name !== null && branch.business_name.trim() !== "";
+
                 const row = document.createElement("tr");
                 row.className = "border-b border-white/5";
                 row.innerHTML = `
                     <td class="py-4">
-                        ${branch.business_name || "Sucursal " + branch.branch_number}
+                        ${isConfigured ? branch.business_name : "Sucursal " + branch.branch_number}
                     </td>
                     <td class="py-4 ${
                         isConfigured
@@ -115,7 +115,7 @@ const Portal = (() => {
                                     onclick="Portal.activateBranch('${branch.id}')">
                                     Activar
                                    </button>`
-                                : `<button class="border border-yellow-400 text-yellow-400 px-4 py-1 rounded font-bold text-xs"
+                                : `<button class="border border-yellow-400 text-yellow-400 px-4 py-1 rounded font-bold text-xs hover:bg-yellow-400 hover:text-black transition"
                                     onclick="Portal.manageBranch('${branch.id}')">
                                     Gestionar
                                    </button>`
@@ -125,53 +125,58 @@ const Portal = (() => {
                 table.appendChild(row);
             });
         }
-
-        configureAddBranchButton(activeBranches, allowedQuantity);
     }
 
+    // AJUSTE: Ahora abre el formulario de Fillout en una NUEVA pestaña
     function activateBranch(branchId) {
         const filloutBaseUrl = "https://forms.fillout.com/t/421DwsCucCus";
-        window.location.href = `${filloutBaseUrl}?branch_id=${branchId}`;
+        window.open(`${filloutBaseUrl}?branch_id=${branchId}`, '_blank');
     }
 
-    // Nota: Agregué esta función que faltaba para evitar errores al hacer clic
     function manageBranch(branchId) {
-        // Redirigir a la gestión de la sucursal específica
         window.location.href = `/portal/manage.html?id=${branchId}`;
-    }
-        
-    function configureAddBranchButton(activeBranches, allowedQuantity) {
-        const button = document.getElementById("addBranchBtn"); // Mejor usar ID
-        if (!button) return;
-
-        if (activeBranches >= allowedQuantity) {
-            button.innerText = "Actualizar Plan";
-            button.onclick = () => Portal.openStripePortal(window.currentCustomerId);
-        } else {
-            button.innerText = "+ Activar Sucursal";
-            button.onclick = () => alert("Selecciona una sucursal 'Pendiente' en la tabla para activarla.");
-        }
     }
 
     /* ================= STRIPE PORTAL ================= */
 
     async function openStripePortal(customerId) {
+        // Validación de seguridad
+        if (!customerId) {
+            alert("Error: No se encontró el ID de facturación.");
+            return;
+        }
+
+        const btn = document.getElementById("btnStripe");
+        if(btn) {
+            btn.innerText = "Conectando...";
+            btn.disabled = true;
+        }
+
         const user = await requireAuth();
         if (!user) return;
 
-        const res = await fetch("https://hook.us2.make.com/4nwu1igjvf2casgekjsf24lujuse5i5s", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ customer_id: customerId })
-        });
+        try {
+            const res = await fetch("https://hook.us2.make.com/4nwu1igjvf2casgekjsf24lujuse5i5s", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ customer_id: customerId })
+            });
 
-        const data = await res.json();
-        if (data.url) {
-            window.location.href = data.url;
+            const data = await res.json();
+            
+            if (data.url) {
+                window.location.href = data.url;
+            } else {
+                alert("Error al obtener la URL del portal de pagos.");
+                if(btn) { btn.innerText = "Administrar Suscripción"; btn.disabled = false; }
+            }
+        } catch (err) {
+            console.error(err);
+            alert("Hubo un error al intentar abrir Stripe.");
+            if(btn) { btn.innerText = "Administrar Suscripción"; btn.disabled = false; }
         }
     }
 
-    // Exportar las funciones para que sean accesibles vía Portal.XXXX
     return {
         login,
         requireAuth,
