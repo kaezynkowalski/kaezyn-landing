@@ -38,6 +38,14 @@ body {
     font-weight: 600;
     border-radius: 8px;
     padding: 10px 20px;
+    transition: all 0.3s ease;
+}
+.btn-gold:hover {
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+}
+.btn-gold:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
 }
 </style>
 </head>
@@ -51,7 +59,7 @@ body {
         <div class="text-right">
             <p id="planName" class="font-bold text-yellow-300"></p>
             <p id="renewalDate" class="text-sm text-gray-400"></p>
-            <button onclick="Portal.logout()" class="text-sm text-gray-400 mt-2">Cerrar sesión</button>
+            <button onclick="Portal.logout()" class="text-sm text-gray-400 mt-2 hover:text-white transition">Cerrar sesión</button>
         </div>
     </div>
 
@@ -69,8 +77,8 @@ body {
             <tbody id="branchesTable"></tbody>
         </table>
 
-        <div class="mt-6">
-            <button class="btn-gold" onclick="Portal.openStripePortal(currentCustomerId)">
+        <div class="mt-8">
+            <button id="btnStripe" class="btn-gold" onclick="Portal.openStripePortal(window.currentCustomerId)">
                 Administrar Suscripción
             </button>
         </div>
