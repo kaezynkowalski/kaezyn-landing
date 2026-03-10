@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestionar Sucursal | Kaezyn</title>
+    
+    <link rel="icon" type="image/png" href="/assets/favicon.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --color-night-blue: #0b0f2a;
+            --color-gold: #FFD700;
+            --color-gold-dark: #d4af37;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--color-night-blue);
+            color: #EAEAEA;
+            background-image: radial-gradient(circle at top right, rgba(77, 42, 122, 0.2), transparent);
+        }
+        .card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(12px);
+        }
+        .input-field {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            transition: all 0.3s;
+        }
+        .input-field:focus {
+            border-color: var(--color-gold);
+            outline: none;
+            background: rgba(255,255,255,0.1);
+        }
+        .btn-gold {
+            background: linear-gradient(145deg, var(--color-gold), var(--color-gold-dark));
+            color: #1a1a1a;
+            transition: transform 0.2s;
+        }
+        .btn-gold:active { transform: scale(0.98); }
+        .loading-overlay {
+            background: var(--color-night-blue);
+            z-index: 100;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <div id="loader" class="loading-overlay fixed inset-0 flex items-center justify-center">
+        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-400"></div>
+    </div>
+
+    <div class="container mx-auto px-6 py-10 max-w-2xl">
+        
+        <div class="flex items-center justify-between mb-8">
+            <button onclick="window.location.href='dashboard.html'" class="text-sm text-gray-400 hover:text-white flex items-center">
+                ← Volver al Dashboard
+            </button>
+            <img src="/assets/KAEZYN LOGO.png" class="h-8">
+        </div>
+
+        <div class="card rounded-2xl p-8">
+            <h1 id="headerTitle" class="text-2xl font-bold mb-2 text-white">Configuración</h1>
+            <p class="text-gray-400 text-sm mb-8">Edita los detalles de tu sucursal y guarda los cambios.</p>
+
+            <form id="manageForm" class="space-y-6">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-yellow-400 mb-2">Nombre del Negocio</label>
+                    <input type="text" id="business_name" class="input-field w-full px-4 py-3 rounded-lg" required>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-yellow-400 mb-2">Client ID (Identificador)</label>
+                    <input type="text" id="client_id" class="input-field w-full px-4 py-3 rounded-lg font-mono text-sm">
+                </div>
+
+                <div class="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10">
+                    <span class="text-sm text-gray-300">Estado de Operación</span>
+                    <span id="statusBadge" class="px-3 py-1 rounded-full text-xs font-bold uppercase"></span>
+                </div>
+
+                <div class="pt-4">
+                    <button type="submit" id="saveBtn" class="btn-gold w-full py-4 rounded-xl font-bold text-sm uppercase tracking-widest shadow-lg">
+                        Guardar Cambios
+                    </button>
+                </div>
+            </form>
+            
+            <p id="msg" class="mt-6 text-center text-sm font-medium hidden"></p>
+        </div>
+    </div>
+
+    <script src="portal.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            // 1. Obtener ID de la URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const branchId = urlParams.get('id');
+
+            if (!branchId) {
+                window.location.href = 'dashboard.html';
+                return;
+            }
+
+            // 2. Cargar datos
+            const branch = await Portal.getBranchDetails(branchId);
+            
+            if (branch) {
+                document.getElementById('business_name').value = branch.business_name || "";
+                document.getElementById('client_id').value = branch.client_id || "";
+                document.getElementById('headerTitle').innerText = "Sucursal " + (branch.branch_number || "");
+                
+                const badge = document.getElementById('statusBadge');
+                badge.innerText = branch.activo ? 'Activa' : 'Pausada';
+                badge.className += branch.activo ? ' bg-green-500/20 text-green-400' : ' bg-yellow-500/20 text-yellow-400';
+                
+                document.getElementById('loader').classList.add('hidden');
+            } else {
+                alert("No tienes permiso para ver esta sucursal.");
+                window.location.href = 'dashboard.html';
+            }
+
+            // 3. Manejar el guardado
+            document.getElementById('manageForm').onsubmit = async (e) => {
+                e.preventDefault();
+                const btn = document.getElementById('saveBtn');
+                const msg = document.getElementById('msg');
+                
+                btn.disabled = true;
+                btn.innerText = "GUARDANDO...";
+
+                const updates = {
+                    business_name: document.getElementById('business_name').value,
+                    client_id: document.getElementById('client_id').value
+                };
+
+                const success = await Portal.updateBranch(branchId, updates);
+
+                if (success) {
+                    msg.innerText = "¡Configuración actualizada con éxito!";
+                    msg.className = "mt-6 text-center text-sm font-medium text-green-400";
+                } else {
+                    msg.innerText = "Error al actualizar. Intenta de nuevo.";
+                    msg.className = "mt-6 text-center text-sm font-medium text-red-400";
+                }
+                
+                msg.classList.remove('hidden');
+                btn.disabled = false;
+                btn.innerText = "GUARDAR CAMBIOS";
+                
+                setTimeout(() => msg.classList.add('hidden'), 4000);
+            };
+        });
+    </script>
+</body>
+</html>
