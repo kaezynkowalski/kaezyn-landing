@@ -89,11 +89,11 @@ const Portal = (() => {
 
         const daysLeft = getDaysLeft(expirationDateStr);
 
-        // --- Lógica de Alertas Dinámica ---
+        // --- Lógica de Alertas Dinámica Aislada ---
         let alertHtml = "";
         
-        if (subStatus === 'canceled' || allowedQuantity === 0) {
-            // Escenario: Cancelado y ya expiró (Límite 0)
+        // 1. Apagón Total (Cancelado y tiempo agotado, o límite en 0)
+        if (subStatus === 'canceled' && (daysLeft === 0 || allowedQuantity === 0)) {
             alertHtml = `
             <div class="mb-6 bg-gray-900 border border-red-900/50 p-5 rounded-xl flex items-center justify-between">
                 <div>
@@ -104,8 +104,9 @@ const Portal = (() => {
                     Reactivar Ahora
                 </button>
             </div>`;
-        } else if (daysLeft !== null && daysLeft <= 30 && allowedQuantity > 0 && subStatus !== 'active') {
-            // Escenario: Cancelado pero aún con días restantes (Apagón final)
+        } 
+        // 2. Apagón en Progreso (Cancelado pero con días restantes)
+        else if (subStatus === 'canceled' && daysLeft > 0) {
             alertHtml = `
             <div class="mb-6 bg-orange-500/10 border border-orange-500/50 p-5 rounded-xl flex items-center justify-between">
                 <div class="flex items-center gap-4">
@@ -121,8 +122,9 @@ const Portal = (() => {
                     Mantener mi Plan
                 </button>
             </div>`;
-        } else if (activeCount > allowedQuantity) {
-            // Escenario: Downgrade (Límite excedido)
+        } 
+        // 3. Downgrade o Límite Excedido (Plan Activo, pero con exceso de sucursales)
+        else if (subStatus === 'active' && activeCount > allowedQuantity) {
             alertHtml = `
             <div class="mb-6 bg-red-500/10 border border-red-500/50 p-4 rounded-xl flex items-center justify-between">
                 <div>
@@ -138,7 +140,6 @@ const Portal = (() => {
                 ${alertHtml}
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     ${branches.map(branch => {
-                        // Verificamos si está configurada usando la lógica de client_id
                         let isConfigured = false;
                         if (branch.client_id && String(branch.client_id).trim() !== "" && String(branch.client_id).toLowerCase() !== "null") {
                             isConfigured = true;
@@ -178,7 +179,7 @@ const Portal = (() => {
             `;
         }
 
-        // --- Renderizar la Tabla de Sucursales (Mantenida intacta) ---
+        // --- Renderizar la Tabla de Sucursales ---
         if (table) {
             table.innerHTML = "";
             branches.forEach(branch => {
@@ -188,7 +189,6 @@ const Portal = (() => {
                     isConfigured = true;
                 }
 
-                // Aplicamos la misma lógica de bloqueo para la tabla
                 const canUserEdit = (allowedQuantity > 0 && (subStatus === 'active' || daysLeft > 0));
 
                 const row = document.createElement("tr");
@@ -203,9 +203,13 @@ const Portal = (() => {
                     actionButtonHtml = `<button class="border border-yellow-400 text-yellow-400 px-4 py-1 rounded font-bold text-xs hover:bg-yellow-400 hover:text-black transition" onclick="Portal.manageBranch('${branch.id}')">Gestionar</button>`;
                 }
 
+                // Aquí se agregó el <td> extra para el Client ID
                 row.innerHTML = `
                     <td class="py-4">
-                        ${isConfigured ? branch.business_name : 'Pendiente de Activación'} <span class="text-xs text-gray-500 ml-2">(Sucursal ${branch.branch_number})</span>
+                        ${branch.business_name && branch.business_name !== 'empty' ? branch.business_name : 'Pendiente de Activación'} <span class="text-xs text-gray-500 ml-2">(Sucursal ${branch.branch_number})</span>
+                    </td>
+                    <td class="py-4 text-sm text-gray-300">
+                        ${isConfigured && branch.client_id !== 'empty' ? branch.client_id : '---'}
                     </td>
                     <td class="py-4 ${isConfigured ? (branch.activo ? 'text-green-400' : 'text-yellow-400') : 'text-gray-400'}">
                         ${!isConfigured ? 'Pendiente de activación' : (branch.activo ? 'Activa' : 'Pausada')}
@@ -238,7 +242,7 @@ const Portal = (() => {
             .from("businesses")
             .select("*")
             .eq("id", id)
-            .eq("user_id", user.id) // SEGURIDAD
+            .eq("user_id", user.id) 
             .single();
 
         if (error) {
@@ -256,7 +260,7 @@ const Portal = (() => {
             .from("businesses")
             .update(updates)
             .eq("id", id)
-            .eq("user_id", user.id); // SEGURIDAD
+            .eq("user_id", user.id); 
 
         if (error) {
             console.error("Error actualizando sucursal:", error);
