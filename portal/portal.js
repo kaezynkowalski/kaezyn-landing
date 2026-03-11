@@ -1,10 +1,12 @@
 const Portal = (() => {
+
     const SUPABASE_URL = "https://douynvwqijrlqzhbllcv.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRvdXludndxaWpybHF6aGJsbGN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxOTM0MDMsImV4cCI6MjA4NDc2OTQwM30.F_xAB9DUqmcy84I57693q63NY1chlQxPTOK6FtQkAkQ";
 
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     /* ================= AUTH ================= */
+
     async function login(email, password) {
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -34,6 +36,7 @@ const Portal = (() => {
     }
 
     /* ================= DASHBOARD ================= */
+
     async function loadDashboard() {
         const user = await requireAuth();
         if (!user) return;
@@ -46,12 +49,12 @@ const Portal = (() => {
 
         if (error) {
             console.error("Error Supabase:", error);
-            document.body.innerHTML = "<div style='color:white; padding:20px;'>Error cargando datos.</div>";
+            document.body.innerHTML = "<div style='color:white; padding:20px;'>Error cargando datos de sucursales.</div>";
             return;
         }
 
         if (!branches || branches.length === 0) {
-            document.body.innerHTML = "<div style='color:white; padding:20px;'>No hay sucursales vinculadas.</div>";
+            document.body.innerHTML = "<div style='color:white; padding:20px;'>No hay sucursales vinculadas a este usuario.</div>";
             return;
         }
 
@@ -60,16 +63,23 @@ const Portal = (() => {
 
     function renderDashboard(branches) {
         window.currentCustomerId = branches[0].stripe_customer_id;
-        const dashboardDiv = document.getElementById("dashboard");
+
+        // Variables de estado
+        const allowedQuantity = branches[0].allowed_quantity || 0;
+        const activeCount = branches.filter(b => b.activo === true).length;
+        const subStatus = branches[0].subscription_status || 'active';
+        const expirationDateStr = branches[0].current_period_end; 
+
+        // Elementos del DOM
         const planNameEl = document.getElementById("planName");
         const renewalDateEl = document.getElementById("renewalDate");
+        const dashboardDiv = document.getElementById("dashboard");
+        const table = document.getElementById("branchesTable");
 
-        // 1. Cálculos de Estado Global
-        const allowedQuantity = branches[0].allowed_quantity || 0;
-        const activeBranches = branches.filter(b => b.activo === true).length;
-        const subStatus = branches[0].subscription_status || 'active';
-        const expirationDateStr = branches[0].current_period_end; // Usando tu columna existente
+        if(planNameEl) planNameEl.innerText = "Plan " + (branches[0].plan || "Pro");
+        if(renewalDateEl) renewalDateEl.innerText = `${activeCount} / ${allowedQuantity} sucursales activas`;
 
+        // Función auxiliar para calcular días restantes
         const getDaysLeft = (dateStr) => {
             if (!dateStr) return null;
             const diffTime = new Date(dateStr) - new Date();
@@ -78,60 +88,68 @@ const Portal = (() => {
         };
 
         const daysLeft = getDaysLeft(expirationDateStr);
-        const isCanceledTotal = (subStatus === 'canceled' || allowedQuantity === 0);
-        const isPendingClosure = (subStatus !== 'active' && daysLeft !== null && daysLeft > 0);
 
-        // Actualizar encabezados
-        if(planNameEl) planNameEl.innerText = "Plan " + (branches[0].plan || "Pro");
-        if(renewalDateEl) renewalDateEl.innerText = `${activeBranches} / ${allowedQuantity} sucursales activas`;
-
-        // 2. Lógica de Alertas
+        // --- Lógica de Alertas Dinámica ---
         let alertHtml = "";
-        const stripeUrl = "https://billing.stripe.com/p/login/test_cNi14n59bfvs5Vud7BabK00";
-
-        if (isCanceledTotal) {
+        
+        if (subStatus === 'canceled' || allowedQuantity === 0) {
+            // Escenario: Cancelado y ya expiró (Límite 0)
             alertHtml = `
             <div class="mb-6 bg-gray-900 border border-red-900/50 p-5 rounded-xl flex items-center justify-between">
                 <div>
-                    <h3 class="text-red-400 font-bold text-sm">Acceso Restringido</h3>
-                    <p class="text-gray-400 text-xs mt-1">Tu suscripción ha finalizado. Reactiva para gestionar tus sucursales.</p>
+                    <h3 class="text-white font-bold text-sm text-red-400">Acceso Restringido</h3>
+                    <p class="text-gray-400 text-xs mt-1">Tu suscripción ha finalizado. Reactiva para volver a gestionar tus sucursales.</p>
                 </div>
-                <button onclick="Portal.openStripePortal()" class="bg-red-500 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-red-600 transition">Reactivar Ahora</button>
+                <button onclick="Portal.openStripePortal()" class="bg-red-500 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-red-600 transition">
+                    Reactivar Ahora
+                </button>
             </div>`;
-        } else if (isPendingClosure && daysLeft <= 30) {
+        } else if (daysLeft !== null && daysLeft <= 30 && allowedQuantity > 0 && subStatus !== 'active') {
+            // Escenario: Cancelado pero aún con días restantes (Apagón final)
             alertHtml = `
             <div class="mb-6 bg-orange-500/10 border border-orange-500/50 p-5 rounded-xl flex items-center justify-between">
                 <div class="flex items-center gap-4">
-                    <div class="bg-orange-500 text-black w-10 h-10 rounded-full flex items-center justify-center font-bold">${daysLeft}</div>
+                    <div class="bg-orange-500 text-black w-10 h-10 rounded-full flex items-center justify-center font-bold">
+                        ${daysLeft}
+                    </div>
                     <div>
                         <h3 class="text-orange-400 font-bold text-sm">Cuenta en fase de cierre</h3>
-                        <p class="text-gray-300 text-xs mt-1">Te quedan ${daysLeft} días de acceso. Luego, las sucursales se pausarán.</p>
+                        <p class="text-gray-300 text-xs mt-1">Te quedan <b>${daysLeft} días</b> de acceso premium. Después de esto, tus sucursales se pausarán automáticamente.</p>
                     </div>
                 </div>
-                <button onclick="Portal.openStripePortal()" class="bg-orange-500 text-black px-4 py-2 rounded-lg text-xs font-bold hover:bg-orange-400 transition">Mantener Plan</button>
+                <button onclick="Portal.openStripePortal()" class="bg-orange-500 text-black px-4 py-2 rounded-lg text-xs font-bold hover:bg-orange-400 transition">
+                    Mantener mi Plan
+                </button>
             </div>`;
-        } else if (activeBranches > allowedQuantity) {
+        } else if (activeCount > allowedQuantity) {
+            // Escenario: Downgrade (Límite excedido)
             alertHtml = `
             <div class="mb-6 bg-red-500/10 border border-red-500/50 p-4 rounded-xl flex items-center justify-between">
                 <div>
-                    <h3 class="text-red-400 font-bold text-sm">Límite excedido</h3>
-                    <p class="text-gray-300 text-xs mt-1">Tienes ${activeBranches} sucursales activas pero tu plan solo permite ${allowedQuantity}. Pausa una sucursal.</p>
+                    <h3 class="text-red-400 font-bold text-sm">¡Atención! Límite excedido</h3>
+                    <p class="text-gray-300 text-xs mt-1">Tu plan permite ${allowedQuantity} sucursales, pero tienes ${activeCount} activas. Por favor, gestiona y pausa las sucursales sobrantes.</p>
                 </div>
             </div>`;
         }
 
-        // 3. Renderizar Grid de Sucursales
+        // --- Renderizar las Tarjetas (Grid) ---
         if (dashboardDiv) {
             dashboardDiv.innerHTML = `
                 ${alertHtml}
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     ${branches.map(branch => {
-                        const isConfigured = branch.business_name && branch.business_name !== "empty";
-                        const canUserEdit = (allowedQuantity > 0 && (subStatus === 'active' || (daysLeft !== null && daysLeft > 0)));
-                        
+                        // Verificamos si está configurada usando la lógica de client_id
+                        let isConfigured = false;
+                        if (branch.client_id && String(branch.client_id).trim() !== "" && String(branch.client_id).toLowerCase() !== "null") {
+                            isConfigured = true;
+                        }
+
+                        // Verificamos si el usuario tiene permiso para editar
+                        const canUserEdit = (allowedQuantity > 0 && (subStatus === 'active' || daysLeft > 0));
+                
                         let actionButton = "";
                         if (!canUserEdit) {
-                            actionButton = `<span class="text-gray-500 text-xs italic">Solo lectura</span>`;
+                            actionButton = `<span class="text-gray-500 text-[10px] uppercase font-bold tracking-widest">Bloqueado</span>`;
                         } else if (!isConfigured) {
                             actionButton = `<button class="bg-yellow-400 text-black px-4 py-1 rounded font-bold text-xs" onclick="Portal.activateBranch('${branch.id}')">Activar</button>`;
                         } else {
@@ -150,13 +168,54 @@ const Portal = (() => {
                                     </span>
                                 </div>
                                 <div class="flex justify-between items-center mt-6">
-                                    <span class="text-xs text-gray-400">ID: ${branch.client_id !== 'empty' ? branch.client_id : '---'}</span>
+                                    <span class="text-xs text-gray-400">ID: ${branch.client_id && branch.client_id !== 'empty' ? branch.client_id : '---'}</span>
                                     ${actionButton}
                                 </div>
-                            </div>`;
+                            </div>
+                        `;
                     }).join('')}
                 </div>
             `;
+        }
+
+        // --- Renderizar la Tabla de Sucursales (Mantenida intacta) ---
+        if (table) {
+            table.innerHTML = "";
+            branches.forEach(branch => {
+                
+                let isConfigured = false;
+                if (branch.client_id && String(branch.client_id).trim() !== "" && String(branch.client_id).toLowerCase() !== "null") {
+                    isConfigured = true;
+                }
+
+                // Aplicamos la misma lógica de bloqueo para la tabla
+                const canUserEdit = (allowedQuantity > 0 && (subStatus === 'active' || daysLeft > 0));
+
+                const row = document.createElement("tr");
+                row.className = "border-b border-white/5";
+                
+                let actionButtonHtml = "";
+                if (!canUserEdit) {
+                    actionButtonHtml = `<span class="text-gray-500 text-[10px] uppercase font-bold tracking-widest">Bloqueado</span>`;
+                } else if (!isConfigured) {
+                    actionButtonHtml = `<button class="bg-yellow-400 text-black px-4 py-1 rounded font-bold text-xs" onclick="Portal.activateBranch('${branch.id}')">Activar</button>`;
+                } else {
+                    actionButtonHtml = `<button class="border border-yellow-400 text-yellow-400 px-4 py-1 rounded font-bold text-xs hover:bg-yellow-400 hover:text-black transition" onclick="Portal.manageBranch('${branch.id}')">Gestionar</button>`;
+                }
+
+                row.innerHTML = `
+                    <td class="py-4">
+                        ${isConfigured ? branch.business_name : 'Pendiente de Activación'} <span class="text-xs text-gray-500 ml-2">(Sucursal ${branch.branch_number})</span>
+                    </td>
+                    <td class="py-4 ${isConfigured ? (branch.activo ? 'text-green-400' : 'text-yellow-400') : 'text-gray-400'}">
+                        ${!isConfigured ? 'Pendiente de activación' : (branch.activo ? 'Activa' : 'Pausada')}
+                    </td>
+                    <td class="py-4">
+                        ${actionButtonHtml}
+                    </td>
+                `;
+                table.appendChild(row);
+            });
         }
     }
 
@@ -169,27 +228,66 @@ const Portal = (() => {
         window.location.href = `/portal/manage.html?id=${branchId}`;
     }
 
+    /* ================= GESTIÓN DE SUCURSAL ================= */
+
     async function getBranchDetails(id) {
         const user = await requireAuth();
         if (!user) return null;
-        const { data, error } = await supabase.from("businesses").select("*").eq("id", id).eq("user_id", user.id).single();
-        if (error) return null;
+
+        const { data, error } = await supabase
+            .from("businesses")
+            .select("*")
+            .eq("id", id)
+            .eq("user_id", user.id) // SEGURIDAD
+            .single();
+
+        if (error) {
+            console.error("Error cargando sucursal:", error);
+            return null;
+        }
         return data;
     }
 
     async function updateBranch(id, updates) {
         const user = await requireAuth();
         if (!user) return false;
-        const { error } = await supabase.from("businesses").update(updates).eq("id", id).eq("user_id", user.id);
-        return !error;
+
+        const { error } = await supabase
+            .from("businesses")
+            .update(updates)
+            .eq("id", id)
+            .eq("user_id", user.id); // SEGURIDAD
+
+        if (error) {
+            console.error("Error actualizando sucursal:", error);
+            return false;
+        }
+        return true;
     }
+
+    /* ================= STRIPE PORTAL ================= */
 
     async function openStripePortal() {
         const user = await requireAuth();
         if (!user) return;
+
+        const btn = document.getElementById("btnStripe");
+        if(btn) {
+            btn.innerText = "Redirigiendo a Stripe...";
+            btn.disabled = true;
+        }
+
         const stripePortalBaseUrl = "https://billing.stripe.com/p/login/test_cNi14n59bfvs5Vud7BabK00";
         const finalUrl = `${stripePortalBaseUrl}?prefilled_email=${encodeURIComponent(user.email)}`;
+
         window.open(finalUrl, '_blank');
+        
+        setTimeout(() => {
+            if(btn) {
+                btn.innerText = "Administrar Suscripción";
+                btn.disabled = false;
+            }
+        }, 3000);
     }
 
     return {
@@ -200,8 +298,9 @@ const Portal = (() => {
         activateBranch, 
         manageBranch, 
         openStripePortal, 
-        sendResetPassword, 
-        getBranchDetails, 
+        sendResetPassword,
+        getBranchDetails,
         updateBranch
     };
+
 })();
