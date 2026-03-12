@@ -151,7 +151,21 @@ const Portal = (() => {
                     ${branches.map(branch => {
                         const hasName = branch.business_name && branch.business_name !== "empty" && branch.business_name.trim() !== "";
                         const hasClientId = branch.client_id && String(branch.client_id).trim() !== "" && String(branch.client_id).toLowerCase() !== "null" && branch.client_id !== 'empty';
+                        
+                        // --- NUEVA LÓGICA DE PRIORIDAD DE ESTADO ---
+                        let statusLabel = "";
+                        let statusClass = "";
 
+                        if (!hasClientId) {
+                            // Si no hay ID, siempre es Pendiente (Amarillo)
+                            statusLabel = "Pendiente";
+                            statusClass = "bg-yellow-500/20 text-yellow-400";
+                        } else {
+                            // Si hay ID, mostramos si está Activa o Pausada
+                            statusLabel = branch.activo ? "Activa" : "Pausada";
+                            statusClass = branch.activo ? "bg-green-500/20 text-green-400" : "bg-gray-500/20 text-gray-400";
+                        }
+                        
                         // Tienen permiso para editar si tienen cantidad permitida > 0 O si les quedan días de periodo de gracia
                         const canUserEdit = (allowedQuantity > 0 || daysLeft > 0);
                 
