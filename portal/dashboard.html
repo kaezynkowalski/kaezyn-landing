@@ -66,30 +66,11 @@ body {
 
     <div id="dashboard"></div>
 
-    <div class="card rounded-xl p-5 sm:p-8 mb-8 w-full max-w-full overflow-hidden">
-        <h2 class="text-2xl font-bold mb-6">Sucursales</h2>
-
-        <div class="overflow-x-auto w-full">
-            <table class="w-full text-left min-w-[600px]">
-                <thead>
-                    <tr class="text-gray-400 border-b border-white/10">
-                        <th class="pb-3 px-2">Nombre</th>
-                        <th class="pb-3 px-2">Client ID</th>
-                        <th class="pb-3 px-2">Estado</th>
-                        <th class="pb-3 px-2 text-right">Acción</th>
-                    </tr>
-                </thead>
-                <tbody id="branchesTable"></tbody>
-            </table>
-        </div>
-
-        <div class="mt-8 flex justify-center sm:justify-start">
+    <div class="mt-8 flex justify-center sm:justify-start">
             <button id="btnStripe" class="btn-gold w-full sm:w-auto" onclick="Portal.openStripePortal(window.currentCustomerId)">
                 Administrar Suscripción
             </button>
         </div>
-    </div>
-
 </div>
 
 <script src="portal.js"></script>
