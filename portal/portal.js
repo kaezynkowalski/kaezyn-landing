@@ -186,8 +186,8 @@ const Portal = (() => {
                                         <span class="text-[10px] sm:text-xs font-bold tracking-widest text-yellow-400 uppercase block mb-1">Sucursal ${branch.branch_number}</span>
                                         <h3 class="text-base sm:text-lg font-bold text-white truncate w-full" title="${hasName ? branch.business_name : 'Pendiente de Activación'}">${hasName ? branch.business_name : "Pendiente de Activación"}</h3>
                                     </div>
-                                    <span class="px-2 py-1.5 rounded text-[10px] font-bold uppercase tracking-wider self-start shrink-0 ${branch.activo ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'}">
-                                        ${branch.activo ? 'Activa' : 'Pausada'}
+                                    <span class="px-2 py-1.5 rounded text-[10px] font-bold uppercase tracking-wider self-start shrink-0 ${statusClass}">
+                                        ${statusLabel}
                                     </span>
                                 </div>
                                 <div class="mt-auto pt-4 border-t border-white/5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
