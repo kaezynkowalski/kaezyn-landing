@@ -64,10 +64,11 @@ const Portal = (() => {
     function renderDashboard(branches) {
         window.currentCustomerId = branches[0].stripe_customer_id;
 
-        // Variables de estado
-        const allowedQuantity = branches[0].allowed_quantity || 0;
-        const activeCount = branches.filter(b => b.activo === true).length;
-        const subStatus = branches[0].subscription_status || 'active';
+        // Variables de estado asegurando formatos correctos (Números)
+        const allowedQuantity = Number(branches[0].allowed_quantity) || 0;
+        // Cuenta activos reales, asegurando que si llega como string 'true', lo cuente bien
+        const activeCount = branches.filter(b => b.activo === true || String(b.activo).toLowerCase() === 'true').length;
+        const subStatus = (branches[0].subscription_status || 'active').toLowerCase();
         const expirationDateStr = branches[0].current_period_end; 
 
         // Elementos del DOM
@@ -88,48 +89,56 @@ const Portal = (() => {
         };
 
         const daysLeft = getDaysLeft(expirationDateStr);
+        // Formatear la fecha en español para mostrarla al cliente
+        const expirationDateFormatted = expirationDateStr ? new Date(expirationDateStr).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' }) : '';
 
-        // --- Lógica de Alertas Dinámica Aislada ---
+        // --- Lógica de Alertas Dinámica ---
         let alertHtml = "";
         
-        // 1. Apagón Total (Cancelado y tiempo agotado, o límite en 0)
-        if (subStatus === 'canceled' && (daysLeft === 0 || allowedQuantity === 0)) {
+        // 1. Apagón Total (Cancelado y tiempo agotado)
+        if (subStatus === 'canceled' && daysLeft === 0) {
             alertHtml = `
-            <div class="mb-6 bg-gray-900 border border-red-900/50 p-5 rounded-xl flex items-center justify-between">
+            <div class="mb-6 bg-gray-900 border-l-4 border-red-900 p-5 rounded-r-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
-                    <h3 class="text-white font-bold text-sm text-red-400">Acceso Restringido</h3>
-                    <p class="text-gray-400 text-xs mt-1">Tu suscripción ha finalizado. Reactiva para volver a gestionar tus sucursales.</p>
+                    <h3 class="text-white font-bold text-base text-red-500">Acceso Restringido</h3>
+                    <p class="text-gray-400 text-sm mt-1">Tu suscripción ha finalizado por completo. Reactiva tu plan para volver a habilitar y gestionar tus sucursales.</p>
                 </div>
-                <button onclick="Portal.openStripePortal()" class="bg-red-500 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-red-600 transition">
+                <button onclick="Portal.openStripePortal()" class="w-full sm:w-auto bg-red-600 text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-red-500 transition whitespace-nowrap shadow-lg">
                     Reactivar Ahora
                 </button>
             </div>`;
         } 
-        // 2. Apagón en Progreso (Cancelado pero con días restantes)
+        // 2. Apagón en Progreso (Cancelado pero con días restantes a su favor)
         else if (subStatus === 'canceled' && daysLeft > 0) {
             alertHtml = `
-            <div class="mb-6 bg-orange-500/10 border border-orange-500/50 p-5 rounded-xl flex items-center justify-between">
+            <div class="mb-6 bg-orange-900/30 border-l-4 border-orange-500 p-5 rounded-r-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-lg">
                 <div class="flex items-center gap-4">
-                    <div class="bg-orange-500 text-black w-10 h-10 rounded-full flex items-center justify-center font-bold">
-                        ${daysLeft}
+                    <div class="bg-orange-500/20 text-orange-400 w-12 h-12 rounded-full flex flex-col items-center justify-center font-bold leading-tight shrink-0">
+                        <span class="text-lg">${daysLeft}</span>
+                        <span class="text-[10px]">días</span>
                     </div>
                     <div>
-                        <h3 class="text-orange-400 font-bold text-sm">Cuenta en fase de cierre</h3>
-                        <p class="text-gray-300 text-xs mt-1">Te quedan <b>${daysLeft} días</b> de acceso premium. Después de esto, tus sucursales se pausarán automáticamente.</p>
+                        <h3 class="text-orange-400 font-bold text-base">Suscripción cancelada (Período de gracia)</h3>
+                        <p class="text-gray-300 text-sm mt-1">Lamentamos que nos dejes. Tu servicio y sucursales seguirán funcionando con normalidad hasta el <b>${expirationDateFormatted}</b>. Después de esta fecha, se pausarán automáticamente.</p>
                     </div>
                 </div>
-                <button onclick="Portal.openStripePortal()" class="bg-orange-500 text-black px-4 py-2 rounded-lg text-xs font-bold hover:bg-orange-400 transition">
+                <button onclick="Portal.openStripePortal()" class="w-full md:w-auto bg-orange-500 text-black px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-orange-400 transition whitespace-nowrap shadow-md">
                     Mantener mi Plan
                 </button>
             </div>`;
         } 
-        // 3. Downgrade o Límite Excedido (Plan Activo, pero con exceso de sucursales)
-        else if (subStatus === 'active' && activeCount > allowedQuantity) {
+        // 3. Alerta Persistente: Límite Excedido
+        else if (activeCount > allowedQuantity) {
             alertHtml = `
-            <div class="mb-6 bg-red-500/10 border border-red-500/50 p-4 rounded-xl flex items-center justify-between">
-                <div>
-                    <h3 class="text-red-400 font-bold text-sm">¡Atención! Límite excedido</h3>
-                    <p class="text-gray-300 text-xs mt-1">Tu plan permite ${allowedQuantity} sucursales, pero tienes ${activeCount} activas. Por favor, gestiona y pausa las sucursales sobrantes.</p>
+            <div class="mb-6 bg-red-900/30 border-l-4 border-red-500 p-5 rounded-r-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-lg">
+                <div class="flex items-start gap-4">
+                    <div class="bg-red-500/20 p-2 rounded-full shrink-0 mt-1">
+                        <svg class="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-red-400 font-bold text-base">¡Atención! Límite de sucursales excedido</h3>
+                        <p class="text-gray-300 text-sm mt-1">Tu plan permite <b>${allowedQuantity}</b> sucursales, pero tienes <b>${activeCount}</b> activas. Para asegurar el funcionamiento del sistema, por favor pausa las sucursales sobrantes dando clic en "Gestionar".</p>
+                    </div>
                 </div>
             </div>`;
         }
@@ -140,37 +149,38 @@ const Portal = (() => {
                 ${alertHtml}
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     ${branches.map(branch => {
-                        let isConfigured = false;
-                        if (branch.client_id && String(branch.client_id).trim() !== "" && String(branch.client_id).toLowerCase() !== "null") {
-                            isConfigured = true;
-                        }
+                        const hasName = branch.business_name && branch.business_name !== "empty" && branch.business_name.trim() !== "";
+                        const hasClientId = branch.client_id && String(branch.client_id).trim() !== "" && String(branch.client_id).toLowerCase() !== "null" && branch.client_id !== 'empty';
 
-                        // Verificamos si el usuario tiene permiso para editar
-                        const canUserEdit = (allowedQuantity > 0 && (subStatus === 'active' || daysLeft > 0));
+                        // Tienen permiso para editar si tienen cantidad permitida > 0 O si les quedan días de periodo de gracia
+                        const canUserEdit = (allowedQuantity > 0 || daysLeft > 0);
                 
                         let actionButton = "";
                         if (!canUserEdit) {
-                            actionButton = `<span class="text-gray-500 text-[10px] uppercase font-bold tracking-widest">Bloqueado</span>`;
-                        } else if (!isConfigured) {
-                            actionButton = `<button class="bg-yellow-400 text-black px-4 py-1 rounded font-bold text-xs" onclick="Portal.activateBranch('${branch.id}')">Activar</button>`;
+                            actionButton = `<span class="text-gray-500 text-[10px] sm:text-xs uppercase font-bold tracking-widest block text-center py-2">Bloqueado</span>`;
+                        } else if (!hasClientId) {
+                            actionButton = `<button class="w-full sm:w-auto bg-yellow-400 text-black px-4 py-2 rounded-lg font-bold text-xs sm:text-sm hover:bg-yellow-300 transition" onclick="Portal.activateBranch('${branch.id}')">Activar</button>`;
                         } else {
-                            actionButton = `<button class="border border-yellow-400 text-yellow-400 px-4 py-1 rounded font-bold text-xs hover:bg-yellow-400 hover:text-black transition" onclick="Portal.manageBranch('${branch.id}')">Gestionar</button>`;
+                            actionButton = `<button class="w-full sm:w-auto border border-yellow-400 text-yellow-400 px-4 py-2 rounded-lg font-bold text-xs sm:text-sm hover:bg-yellow-400 hover:text-black transition" onclick="Portal.manageBranch('${branch.id}')">Gestionar</button>`;
                         }
 
+                        // Estructura responsiva para Móvil y Desktop
                         return `
-                            <div class="bg-white/5 border border-white/10 p-6 rounded-2xl relative">
-                                <div class="flex justify-between items-start mb-4">
-                                    <div>
-                                        <span class="text-xs font-bold tracking-widest text-yellow-400 uppercase">Sucursal ${branch.branch_number}</span>
-                                        <h3 class="text-lg font-bold text-white mt-1">${isConfigured ? branch.business_name : "Pendiente de Activación"}</h3>
+                            <div class="bg-white/5 border border-white/10 p-5 sm:p-6 rounded-2xl relative flex flex-col h-full overflow-hidden">
+                                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
+                                    <div class="flex-1 min-w-0 w-full">
+                                        <span class="text-[10px] sm:text-xs font-bold tracking-widest text-yellow-400 uppercase block mb-1">Sucursal ${branch.branch_number}</span>
+                                        <h3 class="text-base sm:text-lg font-bold text-white truncate w-full" title="${hasName ? branch.business_name : 'Pendiente de Activación'}">${hasName ? branch.business_name : "Pendiente de Activación"}</h3>
                                     </div>
-                                    <span class="px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${branch.activo ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'}">
+                                    <span class="px-2 py-1.5 rounded text-[10px] font-bold uppercase tracking-wider self-start shrink-0 ${branch.activo ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'}">
                                         ${branch.activo ? 'Activa' : 'Pausada'}
                                     </span>
                                 </div>
-                                <div class="flex justify-between items-center mt-6">
-                                    <span class="text-xs text-gray-400">ID: ${branch.client_id && branch.client_id !== 'empty' ? branch.client_id : '---'}</span>
-                                    ${actionButton}
+                                <div class="mt-auto pt-4 border-t border-white/5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                                    <span class="text-xs text-gray-400 truncate w-full sm:w-auto">ID: ${hasClientId ? branch.client_id : '---'}</span>
+                                    <div class="w-full sm:w-auto">
+                                        ${actionButton}
+                                    </div>
                                 </div>
                             </div>
                         `;
@@ -184,37 +194,36 @@ const Portal = (() => {
             table.innerHTML = "";
             branches.forEach(branch => {
                 
-                let isConfigured = false;
-                if (branch.client_id && String(branch.client_id).trim() !== "" && String(branch.client_id).toLowerCase() !== "null") {
-                    isConfigured = true;
-                }
-
-                const canUserEdit = (allowedQuantity > 0 && (subStatus === 'active' || daysLeft > 0));
+                const hasName = branch.business_name && branch.business_name !== "empty" && branch.business_name.trim() !== "";
+                const hasClientId = branch.client_id && String(branch.client_id).trim() !== "" && String(branch.client_id).toLowerCase() !== "null" && branch.client_id !== 'empty';
+                
+                // Tienen permiso para editar si tienen cantidad permitida > 0 O si les quedan días de periodo de gracia
+                const canUserEdit = (allowedQuantity > 0 || daysLeft > 0);
 
                 const row = document.createElement("tr");
-                row.className = "border-b border-white/5";
+                row.className = "border-b border-white/5 hover:bg-white/5 transition-colors";
                 
                 let actionButtonHtml = "";
                 if (!canUserEdit) {
                     actionButtonHtml = `<span class="text-gray-500 text-[10px] uppercase font-bold tracking-widest">Bloqueado</span>`;
-                } else if (!isConfigured) {
-                    actionButtonHtml = `<button class="bg-yellow-400 text-black px-4 py-1 rounded font-bold text-xs" onclick="Portal.activateBranch('${branch.id}')">Activar</button>`;
+                } else if (!hasClientId) {
+                    actionButtonHtml = `<button class="bg-yellow-400 text-black px-4 py-1.5 rounded font-bold text-xs whitespace-nowrap" onclick="Portal.activateBranch('${branch.id}')">Activar</button>`;
                 } else {
-                    actionButtonHtml = `<button class="border border-yellow-400 text-yellow-400 px-4 py-1 rounded font-bold text-xs hover:bg-yellow-400 hover:text-black transition" onclick="Portal.manageBranch('${branch.id}')">Gestionar</button>`;
+                    actionButtonHtml = `<button class="border border-yellow-400 text-yellow-400 px-4 py-1.5 rounded font-bold text-xs hover:bg-yellow-400 hover:text-black transition whitespace-nowrap" onclick="Portal.manageBranch('${branch.id}')">Gestionar</button>`;
                 }
 
-                // Aquí se agregó el <td> extra para el Client ID
                 row.innerHTML = `
-                    <td class="py-4">
-                        ${branch.business_name && branch.business_name !== 'empty' ? branch.business_name : 'Pendiente de Activación'} <span class="text-xs text-gray-500 ml-2">(Sucursal ${branch.branch_number})</span>
+                    <td class="py-4 px-2 min-w-[200px]">
+                        <span class="block text-white font-medium">${hasName ? branch.business_name : 'Pendiente de Activación'}</span>
+                        <span class="text-xs text-gray-500">Sucursal ${branch.branch_number}</span>
                     </td>
-                    <td class="py-4 text-sm text-gray-300">
-                        ${isConfigured && branch.client_id !== 'empty' ? branch.client_id : '---'}
+                    <td class="py-4 px-2 text-sm text-gray-300 min-w-[150px]">
+                        ${hasClientId ? branch.client_id : '---'}
                     </td>
-                    <td class="py-4 ${isConfigured ? (branch.activo ? 'text-green-400' : 'text-yellow-400') : 'text-gray-400'}">
-                        ${!isConfigured ? 'Pendiente de activación' : (branch.activo ? 'Activa' : 'Pausada')}
+                    <td class="py-4 px-2 font-medium min-w-[100px] ${hasName ? (branch.activo ? 'text-green-400' : 'text-yellow-400') : 'text-gray-400'}">
+                        ${!hasName ? 'Por configurar' : (branch.activo ? 'Activa' : 'Pausada')}
                     </td>
-                    <td class="py-4">
+                    <td class="py-4 px-2 text-right">
                         ${actionButtonHtml}
                     </td>
                 `;
