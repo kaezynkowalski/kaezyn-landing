@@ -234,8 +234,8 @@ const Portal = (() => {
                     <td class="py-4 px-2 text-sm text-gray-300 min-w-[150px]">
                         ${hasClientId ? branch.client_id : '---'}
                     </td>
-                    <td class="py-4 px-2 font-medium min-w-[100px] ${hasName ? (branch.activo ? 'text-green-400' : 'text-yellow-400') : 'text-gray-400'}">
-                        ${!hasName ? 'Por configurar' : (branch.activo ? 'Activa' : 'Pausada')}
+                    <td class="py-4 px-2 font-medium min-w-[100px] ${!hasClientId ? 'text-yellow-400' : (branch.activo ? 'text-green-400' : 'text-gray-400')}">
+                        ${!hasClientId ? 'Pendiente' : (branch.activo ? 'Activa' : 'Pausada')}
                     </td>
                     <td class="py-4 px-2 text-right">
                         ${actionButtonHtml}
