@@ -247,8 +247,9 @@ const Portal = (() => {
     }
 
     function activateBranch(branchId) {
-        const filloutBaseUrl = "https://forms.fillout.com/t/421DwsCucCus";
-        window.open(`${filloutBaseUrl}?branch_id=${branchId}`, '_blank');
+        // Usamos tu nuevo motor dinámico en lugar del link directo de Fillout
+        const dynamicUrl = "https://go.kaezyn.com/activar-sucursal";
+        window.open(`${dynamicUrl}?branch_id=${branchId}`, '_blank');
     }
 
     function manageBranch(branchId) {
