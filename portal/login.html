@@ -27,23 +27,26 @@
 
         body {
             font-family: 'Poppins', sans-serif;
-            background: radial-gradient(circle at top right, var(--color-violet), var(--color-night-blue));
+            /* Fondo más profundo y envolvente */
+            background: radial-gradient(circle at center, var(--color-violet) 0%, var(--color-night-blue) 100%);
             color: var(--color-light-gray);
             position: relative;
             overflow: hidden;
         }
 
+        /* Glassmorphism Pro: Más desenfoque y borde sutil */
         .card {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
 
+        /* Estrellas en toda la pantalla */
         .stars-container {
             position: absolute;
-            top: 0;
-            right: 0;
-            width: 50%;
+            inset: 0;
+            width: 100%;
             height: 100%;
             pointer-events: none;
             overflow: hidden;
@@ -53,89 +56,106 @@
             position: absolute;
             color: var(--color-gold);
             opacity: 0;
-            animation: sparkle 15s infinite linear;
+            animation: sparkle 10s infinite linear;
             text-shadow: 0 0 10px var(--color-gold);
         }
 
-        /* Estrellas animadas */
-        .star:nth-child(1) { top: 10%; left: 80%; font-size: 2rem; }
-        .star:nth-child(2) { top: 25%; left: 60%; font-size: 1.5rem; }
-        .star:nth-child(3) { top: 5%; left: 40%; font-size: 1rem; }
-        .star:nth-child(4) { top: 50%; left: 90%; font-size: 1.8rem; }
-        .star:nth-child(5) { top: 70%; left: 75%; font-size: 1.2rem; }
-        .star:nth-child(6) { top: 90%; left: 50%; font-size: 2.2rem; }
-        .star:nth-child(7) { top: 40%; left: 30%; font-size: 1.3rem; }
-
+        /* Animación de estrellas mejorada */
         @keyframes sparkle {
-            0% { transform: translateY(20px) scale(0.5); opacity: 0; }
-            25% { opacity: 1; }
-            75% { opacity: 1; }
-            100% { transform: translateY(-100px) scale(1.5); opacity: 0; }
+            0% { transform: translateY(50px) scale(0.5); opacity: 0; }
+            25% { opacity: 0.8; }
+            75% { opacity: 0.8; }
+            100% { transform: translateY(-120px) scale(1.2); opacity: 0; }
         }
 
         .input-group { position: relative; }
+    
+        /* Inputs más modernos */
+        .custom-input {
+            background: rgba(255, 255, 255, 0.05) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            transition: all 0.3s ease;
+        }
+    
+        .custom-input:focus {
+            border-color: var(--color-gold) !important;
+            background: rgba(255, 255, 255, 0.1) !important;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.1);
+        }
+
         .eye-icon {
             position: absolute;
-            right: 12px;
+            right: 15px;
             top: 50%;
             transform: translateY(-50%);
             cursor: pointer;
-            color: rgba(255,255,255,0.5);
+            color: rgba(255,255,255,0.4);
+            transition: color 0.3s;
         }
+        .eye-icon:hover { color: var(--color-gold); }
     </style>
 </head>
 
 <body class="min-h-screen flex items-center justify-center antialiased">
 
 <div class="stars-container">
-     <i class="fas fa-star star"></i>
-     <i class="fas fa-star star"></i>
-     <i class="fas fa-star star"></i>
-     <i class="fas fa-star star"></i>
-     <i class="fas fa-star star"></i>
-     <i class="fas fa-star star"></i>
-     <i class="fas fa-star star"></i>
+    <div class="star" style="top: 20%; left: 10%; animation-delay: 0s;">★</div>
+    <div class="star" style="top: 60%; left: 80%; animation-delay: 2s;">☆</div>
+    <div class="star" style="top: 85%; left: 15%; animation-delay: 4s;">★</div>
+    <div class="star" style="top: 10%; left: 70%; animation-delay: 6s;">☆</div>
+    <div class="star" style="top: 40%; left: 90%; animation-delay: 1s;">★</div>
+    <div class="star" style="top: 70%; left: 40%; animation-delay: 8s;">☆</div>
 </div>
 
 <div class="card p-10 rounded-xl w-full max-w-md text-center z-10">
     <img src="/assets/KAEZYN LOGO.png" class="h-10 mx-auto mb-6">
     <h1 class="text-2xl font-bold mb-6">Inicia Sesión</h1>
 
-    <form id="loginForm" class="space-y-4">
-        <input type="email" id="email" placeholder="Correo electrónico" required
-               class="w-full px-4 py-3 rounded-md bg-white/10 border border-white/20 focus:outline-none focus:border-yellow-400 text-white">
+    <form id="loginForm" class="space-y-6">
+        <div class="text-left">
+            <label class="text-xs font-semibold text-gray-400 ml-1 uppercase tracking-wider">Email Corporativo</label>
+            <input type="email" id="email" placeholder="nombre@negocio.com" required
+                   class="custom-input w-full px-4 py-4 rounded-xl mt-2 text-white focus:outline-none">
+        </div>
 
-        <div class="input-group">
-            <input type="password" id="password" placeholder="Contraseña" required
-                   class="w-full px-4 py-3 rounded-md bg-white/10 border border-white/20 focus:outline-none focus:border-yellow-400 text-white">
-            <i data-lucide="eye" class="eye-icon" onclick="togglePass(this)"></i>
+        <div class="text-left">
+            <label class="text-xs font-semibold text-gray-400 ml-1 uppercase tracking-wider">Contraseña</label>
+            <div class="input-group mt-2">
+                <input type="password" id="password" placeholder="••••••••" required
+                       class="custom-input w-full px-4 py-4 rounded-xl text-white focus:outline-none">
+                <i data-lucide="eye" class="eye-icon" onclick="togglePass(this)"></i>
+            </div>
         </div>
 
         <button type="submit" id="submitBtn"
-                class="w-full bg-yellow-400 text-black font-semibold py-3 rounded-md hover:bg-yellow-300 transition shadow-lg">
-            Entrar
+                class="w-full bg-gradient-to-r from-[#FFD700] to-[#d4af37] text-black font-extrabold py-4 rounded-xl hover:scale-[1.02] transition-all shadow-[0_10px_20px_rgba(255,215,0,0.2)] uppercase tracking-widest text-sm">
+            Entrar 
         </button>
     </form>
 
-    <p id="errorMessage" class="text-red-400 text-sm mt-4"></p>
+    <p id="errorMessage" class="text-red-400 text-sm mt-4 font-medium"></p>
 
-    <div class="mt-6">
-    <a href="javascript:void(0)" onclick="showForgotPassword()" class="text-sm text-yellow-400/80 hover:text-yellow-400 transition underline decoration-1 underline-offset-4">
-        ¿Olvidaste tu contraseña?
-    </a>
+    <div class="mt-8">
+        <a href="javascript:void(0)" onclick="showForgotPassword()" class="text-xs text-gray-400 hover:text-yellow-400 transition-all tracking-wide">
+            ¿Olvidaste tu contraseña? <span class="underline ml-1">Recuperar</span>
+        </a>
+    </div>
 </div>
 
-<div id="recoveryModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="card p-8 rounded-xl max-w-sm w-full text-center border border-white/20">
-        <h3 class="text-xl font-bold mb-4">Recuperar Acceso</h3>
-        <p class="text-sm text-gray-400 mb-6">Ingresa tu correo y te enviaremos un enlace de restablecimiento.</p>
+<div id="recoveryModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <div class="card p-10 rounded-3xl max-w-sm w-full text-center border border-white/10">
+        <div class="w-16 h-16 bg-yellow-400/10 rounded-full flex items-center justify-center mx-auto mb-6">
+            <i data-lucide="shield-question" class="text-yellow-400 w-8 h-8"></i>
+        </div>
+        <h3 class="text-xl font-bold mb-2 text-white">Recuperar Acceso</h3>
+        <p class="text-sm text-gray-400 mb-8">Enviaremos un enlace de seguridad a tu correo registrado.</p>
         
         <input type="email" id="recoveryEmail" placeholder="tu@email.com" 
-               class="w-full px-4 py-3 rounded-md bg-white/10 border border-white/20 focus:outline-none focus:border-yellow-400 text-white mb-4">
+               class="custom-input w-full px-4 py-4 rounded-xl text-white mb-6 focus:outline-none text-center">
         
-        <div class="flex gap-3">
-            <button onclick="hideForgotPassword()" class="flex-1 px-4 py-2 rounded-md bg-white/5 hover:bg-white/10 transition text-sm">Cancelar</button>
-            <button onclick="handleRecoverySubmit()" id="recoveryBtn" class="flex-1 btn-gold px-4 py-2 rounded-md bg-yellow-400 text-black font-bold text-sm">Enviar</button>
+        <div class="flex flex-col gap-3">
+            <button onclick="handleRecoverySubmit()" id="recoveryBtn" class="w-full bg-yellow-400 text-black font-bold py-3 rounded-xl">Enviar Enlace</button>
+            <button onclick="hideForgotPassword()" class="w-full text-gray-500 hover:text-white transition text-xs font-semibold uppercase tracking-widest">Cancelar</button>
         </div>
         <p id="recoveryStatus" class="mt-4 text-xs font-medium"></p>
     </div>
