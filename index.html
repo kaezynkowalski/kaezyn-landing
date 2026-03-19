@@ -134,6 +134,21 @@
                 <a href="#hero" class="flex items-center transition-transform hover:scale-105">
                     <img src="assets/KAEZYN LOGO.png" alt="Logo Kaezyn" class="h-8 md:h-10 w-auto object-contain">
                 </a>
+
+                <!-- Mobile Menu -->
+                <div id="mobile-menu" class="hidden md:hidden px-6 pb-4 space-y-4 bg-night-blue">
+                    <a href="#hero" class="block hover:text-yellow-300">Inicio</a>
+                    <a href="#features" class="block hover:text-yellow-300">Cómo Funciona</a>
+                    <a href="#kscore" class="block hover:text-yellow-300">K-Score™</a>
+                    <a href="#pricing" class="block hover:text-yellow-300">Planes</a>
+                    <a href="#faqs" class="block hover:text-yellow-300">FAQs</a>
+                    <a href="#testimonials" class="block hover:text-yellow-300">Testimonios</a>
+
+                    <a href="/portal/login.html" 
+                       class="block bg-white text-gray-900 text-center font-semibold px-5 py-2 rounded-md hover:bg-yellow-300">
+                        Inicia Sesión
+                    </a>
+                </div>
                 
                 <div class="hidden md:flex items-center space-x-8 text-sm">
                     <a href="#hero" class="hover:text-yellow-300 transition-colors">Inicio</a>
@@ -147,7 +162,7 @@
                     <a href="/portal/login.html" class="bg-white text-gray-900 font-semibold px-5 py-2 rounded-md text-sm hover:bg-yellow-300 transition-colors">Inicia Sesión</a>
                 </div>
                  <div class="md:hidden">
-                    <button class="text-white focus:outline-none">
+                    <button id="mobile-menu-btn" class="text-white focus:outline-none">
                         <i class="fas fa-bars text-2xl"></i>
                     </button>
                 </div>
@@ -224,22 +239,48 @@
         <!-- Sección de Revolución -->
         <section id="kscore" class="py-20 md:py-28 nebula-bg">
             <div class="container mx-auto px-6 text-center">
-                <h2 class="text-3xl md:text-5xl font-bold">Un Nuevo Estándar en Gestión de Reputación</h2>
+        
+                <h2 class="text-3xl md:text-5xl font-bold">
+                    Un Nuevo Estándar en Gestión de Reputación
+                </h2>
+
                 <p class="mt-4 max-w-3xl mx-auto text-gray-300">
-                    Las estrellas muestran el pasado. El K-Score™ detecta el riesgo antes de que impacte tus ingresos. El K-Score™ es nuestro modelo propietario de inteligencia reputacional e integra múltiples variables críticas en un solo indicador ejecutivo:
-                    <br><br>
-                    ☆ <b>Calidad del servicio</b>.<br>
-                    ☆ <b>Estabilidad operativa</b>.<br>
-                    ☆ <b>Riesgo negativo</b>.<br>
-                    ☆ <b>Dirección futura</b>.
-                    <br><br>
-                    <b>No mide popularidad, mide control. Mientras otros negocios miran estrellas, tú monitoreas estabilidad, riesgo y tendencia en tiempo real.</b> 
+                    Las estrellas muestran el pasado. El K-Score™ detecta el riesgo antes de que impacte tus ingresos. 
+                    El K-Score™ es nuestro modelo propietario de inteligencia reputacional e integra múltiples variables críticas 
+                    en un solo indicador ejecutivo:
                 </p>
+
+                <!-- BULLETS CORREGIDOS -->
+                <ul class="mt-8 max-w-md mx-auto text-left space-y-3 text-gray-200">
+                    <li class="flex items-center gap-3">
+                        <span class="text-yellow-300 text-lg">☆</span>
+                        <span><b>Calidad del servicio</b></span>
+                    </li>
+                    <li class="flex items-center gap-3">
+                        <span class="text-yellow-300 text-lg">☆</span>
+                        <span><b>Estabilidad operativa</b></span>
+                    </li>
+                    <li class="flex items-center gap-3">
+                        <span class="text-yellow-300 text-lg">☆</span>
+                        <span><b>Riesgo negativo</b></span>
+                    </li>
+                    <li class="flex items-center gap-3">
+                        <span class="text-yellow-300 text-lg">☆</span>
+                        <span><b>Dirección futura</b></span>
+                    </li>
+                </ul>
+
+                <p class="mt-8 max-w-3xl mx-auto text-gray-300 font-semibold">
+                    No mide popularidad, mide control. Mientras otros negocios miran estrellas, tú monitoreas estabilidad, 
+                    riesgo y tendencia en tiempo real.
+                </p>
+
                 <div class="mt-10">
                     <a href="#" class="border-2 border-yellow-300 text-yellow-300 font-semibold px-8 py-3 rounded-lg hover:bg-yellow-300 hover:text-gray-900 transition-all">
                         Ver Cómo Funciona
                     </a>
                 </div>
+
             </div>
         </section>
 
@@ -284,7 +325,7 @@
         </section>
 
         <!-- Sección de CTA Final -->
-        <section class="py-20 md:py-32 nebula-bg">
+        <section id="contact" class="py-20 md:py-32 nebula-bg">
             <div class="container mx-auto px-6 text-center">
                 <h2 class="text-3xl md:text-5xl font-bold text-white">¿Listo para proteger tu reputación?</h2>
                 <p class="mt-4 max-w-2xl mx-auto text-gray-300">
@@ -309,22 +350,22 @@
                 <div>
                     <h4 class="font-bold text-white mb-4">Sistema</h4>
                     <ul class="space-y-2 text-sm">
-                        <li><a href="#" class="hover:text-yellow-300">Cómo Funciona</a></li>
-                        <li><a href="#" class="hover:text-yellow-300">Planes</a></li>
-                        <li><a href="#" class="hover:text-yellow-300">Protección de Reputación</a></li>
+                        <li><a href="#features" class="hover:text-yellow-300">Cómo Funciona</a></li>
+                        <li><a href="#pricing" class="hover:text-yellow-300">Planes</a></li>
+                        <li><a href="#kscore" class="hover:text-yellow-300">Protección de Reputación</a></li>
                     </ul>
                 </div>
                 <div>
                     <h4 class="font-bold text-white mb-4">Empresa</h4>
                     <ul class="space-y-2 text-sm">
-                        <li><a href="#" class="hover:text-yellow-300">Nuestra Visión</a></li>
-                        <li><a href="#" class="hover:text-yellow-300">Contacto</a></li>
+                        <li><a href="#kscore" class="hover:text-yellow-300">Nuestra Visión</a></li>
+                        <li><a href="#contact" class="hover:text-yellow-300">Contacto</a></li>
                     </ul>
                 </div>
                 <div>
                     <h4 class="font-bold text-white mb-4">Soporte</h4>
                     <ul class="space-y-2 text-sm">
-                        <li><a href="#" class="hover:text-yellow-300">FAQs</a></li>
+                        <li><a href="#faqs" class="hover:text-yellow-300">FAQs</a></li>
                     </ul>
                 </div>
                  <div>
@@ -526,6 +567,15 @@
                 icon.style.transform = 'rotate(180deg)';
             }
         }
+
+        // Mobile Menu Toggle
+        const menuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        menuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+        
     </script>
             
 </body>
