@@ -7,12 +7,16 @@
       "answer": "Porque no vendemos solo software. Entregamos un ecosistema listo para operar: diseño personalizado, kit físico premium (Acrílicos + NFC/QR) y entrenamiento de nuestra IA con tus estándares. Es una inversión única para garantizar la perfección desde el día uno."
     },
     {
-      "question": "¿Qué incluye exactamente el Setup Fee de $3,500 MXN?",
-      "answer": "• <b>Kit Físico Kaezyn:</b> Dispositivos premium para tus mesas.<br>• <b>Ingeniería de Configuración:</b> Integración total de bases de datos.<br>• <b>Activación del Filtro Inteligente:</b> Blindaje contra reseñas negativas.<br>• <b>Personalización de Marca:</b> El sistema se adapta a tu identidad visual.<br><br><b>Tú no haces nada; nosotros lo entregamos funcionando al 100%.</b>"
+      "question": "¿Cuál es el costo del Setup Fee y de qué depende?",
+      "answer": "El Setup Fee es <b>personalizado</b>, ya que se adapta completamente a la estructura y necesidades de tu negocio.<br><br>El costo depende de factores como:<br>• <b>Número de sucursales</b><br>• <b>Cantidad de mesas o puntos de contacto</b><br>• <b>Áreas estratégicas de interacción</b> (caja, mesas, paredes, cristales, puertas, baños, entre otros)<br>• <b>Volumen de dispositivos a fabricar</b> (QR + NFC)<br><br>Nuestro objetivo es maximizar la captación de interacción en los puntos clave donde ocurre la experiencia del cliente.<br><br>Recibirás un <b>Kit Físico Kaezyn completamente listo para operar</b>, que incluye dispositivos premium y un folder con instrucciones claras para una instalación rápida y sencilla.<br><br><b>No es un costo estándar, es una implementación estratégica diseñada para maximizar tus resultados desde el primer día.</b>"
+    },
+    {
+      "question": "¿Qué incluye exactamente el Setup Fee?",
+      "answer": "• <b>Kit Físico Kaezyn:</b> Dispositivos premium para tus mesas y otras áreas de tu negocio.<br>• <b>Ingeniería de Configuración:</b> Integración total de bases de datos.<br>• <b>Activación del Filtro Inteligente:</b> Blindaje contra reseñas negativas.<br>• <b>Personalización de Marca:</b> El sistema se adapta a tu identidad visual.<br><br><b>Tú no haces nada; nosotros lo entregamos funcionando al 100%.</b>"
     },
     {
       "question": "¿Si abro otra sucursal debo pagar nuevamente?",
-      "answer": "Sí. Cada sucursal es un ecosistema independiente que requiere su propio kit físico, configuración de datos y entrenamiento de IA. En el Plan <b>SCALE</b> ofrecemos esquemas de descuentos por volumen para cadenas y franquicias."
+      "answer": "Sí. Cada sucursal es un ecosistema independiente que requiere su propio kit físico, configuración de datos y entrenamiento de inteligencia. En el Plan <b>SCALE</b> ofrecemos esquemas de descuentos por volumen para cadenas y franquicias."
     },
     {
       "question": "¿Cómo funciona el Filtro Anti-Reseñas Negativas?",
@@ -33,6 +37,18 @@
     {
       "question": "¿Qué pasa si supero mi límite de interacciones?",
       "answer": "Tu sistema nunca dejará de protegerte. Si excedes el límite, se aplica un cargo mínimo por interacción adicional según tu plan. Si tu crecimiento es constante, te ayudamos a migrar a un plan más eficiente."
+    },
+    {
+      "question": "¿Cómo funciona la bolsa compartida de clientes gestionados?",
+      "answer": "Cada plan incluye una <b>capacidad mensual de clientes gestionados</b> que se comparte entre todo tu negocio.<br><br>No importa si tienes <b>1 o 100 sucursales</b>, todas utilizan la misma bolsa de interacciones de forma inteligente.<br><br>Esto significa que no penalizamos tu crecimiento. Puedes expandirte libremente mientras Kaezyn optimiza el uso de cada interacción donde más impacto genera.<br><br><b>Pagas por el valor que generas, no por el tamaño de tu operación.</b>"
+    },
+    {
+      "question": "¿Qué pasa si me quedo sin capacidad de clientes gestionados?",
+      "answer": "Nada se detiene. Tu reputación sigue creciendo sin interrupciones.<br><br>Cuando alcanzas tu capacidad mensual, Kaezyn activa automáticamente una <b>expansión de interacciones</b> para que continúes capturando reseñas y oportunidades en tiempo real.<br><br>No pierdes clientes, no pierdes feedback y no pierdes ingresos.<br><br><b>El sistema está diseñado para acompañar tu crecimiento, no limitarlo.</b>"
+    },
+    {
+      "question": "¿Puedo configurar cómo funciona la expansión automática?",
+      "answer": "Sí. La expansión automática está <b>totalmente bajo tu control</b>.<br><br>Puedes elegir el tipo de recarga que mejor se adapte a tu operación (+100, +300 o +1000 interacciones) y ajustar sus condiciones en cualquier momento.<br><br>Además, Kaezyn te notifica cuando alcanzas el <b>80% de tu capacidad</b>, dándote visibilidad total para anticiparte y optimizar tu estrategia.<br><br><b>Tú decides cómo escalar. Nosotros nos aseguramos de que nunca te detengas.</b>"
     },
     {
       "question": "¿Hay contrato forzoso o penalizaciones?",
