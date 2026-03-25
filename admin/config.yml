@@ -23,16 +23,26 @@ collections:
     files:
       - name: "plans"
         label: "Planes"
-        file: "content/pricing.json"
+        file: "admin/pricing.json"
         fields:
+          - { label: "Setup Fee", name: "setup_fee", widget: "string" }
           - label: "Planes"
             name: "plans"
             widget: "list"
             fields:
               - { label: "Nombre", name: "name", widget: "string" }
-              - { label: "Precio", name: "price", widget: "string" }
-              - label: "Beneficios"
+              - { label: "Eslogan", name: "tagline", widget: "string" }
+              - { label: "Precio Mensual", name: "price_monthly", widget: "number" }
+              - { label: "Precio Anual Total", name: "price_yearly_total", widget: "number" }
+              - { label: "Precio Anual (Mensualizado)", name: "price_yearly_monthly", widget: "number" }
+              - { label: "Etiqueta Destacada", name: "badge", widget: "string", required: false }
+              - label: "Incluye (Features)"
                 name: "features"
                 widget: "list"
-                field: { label: "Item", name: "item", widget: "string" }
-              - { label: "CTA", name: "cta", widget: "string" }
+              - label: "Resultados"
+                name: "results"
+                widget: "list"
+              - { label: "Link Stripe Mensual", name: "stripe_monthly", widget: "string" }
+              - { label: "Link Stripe Anual", name: "stripe_yearly", widget: "string" }
+              - { label: "Texto del Botón", name: "cta", widget: "string" }
+              - { label: "Es el más popular", name: "popular", widget: "boolean" }
