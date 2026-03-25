@@ -142,7 +142,95 @@ const Portal = (() => {
                 </div>
             </div>`;
         }
+        
+        // ==========================================
+        // LÓGICA DE USAGE & AUTO TOP-UP (NIVEL SAAS)
+        // ==========================================
+        const monthlyLimit = Number(branches[0].monthly_limit) || 200;
+        const usedInteractions = Number(branches[0].used_interactions) || 0;
+        const autoTopup = branches[0].auto_topup !== false; // true por defecto
+        const topupAmount = Number(branches[0].topup_amount) || 100;
+        
+        const usagePercent = Math.min((usedInteractions / monthlyLimit) * 100, 100);
+        
+        // Colores dinámicos de la barra
+        let progressColor = "bg-green-400";
+        if (usagePercent >= 75) progressColor = "bg-yellow-400";
+        if (usagePercent >= 90) progressColor = "bg-red-500";
 
+        // Mensaje de Upsell Inteligente
+        let upsellHtml = "";
+        if (usagePercent >= 90) {
+            upsellHtml = `
+            <div class="mt-4 bg-yellow-400/10 border border-yellow-400/30 rounded-lg p-3 flex items-start gap-3">
+                <i class="fas fa-rocket text-yellow-400 mt-1"></i>
+                <div>
+                    <p class="text-xs text-yellow-300 font-bold">¡Estás creciendo rápido!</p>
+                    <p class="text-[10px] text-gray-300 mt-0.5">Mejorar a un Plan superior reduce tu costo por interacción. <a href="#" onclick="Portal.openStripePortal()" class="underline font-bold">Ver upgrades</a>.</p>
+                </div>
+            </div>`;
+        }
+
+        const usageWidgetContainer = document.getElementById("usageWidgetContainer");
+        if (usageWidgetContainer) {
+            usageWidgetContainer.innerHTML = `
+                <div class="card p-6 md:p-8 rounded-2xl shadow-2xl relative overflow-hidden">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
+                        
+                        <div class="lg:col-span-2">
+                            <div class="flex justify-between items-end mb-2">
+                                <div>
+                                    <h3 class="text-lg font-bold text-white mb-1"><i class="fas fa-chart-pie text-yellow-400 mr-2"></i> Consumo de Interacciones</h3>
+                                    <p class="text-xs text-gray-400">Ciclo actual (se reinicia el 1er día del mes)</p>
+                                </div>
+                                <div class="text-right">
+                                    <span class="text-2xl font-black text-white">${usedInteractions}</span>
+                                    <span class="text-sm text-gray-400 font-medium">/ ${monthlyLimit}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="w-full bg-white/5 rounded-full h-4 mb-2 overflow-hidden border border-white/10 shadow-inner">
+                                <div class="${progressColor} h-4 rounded-full transition-all duration-1000 ease-out relative" style="width: ${usagePercent}%">
+                                    ${usagePercent >= 10 ? `<div class="absolute inset-0 bg-white/20 w-full h-full animate-pulse"></div>` : ''}
+                                </div>
+                            </div>
+                            
+                            <p class="text-[11px] text-gray-400 font-medium flex justify-between">
+                                <span>0%</span>
+                                ${usagePercent >= 90 && !autoTopup ? `<span class="text-red-400 font-bold"><i class="fas fa-exclamation-triangle"></i> Límite próximo. El servicio se pausará.</span>` : `<span>Límite del plan</span>`}
+                            </p>
+
+                            ${upsellHtml}
+                        </div>
+
+                        <div class="bg-[#0b0f2a] border border-white/10 rounded-xl p-5 shadow-inner flex flex-col justify-center h-full">
+                            <div class="flex justify-between items-center mb-4 border-b border-white/10 pb-3">
+                                <div>
+                                    <h4 class="text-sm font-bold text-white uppercase tracking-wider">Auto-Recarga</h4>
+                                    <p class="text-[10px] text-gray-400 mt-0.5 leading-tight">Nunca pierdas una reseña</p>
+                                </div>
+                                
+                                <div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+                                    <input type="checkbox" name="toggle" id="autoTopupToggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 border-[#0b0f2a] appearance-none cursor-pointer z-10" ${autoTopup ? 'checked' : ''} onchange="Portal.toggleAutoTopup(this.checked, '${branches[0].id}')"/>
+                                    <label for="autoTopupToggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-600 cursor-pointer"></label>
+                                </div>
+                            </div>
+
+                            <div class="${autoTopup ? 'opacity-100' : 'opacity-40 pointer-events-none'} transition-opacity duration-300">
+                                <label class="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-2 block">Paquete de expansión:</label>
+                                <select id="topupAmountSelect" onchange="Portal.updateTopupAmount(this.value, '${branches[0].id}')" class="w-full bg-white/5 border border-white/20 text-white text-sm rounded-lg focus:ring-yellow-400 focus:border-yellow-400 block p-2.5 outline-none font-bold">
+                                    <option value="100" class="text-black" ${topupAmount === 100 ? 'selected' : ''}>+100 interacciones ($690)</option>
+                                    <option value="300" class="text-black" ${topupAmount === 300 ? 'selected' : ''}>+300 interacciones ($1,790)</option>
+                                    <option value="1000" class="text-black" ${topupAmount === 1000 ? 'selected' : ''}>+1,000 interacciones ($5,900)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            `;
+        }
+        
         // --- Renderizar las Tarjetas (Grid) ---
         if (dashboardDiv) {
             dashboardDiv.innerHTML = `
@@ -318,6 +406,18 @@ const Portal = (() => {
         }, 3000);
     }
 
+    async function toggleAutoTopup(isAuto, branchId) {
+        // En un esquema real, actualizarías el registro maestro del cliente
+        await updateBranch(branchId, { auto_topup: isAuto });
+        // Mostrar notificación visual opcional
+        console.log("Auto Top-up actualizado a:", isAuto);
+    }
+
+    async function updateTopupAmount(amount, branchId) {
+        await updateBranch(branchId, { topup_amount: Number(amount) });
+        console.log("Paquete de expansión actualizado a:", amount);
+    }
+    
     return {
         login, 
         requireAuth, 
@@ -328,7 +428,9 @@ const Portal = (() => {
         openStripePortal, 
         sendResetPassword,
         getBranchDetails,
-        updateBranch
+        updateBranch,
+        toggleAutoTopup,
+        updateTopupAmount
     };
 
 })();
