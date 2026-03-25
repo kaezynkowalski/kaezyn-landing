@@ -10,6 +10,7 @@
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
@@ -44,33 +45,40 @@ body {
 .btn-gold:hover {
     box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
 }
-.btn-gold:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
+
+/* Estilo para el Toggle Switch (Auto Top-up) */
+.toggle-checkbox:checked {
+  right: 0;
+  border-color: #FFD700;
+}
+.toggle-checkbox:checked + .toggle-label {
+  background-color: #FFD700;
 }
 </style>
 </head>
 
-<body class="min-h-screen">
+<body class="min-h-screen pb-12">
 
-<div class="container mx-auto px-6 py-10">
+<div class="container mx-auto px-6 py-10 max-w-6xl">
 
-    <div class="flex flex-col sm:flex-row justify-between items-center mb-10 gap-4">
+    <div class="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
         <img src="/assets/KAEZYN LOGO.png" class="h-10">
         <div class="text-center sm:text-right">
-            <p id="planName" class="font-bold text-yellow-300"></p>
-            <p id="renewalDate" class="text-sm text-gray-400"></p>
-            <button onclick="Portal.logout()" class="text-sm text-gray-400 mt-2 hover:text-white transition">Cerrar sesión</button>
+            <p id="planName" class="font-bold text-yellow-300 tracking-wider uppercase text-sm"></p>
+            <p id="renewalDate" class="text-xs text-gray-400 mt-1"></p>
+            <button onclick="Portal.logout()" class="text-xs text-gray-500 mt-2 hover:text-white transition uppercase tracking-widest"><i class="fas fa-sign-out-alt mr-1"></i> Cerrar sesión</button>
         </div>
     </div>
 
+    <div id="usageWidgetContainer" class="mb-8"></div>
+
     <div id="dashboard"></div>
 
-    <div class="mt-8 flex justify-center sm:justify-start">
-            <button id="btnStripe" class="btn-gold w-full sm:w-auto" onclick="Portal.openStripePortal(window.currentCustomerId)">
-                Administrar Suscripción
-            </button>
-        </div>
+    <div class="mt-10 flex justify-center sm:justify-start">
+        <button id="btnStripe" class="bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-xl font-bold transition-all border border-white/10 shadow-lg text-sm uppercase tracking-wider w-full sm:w-auto" onclick="Portal.openStripePortal(window.currentCustomerId)">
+            <i class="fas fa-credit-card mr-2"></i> Administrar Facturación
+        </button>
+    </div>
 </div>
 
 <script src="portal.js"></script>
