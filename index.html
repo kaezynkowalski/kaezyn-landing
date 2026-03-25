@@ -548,10 +548,10 @@
             
             <div class="mb-6">
                 <div class="flex items-baseline justify-center">
-                    <span class="text-5xl font-extrabold text-white">$${displayPrice.toLocaleString()}</span>
+                    <span class="text-5xl font-extrabold text-white">$${displayPrice.toLocaleString('en-US')}</span>
                     <span class="text-gray-400 ml-2 text-sm font-medium">/ mes</span>
                 </div>
-                ${isYearly ? `<p class="text-green-400 text-xs font-bold mt-2 bg-green-400/10 inline-block px-3 py-1 rounded-full">Facturado anualmente ($${plan.price_yearly_total.toLocaleString()} MXN)</p>` : '<p class="mt-2 h-6"></p>'}
+                ${isYearly ? `<p class="text-green-400 text-xs font-bold mt-2 bg-green-400/10 inline-block px-3 py-1 rounded-full">Facturado anualmente ($${plan.price_yearly_total.toLocaleString('en-US')} MXN)</p>` : '<p class="mt-2 h-6"></p>'}
             </div>
             
             <div class="text-left mb-6">
