@@ -365,6 +365,53 @@
 
                 <div id="pricing-grid" class="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch max-w-7xl mx-auto">
                     </div>
+                
+                <div class="max-w-5xl mx-auto mt-20 bg-gradient-to-br from-white/5 to-transparent border border-white/10 rounded-3xl p-8 md:p-12 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-64 h-64 bg-yellow-400/5 rounded-full blur-3xl pointer-events-none"></div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center relative z-10">
+                        <div>
+                            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-400/10 border border-yellow-400/20 text-yellow-400 text-xs font-bold uppercase tracking-wider mb-6">
+                                <i class="fas fa-bolt"></i> Expansión Automática
+                            </div>
+                            <h3 class="text-3xl font-bold text-white mb-4">Nunca pierdes una reseña.</h3>
+                            <p class="text-gray-400 mb-6 leading-relaxed">Tu negocio no se detiene y tu reputación tampoco. Conecta todas tus sucursales y comparte la capacidad mensual. Si superas el límite, el sistema crece contigo automáticamente sin interrumpir tu operación.</p>
+                            
+                            <ul class="space-y-4">
+                                <li class="flex items-center text-sm text-gray-300">
+                                    <i class="fas fa-check-circle text-green-400 mr-3 text-lg"></i> Sin bloqueos de plataforma
+                                </li>
+                                <li class="flex items-center text-sm text-gray-300">
+                                    <i class="fas fa-check-circle text-green-400 mr-3 text-lg"></i> No pierdes oportunidades de venta
+                                </li>
+                                <li class="flex items-center text-sm text-gray-300">
+                                    <i class="fas fa-check-circle text-green-400 mr-3 text-lg"></i> Consumo transparente en tiempo real
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-[#0b0f2a] border border-white/10 rounded-2xl p-8 shadow-2xl">
+                            <h4 class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-6 border-b border-white/10 pb-4">Recargas Automáticas</h4>
+                            
+                            <div class="space-y-4">
+                                <div class="flex justify-between items-center bg-white/5 rounded-lg p-4">
+                                    <span class="text-white font-medium">+100 clientes gestionados</span>
+                                    <span class="text-yellow-400 font-bold">$690 MXN</span>
+                                </div>
+                                <div class="flex justify-between items-center bg-white/5 rounded-lg p-4">
+                                    <span class="text-white font-medium">+300 clientes gestionados</span>
+                                    <span class="text-yellow-400 font-bold">$1,790 MXN</span>
+                                </div>
+                                <div class="flex justify-between items-center bg-white/5 rounded-lg p-4 border border-yellow-400/30">
+                                    <span class="text-white font-medium">+1,000 clientes gestionados</span>
+                                    <span class="text-yellow-400 font-bold">$5,900 MXN</span>
+                                </div>
+                            </div>
+                            
+                            <p class="text-xs text-center text-gray-500 mt-6 italic">Cada cliente gestionado es una experiencia optimizada para generar más estrellas en tu negocio.</p>
+                        </div>
+                    </div>
+                </div>
 
                 <p class="text-center text-gray-500 text-xs mt-12 max-w-3xl mx-auto leading-relaxed">
                     *Precios más IVA. Setup Fee único de $3,500 MXN por ubicación. Las interacciones adicionales se facturan a mes vencido según el plan activo. Para implementaciones mayores a 10 sucursales, contacte a un consultor.
@@ -488,48 +535,40 @@
         grid.innerHTML = '';
 
         pricingData.plans.forEach(plan => {
-          // Si es anual, mostramos el precio mensualizado
           const displayPrice = isYearly ? plan.price_yearly_monthly : plan.price_monthly;
           const stripeLink = isYearly ? plan.stripe_yearly : plan.stripe_monthly;
 
           const card = document.createElement('div');
-          // Mantenemos tus estilos visuales originales
-          card.className = `feature-card p-8 rounded-2xl text-center flex flex-col relative transition-all duration-500 ${plan.popular ? 'border-2 border-yellow-300 scale-105 z-10 bg-white/10 shadow-2xl shadow-yellow-300/10' : 'bg-white/5 border border-white/10'}`;
+          card.className = `feature-card p-8 rounded-2xl text-center flex flex-col relative transition-all duration-500 ${plan.popular ? 'border-2 border-yellow-300 scale-105 z-10 bg-[#0b0f2a] shadow-[0_0_40px_rgba(255,215,0,0.15)]' : 'bg-white/5 border border-white/10'}`;
 
           card.innerHTML = `
-            ${plan.badge ? `<span class="absolute -top-4 left-1/2 -translate-x-1/2 bg-yellow-300 text-night-blue text-[10px] font-black px-4 py-1 rounded-full uppercase tracking-widest shadow-lg">${plan.badge}</span>` : ''}
-            <h3 class="text-xl font-bold text-gray-400 uppercase tracking-widest">${plan.name}</h3>
-            <p class="text-sm text-gray-500 mb-6 italic">${plan.tagline || ''}</p>
+            ${plan.badge ? `<span class="absolute -top-4 left-1/2 -translate-x-1/2 bg-yellow-400 text-[#0b0f2a] text-[11px] font-black px-5 py-1.5 rounded-full uppercase tracking-widest shadow-lg">${plan.badge}</span>` : ''}
+            <h3 class="text-2xl font-bold text-white uppercase tracking-widest mt-2">${plan.name}</h3>
+            <p class="text-sm text-yellow-300 mb-6 font-medium">${plan.tagline}</p>
             
             <div class="mb-6">
                 <div class="flex items-baseline justify-center">
-                    <span class="text-4xl font-extrabold text-white">$${displayPrice.toLocaleString()}</span>
-                    <span class="text-gray-400 ml-2 text-sm">/ mes</span>
+                    <span class="text-5xl font-extrabold text-white">$${displayPrice.toLocaleString()}</span>
+                    <span class="text-gray-400 ml-2 text-sm font-medium">/ mes</span>
                 </div>
-                ${isYearly ? `<p class="text-yellow-300 text-[10px] font-bold mt-2 animate-pulse">Facturado anualmente ($${plan.price_yearly_total.toLocaleString()} MXN)</p>` : '<p class="mt-2 h-4"></p>'}
+                ${isYearly ? `<p class="text-green-400 text-xs font-bold mt-2 bg-green-400/10 inline-block px-3 py-1 rounded-full">Facturado anualmente ($${plan.price_yearly_total.toLocaleString()} MXN)</p>` : '<p class="mt-2 h-6"></p>'}
             </div>
             
-            <ul class="text-left text-gray-300 space-y-4 mb-8 flex-grow">
-              ${plan.features.map(f => `<li class="flex items-start text-sm"><i class="fas fa-check-circle text-yellow-300 mt-1 mr-3"></i> <span>${f}</span></li>`).join('')}
-            </ul>
-            
-            <div class="pt-6 border-t border-white/10 text-left mb-6">
-                <div class="space-y-2">
-                    <div class="flex justify-between text-[11px] text-gray-400 font-medium">
-                        <span>Interacción extra:</span>
-                        <span class="text-yellow-300">$${plan.extra_interaction} MXN</span>
-                    </div>
-                    ${plan.extra_location ? `
-                    <div class="flex justify-between text-[11px] text-gray-400 font-medium mt-1">
-                        <span>Sucursal extra:</span>
-                        <span class="text-yellow-300">$${plan.extra_location.toLocaleString()}/mes</span>
-                    </div>
-                    <p class="text-[9px] text-gray-500 italic mt-1 leading-tight">*(Incluye límite de ${plan.extra_location_limit} reseñas)*</p>
-                    ` : ''}
-                </div>
+            <div class="text-left mb-6">
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">¿Qué incluye?</p>
+                <ul class="text-gray-300 space-y-3">
+                  ${plan.features.map(f => `<li class="flex items-start text-sm"><i class="fas fa-check text-yellow-400 mt-1 mr-3"></i> <span>${f}</span></li>`).join('')}
+                </ul>
+            </div>
+
+            <div class="text-left mb-8 pt-6 border-t border-white/10 flex-grow">
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Resultados esperados:</p>
+                <ul class="text-gray-300 space-y-3">
+                  ${plan.results.map(r => `<li class="flex items-start text-sm"><i class="fas fa-arrow-right text-gray-500 mt-1 mr-3"></i> <span class="font-medium text-white">${r}</span></li>`).join('')}
+                </ul>
             </div>
             
-            <a href="${stripeLink}" class="${plan.popular ? 'btn-gold' : 'border-2 border-white/20 text-white hover:bg-white/10'} py-3 px-6 rounded-lg font-bold transition-all text-center mt-auto">
+            <a href="${stripeLink}" class="${plan.popular ? 'btn-gold' : 'bg-white/10 hover:bg-white/20 text-white'} py-4 px-6 rounded-xl font-bold transition-all text-center mt-auto shadow-lg uppercase tracking-wider text-sm">
               ${plan.cta}
             </a>
           `;
