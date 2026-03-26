@@ -66,7 +66,7 @@ const Portal = (() => {
             return;
         }
 
-        renderDashboard(branches);
+        renderDashboard(branches, billingData);
     }
 
     function renderDashboard(branches, billingData) {
@@ -221,14 +221,14 @@ const Portal = (() => {
                                 </div>
                                 
                                 <div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
-                                    <input type="checkbox" name="toggle" id="autoTopupToggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 border-[#0b0f2a] appearance-none cursor-pointer z-10" ${autoTopup ? 'checked' : ''} onchange="Portal.toggleAutoTopup(this.checked, '${branches[0].id}')"/>
+                                    <input type="checkbox" name="toggle" id="autoTopupToggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 border-[#0b0f2a] appearance-none cursor-pointer z-10" ${autoTopup ? 'checked' : ''} onchange="Portal.toggleAutoTopup(this.checked)"/>
                                     <label for="autoTopupToggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-600 cursor-pointer"></label>
                                 </div>
                             </div>
 
                             <div class="${autoTopup ? 'opacity-100' : 'opacity-40 pointer-events-none'} transition-opacity duration-300">
                                 <label class="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-2 block">Paquete de expansión:</label>
-                                <select id="topupAmountSelect" onchange="Portal.updateTopupAmount(this.value, '${branches[0].id}')" class="w-full bg-white/5 border border-white/20 text-white text-sm rounded-lg focus:ring-yellow-400 focus:border-yellow-400 block p-2.5 outline-none font-bold">
+                                <select id="topupAmountSelect" onchange="Portal.updateTopupAmount(this.value)" class="w-full bg-white/5 border border-white/20 text-white text-sm rounded-lg focus:ring-yellow-400 focus:border-yellow-400 block p-2.5 outline-none font-bold">
                                     <option value="100" class="text-black" ${topupAmount === 100 ? 'selected' : ''}>+100 interacciones ($690)</option>
                                     <option value="300" class="text-black" ${topupAmount === 300 ? 'selected' : ''}>+300 interacciones ($1,790)</option>
                                     <option value="1000" class="text-black" ${topupAmount === 1000 ? 'selected' : ''}>+1,000 interacciones ($5,900)</option>
@@ -416,16 +416,32 @@ const Portal = (() => {
         }, 3000);
     }
 
-    async function toggleAutoTopup(isAuto, branchId) {
-        // En un esquema real, actualizarías el registro maestro del cliente
-        await updateBranch(branchId, { auto_topup: isAuto });
-        // Mostrar notificación visual opcional
-        console.log("Auto Top-up actualizado a:", isAuto);
+    async function toggleAutoTopup(isAuto) {
+        const user = await requireAuth();
+        if (!user) return;
+
+        // Actualizamos el campo auto_topup para TODAS las sucursales de este usuario
+        const { error } = await supabase
+            .from("businesses")
+            .update({ auto_topup: isAuto })
+            .eq("user_id", user.id);
+
+        if (error) console.error("Error al guardar auto-topup:", error);
+        else console.log("Auto Top-up guardado globalmente");
     }
 
-    async function updateTopupAmount(amount, branchId) {
-        await updateBranch(branchId, { topup_amount: Number(amount) });
-        console.log("Paquete de expansión actualizado a:", amount);
+    async function updateTopupAmount(amount) {
+        const user = await requireAuth();
+        if (!user) return;
+
+        // Actualizamos el monto para TODAS las sucursales de este usuario
+        const { error } = await supabase
+            .from("businesses")
+            .update({ topup_amount: Number(amount) })
+            .eq("user_id", user.id);
+
+        if (error) console.error("Error al guardar monto de expansión:", error);
+        else console.log("Monto de expansión guardado globalmente");
     }
     
     return {
