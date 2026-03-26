@@ -74,8 +74,6 @@ const Portal = (() => {
         const billing = billingData || {};
         window.currentCustomerId = branches[0].stripe_customer_id;
 
-        // Variables de estado asegurando formatos correctos (Números)
-        const allowedQuantity = Number(branches[0].allowed_quantity) || 0;
         // Cuenta activos reales, asegurando que si llega como string 'true', lo cuente bien
         const activeCount = branches.filter(b => b.activo === true || String(b.activo).toLowerCase() === 'true').length;
         const subStatus = (branches[0].subscription_status || 'active').toLowerCase();
@@ -85,10 +83,10 @@ const Portal = (() => {
         const planNameEl = document.getElementById("planName");
         const renewalDateEl = document.getElementById("renewalDate");
         const dashboardDiv = document.getElementById("dashboard");
-        const table = document.getElementById("branchesTable");
 
         if(planNameEl) planNameEl.innerText = "Plan " + (branches[0].plan || "Pro");
-        if(renewalDateEl) renewalDateEl.innerText = `${activeCount} / ${allowedQuantity} sucursales activas`;
+        // Ahora solo mostramos cuántas tienen, sin límites
+        if(renewalDateEl) renewalDateEl.innerText = `${activeCount} sucursales activas`;
 
         // Función auxiliar para calcular días restantes
         const getDaysLeft = (dateStr) => {
@@ -99,7 +97,6 @@ const Portal = (() => {
         };
 
         const daysLeft = getDaysLeft(expirationDateStr);
-        // Formatear la fecha en español para mostrarla al cliente
         const expirationDateFormatted = expirationDateStr ? new Date(expirationDateStr).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' }) : '';
 
         // --- Lógica de Alertas Dinámica ---
@@ -136,7 +133,9 @@ const Portal = (() => {
                     Mantener mi Plan
                 </button>
             </div>`;
-        } 
+        }
+        
+            
         // 3. Alerta Persistente: Límite Excedido
         else if (activeCount > allowedQuantity) {
             alertHtml = `
