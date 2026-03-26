@@ -62,7 +62,7 @@ const Portal = (() => {
         }
 
         if (!branches || branches.length === 0) {
-            document.body.innerHTML = "<div style='color:white; padding:20px;'>No hay sucursales vinculadas a este usuario.</div>";
+                    document.body.innerHTML = "<div style='color:white; padding:20px;'>No hay sucursales vinculadas a este usuario.</div>";
             return;
         }
 
@@ -135,22 +135,6 @@ const Portal = (() => {
             </div>`;
         }
         
-            
-        // 3. Alerta Persistente: Límite Excedido
-        else if (activeCount > allowedQuantity) {
-            alertHtml = `
-            <div class="mb-6 bg-red-900/30 border-l-4 border-red-500 p-5 rounded-r-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-lg">
-                <div class="flex items-start gap-4">
-                    <div class="bg-red-500/20 p-2 rounded-full shrink-0 mt-1">
-                        <svg class="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                    </div>
-                    <div>
-                        <h3 class="text-red-400 font-bold text-base">¡Atención! Límite de sucursales excedido</h3>
-                        <p class="text-gray-300 text-sm mt-1">Tu plan permite <b>${allowedQuantity}</b> sucursales, pero tienes <b>${activeCount}</b> activas. Para asegurar el funcionamiento del sistema, por favor pausa las sucursales sobrantes dando clic en "Gestionar".</p>
-                    </div>
-                </div>
-            </div>`;
-        }
         
         // ==========================================
         // LÓGICA DE USAGE & AUTO TOP-UP (NIVEL SAAS)
@@ -309,7 +293,7 @@ const Portal = (() => {
                 const hasClientId = branch.client_id && String(branch.client_id).trim() !== "" && String(branch.client_id).toLowerCase() !== "null" && branch.client_id !== 'empty';
                 
                 // Tienen permiso para editar si tienen cantidad permitida > 0 O si les quedan días de periodo de gracia
-                const canUserEdit = (allowedQuantity > 0 || daysLeft > 0);
+                const canUserEdit = !(subStatus === 'canceled' && daysLeft === 0);
 
                 const row = document.createElement("tr");
                 row.className = "border-b border-white/5 hover:bg-white/5 transition-colors";
@@ -443,6 +427,44 @@ const Portal = (() => {
         else console.log("Monto de expansión guardado globalmente");
     }
     
+    async function createNewBranch() {
+        const user = await requireAuth();
+        if (!user) return;
+
+        // Buscamos la sucursal actual para copiar los datos de Stripe y Plan
+        const { data: existingBranches } = await supabase
+            .from("businesses")
+            .select("*")
+            .eq("user_id", user.id)
+            .limit(1)
+            .single();
+
+        const nextNumber = (await supabase
+            .from("businesses")
+            .select("id", { count: 'exact' })
+            .eq("user_id", user.id)).count + 1;
+
+        const { error } = await supabase
+            .from("businesses")
+            .insert([{
+                user_id: user.id,
+                branch_number: nextNumber,
+                business_name: "Nueva Sucursal",
+                activo: false,
+                stripe_customer_id: existingBranches?.stripe_customer_id || null,
+                plan: existingBranches?.plan || "Pro",
+                subscription_status: existingBranches?.subscription_status || "active",
+                current_period_end: existingBranches?.current_period_end || null
+            }]);
+
+        if (error) {
+            alert("Error al crear sucursal");
+        } else {
+            loadDashboard(); // Recarga la vista para ver la nueva tarjeta
+        }
+    }
+
+    
     return {
         login, 
         requireAuth, 
@@ -455,7 +477,8 @@ const Portal = (() => {
         getBranchDetails,
         updateBranch,
         toggleAutoTopup,
-        updateTopupAmount
+        updateTopupAmount,
+        createNewBranch
     };
 
 })();
