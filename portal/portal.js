@@ -41,6 +41,14 @@ const Portal = (() => {
         const user = await requireAuth();
         if (!user) return;
 
+        // 1. Obtenemos los datos de facturación de la nueva Vista
+        const { data: billingData, error: billingError } = await supabase
+            .from("billing_metrics")
+            .select("*")
+            .eq("user_id", user.id)
+            .single(); // Como es por usuario, solo necesitamos un registro
+
+        // 2. Obtenemos las sucursales normales
         const { data: branches, error } = await supabase
             .from("businesses")
             .select("*")
@@ -61,7 +69,9 @@ const Portal = (() => {
         renderDashboard(branches);
     }
 
-    function renderDashboard(branches) {
+    function renderDashboard(branches, billingData) {
+        // Asegúrate de usar fallback por si billingData está vacío al inicio
+        const billing = billingData || {};
         window.currentCustomerId = branches[0].stripe_customer_id;
 
         // Variables de estado asegurando formatos correctos (Números)
@@ -146,10 +156,10 @@ const Portal = (() => {
         // ==========================================
         // LÓGICA DE USAGE & AUTO TOP-UP (NIVEL SAAS)
         // ==========================================
-        const monthlyLimit = Number(branches[0].monthly_limit) || 200;
-        const usedInteractions = Number(branches[0].used_interactions) || 0;
-        const autoTopup = branches[0].auto_topup !== false; // true por defecto
-        const topupAmount = Number(branches[0].topup_amount) || 100;
+        const monthlyLimit = Number(billing.monthly_limit) || 200;
+        const usedInteractions = Number(billing.used_interactions) || 0;
+        const autoTopup = billing.auto_topup !== false; 
+        const topupAmount = Number(billing.topup_amount) || 100;
         
         const usagePercent = Math.min((usedInteractions / monthlyLimit) * 100, 100);
         
