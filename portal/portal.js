@@ -433,7 +433,7 @@ const Portal = (() => {
         if (!user) return;
 
         try {
-            // 1. Buscamos la primera sucursal de forma segura (sin .single() para evitar errores si hay varias)
+            // 1. Buscamos la primera sucursal para usarla como "plantilla"
             const { data: existingBranches, error: fetchError } = await supabase
                 .from("businesses")
                 .select("*")
@@ -442,7 +442,6 @@ const Portal = (() => {
 
             if (fetchError) throw fetchError;
             
-            // Tomamos los datos base si existen
             const baseBranch = existingBranches && existingBranches.length > 0 ? existingBranches[0] : {};
 
             // 2. Contamos de forma segura para saber qué número de sucursal toca
@@ -455,15 +454,25 @@ const Portal = (() => {
 
             const nextNumber = (count || 0) + 1;
 
-            // 3. Insertamos la nueva sucursal con los valores por defecto
+            // 3. Insertamos la nueva sucursal copiando los datos generales de la plantilla
             const { error: insertError } = await supabase
                 .from("businesses")
                 .insert([{
                     user_id: user.id,
                     branch_number: nextNumber,
-                    business_name: "empty", // Para que el Dashboard lo lea como Pendiente
-                    client_id: "empty",     // Crucial para que aparezca el botón "Activar"
+                    
+                    // --- DATOS HEREDADOS DEL NEGOCIO ---
+                    business_name: baseBranch.business_name || "Nueva Sucursal", 
+                    contact_email: baseBranch.contact_email || user.email,
+                    contact_name: baseBranch.contact_name || "",
+                    billing_address: baseBranch.billing_address || "",
+                    monthly_limit: baseBranch.monthly_limit || 200, // Hereda el límite de interacciones actual
+                    
+                    // --- DATOS DE CONTROL Y ESTADO ---
+                    client_id: "empty",     // Crucial: mantiene la sucursal en estado "Pendiente"
                     activo: false,
+                    
+                    // --- DATOS DE STRIPE ---
                     stripe_customer_id: baseBranch.stripe_customer_id || null,
                     plan: baseBranch.plan || "Pro",
                     subscription_status: baseBranch.subscription_status || "active",
@@ -472,11 +481,10 @@ const Portal = (() => {
 
             if (insertError) throw insertError;
 
-            // 4. Si todo sale bien, recargamos el dashboard para mostrar la nueva tarjeta
+            // 4. Si todo sale bien, recargamos el dashboard
             loadDashboard(); 
 
         } catch (error) {
-            // Si algo falla, lo imprimimos en la consola para saber exactamente por qué Supabase lo rechazó
             console.error("Detalle completo del error en Supabase:", error);
             alert("Error al crear sucursal. Revisa la consola para más detalles.");
         }
