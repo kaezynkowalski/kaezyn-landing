@@ -432,38 +432,53 @@ const Portal = (() => {
         const user = await requireAuth();
         if (!user) return;
 
-        // Buscamos la sucursal actual para copiar los datos de Stripe y Plan
-        const { data: existingBranches } = await supabase
-            .from("businesses")
-            .select("*")
-            .eq("user_id", user.id)
-            .limit(1)
-            .single();
+        try {
+            // 1. Buscamos la primera sucursal de forma segura (sin .single() para evitar errores si hay varias)
+            const { data: existingBranches, error: fetchError } = await supabase
+                .from("businesses")
+                .select("*")
+                .eq("user_id", user.id)
+                .limit(1);
 
-        const { count } = await supabase
-            .from("businesses")
-            .select("id", { count: 'exact', head: true })
-            .eq("user_id", user.id);
+            if (fetchError) throw fetchError;
+            
+            // Tomamos los datos base si existen
+            const baseBranch = existingBranches && existingBranches.length > 0 ? existingBranches[0] : {};
 
-        const nextNumber = (count || 0) + 1;
+            // 2. Contamos de forma segura para saber qué número de sucursal toca
+            const { count, error: countError } = await supabase
+                .from("businesses")
+                .select("*", { count: 'exact', head: true })
+                .eq("user_id", user.id);
 
-        const { error } = await supabase
-            .from("businesses")
-            .insert([{
-                user_id: user.id,
-                branch_number: nextNumber,
-                business_name: "Nueva Sucursal",
-                activo: false,
-                stripe_customer_id: existingBranches?.stripe_customer_id || null,
-                plan: existingBranches?.plan || "Pro",
-                subscription_status: existingBranches?.subscription_status || "active",
-                current_period_end: existingBranches?.current_period_end || null
-            }]);
+            if (countError) throw countError;
 
-        if (error) {
-            alert("Error al crear sucursal");
-        } else {
-            loadDashboard(); // Recarga la vista para ver la nueva tarjeta
+            const nextNumber = (count || 0) + 1;
+
+            // 3. Insertamos la nueva sucursal con los valores por defecto
+            const { error: insertError } = await supabase
+                .from("businesses")
+                .insert([{
+                    user_id: user.id,
+                    branch_number: nextNumber,
+                    business_name: "empty", // Para que el Dashboard lo lea como Pendiente
+                    client_id: "empty",     // Crucial para que aparezca el botón "Activar"
+                    activo: false,
+                    stripe_customer_id: baseBranch.stripe_customer_id || null,
+                    plan: baseBranch.plan || "Pro",
+                    subscription_status: baseBranch.subscription_status || "active",
+                    current_period_end: baseBranch.current_period_end || null
+                }]);
+
+            if (insertError) throw insertError;
+
+            // 4. Si todo sale bien, recargamos el dashboard para mostrar la nueva tarjeta
+            loadDashboard(); 
+
+        } catch (error) {
+            // Si algo falla, lo imprimimos en la consola para saber exactamente por qué Supabase lo rechazó
+            console.error("Detalle completo del error en Supabase:", error);
+            alert("Error al crear sucursal. Revisa la consola para más detalles.");
         }
     }
 
