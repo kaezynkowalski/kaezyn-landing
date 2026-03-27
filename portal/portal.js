@@ -467,6 +467,10 @@ const Portal = (() => {
                     contact_name: baseBranch.contact_name || "",
                     billing_address: baseBranch.billing_address || "",
                     monthly_limit: baseBranch.monthly_limit || 200, // Hereda el límite de interacciones actual
+                    topup_amount: baseBranch.topup_amount || 100,
+                    // Usamos ?? (Nullish coalescing) para que si el valor es estrictamente 'false', lo respete y no ponga 'true' por error
+                    auto_topup: baseBranch.auto_topup ?? true, 
+                    access_token: baseBranch.access_token || null,
                     
                     // --- DATOS DE CONTROL Y ESTADO ---
                     client_id: "empty",     // Crucial: mantiene la sucursal en estado "Pendiente"
