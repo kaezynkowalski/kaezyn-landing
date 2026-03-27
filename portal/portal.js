@@ -83,6 +83,7 @@ const Portal = (() => {
         const planNameEl = document.getElementById("planName");
         const renewalDateEl = document.getElementById("renewalDate");
         const dashboardDiv = document.getElementById("dashboard");
+        const table = document.getElementById("branchesTableBody");
 
         if(planNameEl) planNameEl.innerText = "Plan " + (branches[0].plan || "Pro");
         // Ahora solo mostramos cuántas tienen, sin límites
@@ -439,10 +440,12 @@ const Portal = (() => {
             .limit(1)
             .single();
 
-        const nextNumber = (await supabase
+        const { count } = await supabase
             .from("businesses")
-            .select("id", { count: 'exact' })
-            .eq("user_id", user.id)).count + 1;
+            .select("id", { count: 'exact', head: true })
+            .eq("user_id", user.id);
+
+        const nextNumber = (count || 0) + 1;
 
         const { error } = await supabase
             .from("businesses")
