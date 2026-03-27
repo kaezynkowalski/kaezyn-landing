@@ -248,8 +248,8 @@ const Portal = (() => {
                             statusClass = branch.activo ? "bg-green-500/20 text-green-400" : "bg-gray-500/20 text-gray-400";
                         }
                         
-                        // Tienen permiso para editar si tienen cantidad permitida > 0 O si les quedan días de periodo de gracia
-                        const canUserEdit = (allowedQuantity > 0 || daysLeft > 0);
+                        // Tienen permiso para editar mientras NO sea un apagón total
+                        const canUserEdit = !(subStatus === 'canceled' && daysLeft === 0);
                 
                         let actionButton = "";
                         if (!canUserEdit) {
