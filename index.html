@@ -506,8 +506,16 @@
                  <div>
                     <h4 class="font-bold text-white mb-4">Legal</h4>
                     <ul class="space-y-2 text-sm">
-                        <li><a href="#" class="hover:text-yellow-300">Aviso de Privacidad</a></li>
-                        <li><a href="#" class="hover:text-yellow-300">Términos y Condiciones</a></li>
+                        <li>
+                            <a href="javascript:void(0)" onclick="openLegalModal('modal-privacidad')" class="hover:text-yellow-300 transition-colors cursor-pointer block">
+                                Aviso de Privacidad
+                            </a>
+                        </li>
+                        <li>
+                            <a href="javascript:void(0)" onclick="openLegalModal('modal-terminos')" class="hover:text-yellow-300 transition-colors cursor-pointer block">
+                                Términos y Condiciones
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </div>
@@ -872,9 +880,97 @@
                 }
             });
         }
+
+        //Hacer Funcionar elementos PRIVACIDAD Y TERMINOS Y CONDICIONES
+        function openLegalModal(modalId) {
+            const overlay = document.getElementById('legal-modal-overlay');
+            const modals = document.querySelectorAll('.legal-modal');
+            const targetModal = document.getElementById(modalId);
+
+            // Ocultar todos los modales primero
+            modals.forEach(m => {
+                m.classList.add('hidden');
+                m.classList.remove('scale-100');
+                m.classList.add('scale-95');
+            });
+
+            // Mostrar overlay y modal objetivo
+            overlay.classList.remove('hidden');
+            targetModal.classList.remove('hidden');
         
+            // Animación suave (timeout mínimo para que el display:block haga efecto antes de la opacidad)
+            setTimeout(() => {
+                overlay.classList.remove('opacity-0');
+                overlay.classList.add('opacity-100');
+                targetModal.classList.remove('scale-95');
+                targetModal.classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeLegalModal() {
+            const overlay = document.getElementById('legal-modal-overlay');
+            const modals = document.querySelectorAll('.legal-modal');
+
+            overlay.classList.remove('opacity-100');
+            overlay.classList.add('opacity-0');
+            modals.forEach(m => {
+                m.classList.remove('scale-100');
+                m.classList.add('scale-95');
+            });
+
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+            }, 300); // Esperar que termine la transición
+        }
+
+        // Cerrar si hacen clic fuera del modal
+        document.getElementById('legal-modal-overlay').addEventListener('click', function(e) {
+            if (e.target === this) closeLegalModal();
+        });
+    
     </script>
-            
+    
+    //Seccion PRIVACIDAD Y TERMINOS Y CONDICIONES
+    <!-- OVERLAY PARA MODALES LEGALES -->
+    <div id="legal-modal-overlay" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] hidden opacity-0 transition-opacity duration-300 flex items-center justify-center p-4">
+    
+    <!-- MODAL: AVISO DE PRIVACIDAD -->
+    <div id="modal-privacidad" class="legal-modal hidden bg-[#0b0f2a] border border-white/10 w-full max-w-3xl max-h-[80vh] rounded-2xl shadow-2xl overflow-hidden flex-col transform scale-95 transition-transform duration-300 relative">
+        <div class="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
+            <h2 class="text-xl font-bold text-white"><i class="fas fa-shield-alt text-yellow-400 mr-2"></i> Aviso de Privacidad</h2>
+            <button onclick="closeLegalModal()" class="text-gray-400 hover:text-yellow-400 transition-colors"><i class="fas fa-times text-xl"></i></button>
+        </div>
+        <div class="p-6 overflow-y-auto text-sm text-gray-300 space-y-4 custom-scrollbar">
+            <p><strong>Última actualización:</strong> Octubre 2023</p>
+            <p>En <strong>Kaezyn Consultoría</strong>, valoramos y respetamos su privacidad. Este Aviso de Privacidad explica cómo recopilamos, utilizamos, protegemos y compartimos su información personal cuando utiliza nuestro Sistema Inteligente de Reputación.</p>
+            <h3 class="text-white font-semibold mt-4">1. Información que recopilamos</h3>
+            <p>Recopilamos información comercial, datos de métricas de clientes (K-Score) y datos de contacto estrictamente necesarios para la prestación de nuestros servicios de consultoría y análisis SaaS.</p>
+            <h3 class="text-white font-semibold mt-4">2. Uso de la información</h3>
+            <p>Sus datos se utilizan exclusivamente para generar reportes, predecir tendencias de negocio y mejorar la toma de decisiones operativas dentro de su sucursal o franquicia.</p>
+            <h3 class="text-white font-semibold mt-4">3. Protección de Datos</h3>
+            <p>Implementamos medidas de seguridad de nivel empresarial, incluyendo encriptación en tránsito y en reposo, para proteger sus datos contra acceso no autorizado.</p>
+        </div>
+    </div>
+
+    <!-- MODAL: TÉRMINOS Y CONDICIONES -->
+    <div id="modal-terminos" class="legal-modal hidden bg-[#0b0f2a] border border-white/10 w-full max-w-3xl max-h-[80vh] rounded-2xl shadow-2xl overflow-hidden flex-col transform scale-95 transition-transform duration-300 relative">
+        <div class="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
+            <h2 class="text-xl font-bold text-white"><i class="fas fa-file-contract text-yellow-400 mr-2"></i> Términos y Condiciones</h2>
+            <button onclick="closeLegalModal()" class="text-gray-400 hover:text-yellow-400 transition-colors"><i class="fas fa-times text-xl"></i></button>
+        </div>
+        <div class="p-6 overflow-y-auto text-sm text-gray-300 space-y-4 custom-scrollbar">
+            <p><strong>Última actualización:</strong> Octubre 2023</p>
+            <p>Bienvenido a <strong>Kaezyn Consultoría</strong>. Al acceder y utilizar nuestra plataforma, usted acepta estar sujeto a los siguientes términos y condiciones.</p>
+            <h3 class="text-white font-semibold mt-4">1. Servicios del SaaS</h3>
+            <p>Kaezyn proporciona herramientas de análisis predictivo y monitoreo de reputación. La precisión de los "insights" depende de la calidad de los datos de entrada generados por los consumidores.</p>
+            <h3 class="text-white font-semibold mt-4">2. Suscripciones y Pagos</h3>
+            <p>Los servicios se facturan por adelantado en modalidad mensual o anual. Nos reservamos el derecho de suspender cuentas con pagos atrasados tras un periodo de gracia de 5 días.</p>
+            <h3 class="text-white font-semibold mt-4">3. Propiedad Intelectual</h3>
+            <p>El algoritmo K-Score™, la plataforma y todo el código subyacente son propiedad exclusiva de Kaezyn Consultoría. Queda prohibida su reproducción o ingeniería inversa.</p>
+        </div>
+    </div>
+</div>     
+    
 </body>
 </html>
 
