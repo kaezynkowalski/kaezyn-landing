@@ -9,6 +9,7 @@
     <link rel="apple-touch-icon" href="/assets/favicon.png">
 
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     
@@ -50,22 +51,22 @@
             height: 100%;
             pointer-events: none;
             overflow: hidden;
+            z-index: 0;
         }
 
         .star {
             position: absolute;
             color: var(--color-gold);
             opacity: 0;
-            animation: sparkle 10s infinite linear;
+            animation: sparkle 15s infinite linear;
             text-shadow: 0 0 10px var(--color-gold);
         }
 
-        /* Animación de estrellas mejorada */
         @keyframes sparkle {
-            0% { transform: translateY(50px) scale(0.5); opacity: 0; }
-            25% { opacity: 0.8; }
-            75% { opacity: 0.8; }
-            100% { transform: translateY(-120px) scale(1.2); opacity: 0; }
+            0% { transform: translateY(20px) scale(0.5); opacity: 0; }
+            25% { opacity: 1; }
+            75% { opacity: 1; }
+            100% { transform: translateY(-100px) scale(1.5); opacity: 0; }
         }
 
         .input-group { position: relative; }
@@ -99,12 +100,12 @@
 <body class="min-h-screen flex items-center justify-center antialiased">
 
 <div class="stars-container">
-    <div class="star" style="top: 20%; left: 10%; animation-delay: 0s;">★</div>
-    <div class="star" style="top: 60%; left: 80%; animation-delay: 2s;">★</div>
-    <div class="star" style="top: 85%; left: 15%; animation-delay: 4s;">★</div>
-    <div class="star" style="top: 10%; left: 70%; animation-delay: 6s;">★</div>
-    <div class="star" style="top: 40%; left: 90%; animation-delay: 1s;">★</div>
-    <div class="star" style="top: 70%; left: 40%; animation-delay: 8s;">★</div>
+    <i class="fas fa-star star" style="top: 15%; left: 10%; font-size: 1.5rem; animation-delay: 0s;"></i>
+    <i class="fas fa-star star" style="top: 60%; left: 85%; font-size: 2rem; animation-delay: 2s;"></i>
+    <i class="fas fa-star star" style="top: 85%; left: 15%; font-size: 1.2rem; animation-delay: 4s;"></i>
+    <i class="fas fa-star star" style="top: 10%; left: 75%; font-size: 1.8rem; animation-delay: 6s;"></i>
+    <i class="fas fa-star star" style="top: 40%; left: 90%; font-size: 1rem; animation-delay: 1s;"></i>
+    <i class="fas fa-star star" style="top: 75%; left: 45%; font-size: 2.2rem; animation-delay: 8s;"></i>
 </div>
 
 <div class="card p-10 rounded-xl w-full max-w-md text-center z-10">
