@@ -387,17 +387,40 @@ const Portal = (() => {
             btn.disabled = true;
         }
 
-        const stripePortalBaseUrl = "https://billing.stripe.com/p/login/test_cNi14n59bfvs5Vud7BabK00";
-        const finalUrl = `${stripePortalBaseUrl}?prefilled_email=${encodeURIComponent(user.email)}`;
+        try {
+            // 1. Consultamos si el usuario es test o live
+            const { data: businessData, error } = await supabase
+                .from("businesses")
+                .select("environment")
+                .eq("user_id", user.id)
+                .limit(1)
+                .single();
 
-        window.open(finalUrl, '_blank');
-        
-        setTimeout(() => {
-            if(btn) {
-                btn.innerText = "Administrar Suscripción";
-                btn.disabled = false;
-            }
-        }, 3000);
+            if (error) throw error;
+
+            const isTest = businessData?.environment === 'test';
+
+            // 2. Definimos AMBOS portales (¡Asegúrate de generar y pegar aquí tu link LIVE de Stripe!)
+            const testPortalUrl = "https://billing.stripe.com/p/login/test_cNi14n59bfvs5Vud7BabK00";
+            const livePortalUrl = "https://billing.stripe.com/p/login/cNi14n59bfvs5Vud7BabK00"; 
+
+            // 3. Elegimos la URL correcta según la base de datos
+            const stripePortalBaseUrl = isTest ? testPortalUrl : livePortalUrl;
+            
+            const finalUrl = `${stripePortalBaseUrl}?prefilled_email=${encodeURIComponent(user.email)}`;
+            window.open(finalUrl, '_blank');
+
+        } catch (err) {
+            console.error("Error al abrir portal de Stripe:", err);
+            alert("Hubo un error al abrir el portal de facturación.");
+        } finally {
+            setTimeout(() => {
+                if(btn) {
+                    btn.innerText = "Administrar Suscripción";
+                    btn.disabled = false;
+                }
+            }, 3000);
+        }
     }
 
     async function toggleAutoTopup(isAuto) {
