@@ -503,7 +503,9 @@ const Portal = (() => {
                     stripe_customer_id: baseBranch.stripe_customer_id || null,
                     plan: baseBranch.plan || "Pro",
                     subscription_status: baseBranch.subscription_status || "active",
-                    current_period_end: baseBranch.current_period_end || null
+                    current_period_end: baseBranch.current_period_end || null,
+                    // --- ENTORNO (DINÁMICO: HEREDA TEST O LIVE) ---
+                    environment: baseBranch.environment || 'test'
                 }]);
 
             if (insertError) throw insertError;
