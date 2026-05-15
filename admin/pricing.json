@@ -75,6 +75,8 @@
           "Tomas control total de tu negocio",
           "Optimizas operación y experiencia del cliente"
       ],
+      "stripe_monthly": "https://buy.stripe.com/5kQ9AT0SVgzwcjS1oTabK04",
+      "stripe_yearly": "https://buy.stripe.com/aFaeVd3139741Fe3x1abK05",
       "cta": "Obtener control total",
       "popular": false
     }
