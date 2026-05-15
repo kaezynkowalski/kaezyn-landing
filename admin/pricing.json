@@ -3,7 +3,7 @@
   "plans": [
     {
       "name": "Starter",
-      "tagline": "Blindaje Esencial",
+      "tagline": "Blindaje Reputacional",
       "price_monthly": 4900,
       "price_yearly_total": 49000,
       "price_yearly_monthly": 4083,
@@ -11,19 +11,19 @@
       "features": [
         "Ubicaciones ilimitadas",
         "Hasta 200 clientes gestionados / mes",
-        "Filtro Inteligente de Reseñas Negativas",
-        "Redirección a Google para clientes felices",
-        "Alertas por Email",
-        "Reporte mensual de reputación"
+        "Escudo Inteligente: Filtro de reseñas negativas",
+        "K-Score™: Diagnóstico básico de salud de marca",
+        "Alertas críticas por Email",
+        "Reporte Mensual de Vigilancia (Vigilancia de métricas)"
       ],
       "results": [
-        "Proteges tu calificación actual",
-        "Evitas reseñas negativas públicas",
-        "Mantienes control básico de tu negocio"
+          "Proteges tu calificación actual",
+          "Evitas reseñas negativas públicas",
+          "Mantienes control básico de tu negocio"
       ],
       "stripe_monthly": "https://buy.stripe.com/cNi14n59bfvs5Vud7BabK00",
       "stripe_yearly": "https://buy.stripe.com/00wfZh7hj4QO97G2sXabK01",
-      "cta": "Proteger mi reputación",
+      "cta": "Empezar a blindar mi marca",
       "popular": false
     },
     {
@@ -34,24 +34,23 @@
       "price_yearly_monthly": 6583,
       "badge": "MÁS ELEGIDO",
       "features": [
-        "Ubicaciones ilimitadas",
-        "Hasta 800 clientes gestionados / mes",
-        "Filtro Inteligente de Reseñas Negativas",
-        "Redirección a Google para clientes felices",
-        "Alertas por Email + WhatsApp",
-        "Reportes semanales con insights",
-        "Análisis de sentimiento de clientes",
-        "Detección de patrones (horarios, servicio)"
+        "Todo lo de Starter +",
+        "Hasta 600 clientes gestionados / mes",
+        "Reporte Semanal 'Pulso Táctico': Hoja de ruta para gerentes",
+        "Reporte Mensual de Optimización: Diagnóstico completo de estabilidad y riesgo reputacional",
+        "La Voz del Cliente: Alertas y transcripción de quejas reales",
+        "Tácticas de Crecimiento: Subimos satisfacción, recurrencia y ticket promedio.",
+        "Alertas instantáneas vía WhatsApp"
       ],
       "results": [
-        "Aumentas tu calificación (⭐)",
-        "Generas reseñas positivas en automático",
-        "Detectas qué está afectando tu reputación",
-        "Tomas decisiones basadas en datos reales"
+          "Aumentas tu calificación (⭐)",
+          "Generas reseñas positivas en automático",
+          "Detectas qué está afectando tu reputación",
+          "Tomas decisiones basadas en datos reales"
       ],
       "stripe_monthly": "https://buy.stripe.com/00w8wPgRTab8fw49VpabK02",
       "stripe_yearly": "https://buy.stripe.com/8x23cv4572IG83C2sXabK03",
-      "cta": "Proteger mi reputación",
+      "cta": "Activar mi crecimiento",
       "popular": true
     },
     {
@@ -60,28 +59,23 @@
       "price_monthly": 12900,
       "price_yearly_total": 129000,
       "price_yearly_monthly": 10750,
-      "badge": "",
+      "badge": "ELITE",
       "features": [
-        "Ubicaciones ilimitadas",
-        "Hasta 2,500 clientes gestionados / mes",
-        "Filtro Inteligente de Reseñas Negativas",
-        "Redirección a Google para clientes felices",
-        "Alertas por Email + WhatsApp",
-        "Reportes semanales y mensuales avanzados con insights",
-        "Análisis de sentimiento de clientes",
-        "Detección de patrones (horarios, servicio)",
-        "Benchmark entre sucursales",
+        "Todo lo de Pro +",
+        "Hasta 1,500 clientes gestionados / mes",
+        "Reporte Semanal Micro-Operativo: Mapas de riesgo por horario",
+        "Reporte Mensual 'Inteligencia Ejecutiva': Directivas para la junta",
+        "Modelado Predictivo: Anticipa pérdida de retención (ROI)",
+        "Benchmark de Red: Ranking comparativo de rendimiento entre sucursales",
         "Account Manager dedicado"
       ],
       "results": [
-        "Estandarizas calidad en toda la cadena",
-        "Detectas problemas antes de que escalen",
-        "Tomas control total de tu negocio",
-        "Optimizas operación y experiencia del cliente"
+          "Estandarizas calidad en toda la cadena",
+          "Detectas problemas antes de que escalen",
+          "Tomas control total de tu negocio",
+          "Optimizas operación y experiencia del cliente"
       ],
-      "stripe_monthly": "https://buy.stripe.com/5kQ9AT0SVgzwcjS1oTabK04",
-      "stripe_yearly": "https://buy.stripe.com/aFaeVd3139741Fe3x1abK05",
-      "cta": "Proteger mi reputación",
+      "cta": "Obtener control total",
       "popular": false
     }
   ]
