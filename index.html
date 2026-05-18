@@ -216,7 +216,7 @@
                        Kaezyn instala en tu negocio un sistema que captura opiniones en tiempo real, protege tu reputación y te da inteligencia operativa para crecer.
                     </p>
                     <div class="mt-10">
-                        <a id="hero-cta" href="#" class="btn-gold inline-block">Solicitar Implementación</a>
+                        <a id="hero-cta" href="#contact" class="btn-gold inline-block">Solicitar Implementación</a>
                     </div>
                 </div>
             </div>
@@ -238,7 +238,6 @@
             </div>
         </section>
         
-        <section id="contact">   
         
             <!-- Banner #1 AI -->
         <section class="bg-white/5 py-8">
@@ -706,32 +705,42 @@
                 };
 
                 try {
-                    /* =================================================================
-                       ARQUITECTURA DE ENTRADA SAAS (RECOMENDACIÓN DE INTEGRACIÓN)
-                       Puedes conectar este fetch a tu Webhook de Make o Edge Function 
-                       de Supabase para disparar de inmediato la alerta a tu correo.
-                       =================================================================
-                    */
-                    // Ejemplo con Webhook / Supabase:
-                    // await fetch("TU_WEBHOOK_O_URL_SUPABASE", {
-                    //     method: "POST",
-                    //     headers: { "Content-Type": "application/json" },
-                    //     body: JSON.stringify(payload)
-                    // });
+                    try {
+                        /* =================================================================
+                           ARQUITECTURA DE ENTRADA SAAS - CONEXIÓN CON EDGE FUNCTION
+                           =================================================================
+                        */
+                        // Configura tus credenciales (puedes dejarlas aquí porque la anon_key es pública y segura gracias a tus políticas RLS)
+                        const SUPABASE_PROJECT_URL = "https://douynvwqijrlqzhbllcv.supabase.co"; 
+                        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRvdXludndxaWpybHF6aGJsbGN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxOTM0MDMsImV4cCI6MjA4NDc2OTQwM30.F_xAB9DUqmcy84I57693q63NY1chlQxPTOK6FtQkAkQ";
 
-                    // Simulamos respuesta exitosa instantánea de cara al UX:
-                    console.log("Lead Capturado Exitosamente para Kaezyn:", payload);
+                        const response = await fetch(`${SUPABASE_PROJECT_URL}/functions/v1/capture-lead`, {
+                            method: "POST",
+                            headers: { 
+                                "Content-Type": "application/json",
+                                "Authorization": `Bearer ${SUPABASE_ANON_KEY}`
+                            },
+                            body: JSON.stringify(payload)
+                        });
+
+                        const data = await response.json();
+
+                        if (!response.ok) {
+                            throw new Error(data.error || "Error al conectar con el servidor corporativo");
+                        }
+
+                        console.log("Lead Capturado Exitosamente para Kaezyn:", data);
             
-                    // Transición a pantalla de Éxito
-                    document.getElementById("booking-step-2").classList.add("hidden");
-                    document.getElementById("booking-step-success").classList.remove("hidden");
+                        // Transición a pantalla de Éxito
+                        document.getElementById("booking-step-2").classList.add("hidden");
+                        document.getElementById("booking-step-success").classList.remove("hidden");
 
-                } catch (error) {
-                    console.error("Error al procesar reserva:", error);
-                    alert("Hubo un contratiempo al procesar tu solicitud. Por favor intenta de nuevo.");
-                    btnSubmit.innerText = "Confirmar y Agendar con admin@kaezyn.com";
-                    btnSubmit.disabled = false;
-                }
+                    } catch (error) {
+                        console.error("Error al procesar reserva:", error);
+                        alert("Hubo un contratiempo al procesar tu solicitud: " + error.message);
+                        btnSubmit.innerText = "Agendar";
+                        btnSubmit.disabled = false;
+                    }
             }
 
             return {
