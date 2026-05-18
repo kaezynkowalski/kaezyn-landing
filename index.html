@@ -489,7 +489,7 @@
                         <p class="mt-4 text-gray-300 text-base md:text-lg">
                             No es una llamada tradicional. Es una sesión estratégica gratuita de 15 minutos donde analizaremos el K-Score™ potencial de tu negocio y diseñaremos un plan de blindaje a la medida.
                         </p>
-                
+        
                         <div class="mt-8 space-y-4">
                             <div class="flex items-start gap-3">
                                 <div class="bg-green-500/20 text-green-400 p-1.5 rounded-lg mt-1 shrink-0">
@@ -508,20 +508,18 @@
 
                     <div class="lg:col-span-7 w-full">
                         <div class="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl relative">
-                    
+            
                             <div id="booking-step-1" class="transition-all duration-300">
                                 <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
                                     <span class="w-6 h-6 rounded-full bg-yellow-400 text-black text-xs font-black flex items-center justify-center">1</span>
                                     Selecciona el momento ideal para ti
                                 </h3>
-                        
+                
                                 <label class="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">1. Selecciona un Día</label>
-                                <div id="date-selector-container" class="grid grid-cols-5 gap-2 mb-6">
-                                    </div>
+                                <div id="date-selector-container" class="grid grid-cols-5 gap-2 mb-6"></div>
 
                                 <label class="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">2. Selecciona una Hora (Zona Horaria Local)</label>
-                                <div id="time-selector-container" class="grid grid-cols-3 sm:grid-cols-4 gap-2 h-44 overflow-y-auto pr-1 border border-white/5 bg-black/20 rounded-xl p-3">
-                                    </div>
+                                <div id="time-selector-container" class="grid grid-cols-3 sm:grid-cols-4 gap-2 h-44 overflow-y-auto pr-1 border border-white/5 bg-black/20 rounded-xl p-3"></div>
 
                                 <button type="button" onclick="KaezynBooking.nextStep()" id="btn-next-step" disabled class="mt-6 w-full py-3.5 bg-white/10 text-gray-400 rounded-xl font-bold text-sm cursor-not-allowed transition duration-200">
                                     Continuar al último paso
@@ -590,7 +588,6 @@
             let selectedDate = null;
             let selectedTime = null;
 
-            // Configuración de horas (8:00 AM a 5:00 PM, bloques de 1 hora o 30 min premium)
             const availableHours = [
                 "08:00 AM", "09:00 AM", "10:00 AM", "11:00 AM", 
                 "12:00 PM", "01:00 PM", "02:00 PM", "03:00 PM", 
@@ -602,7 +599,6 @@
                 renderHours();
             }
 
-            // Calcula de forma inteligente los siguientes 5 días hábiles (sin contar Sábados ni Domingos)
             function renderDays() {
                 const container = document.getElementById("date-selector-container");
                 if (!container) return;
@@ -612,10 +608,9 @@
                 let currentDate = new Date();
 
                 while (daysGenerated < 5) {
-                    currentDate.setDate(currentDate.getDate() + 1); // Siempre empezamos desde mañana
+                    currentDate.setDate(currentDate.getDate() + 1); 
                     const dayOfWeek = currentDate.getDay();
 
-                    // 0 = Domingo, 6 = Sábado. Nos los saltamos para mantener estricto el Lun-Vie
                     if (dayOfWeek !== 0 && dayOfWeek !== 6) {
                         const dayNum = currentDate.getDate();
                         const dayName = currentDate.toLocaleDateString('es-ES', { weekday: 'short' }).substring(0, 3).toUpperCase();
@@ -678,7 +673,6 @@
                 document.getElementById("booking-step-1").classList.add("hidden");
                 document.getElementById("booking-step-2").classList.remove("hidden");
         
-                // Formatear texto resumen
                 const formattedDate = new Date(selectedDate + "T00:00:00").toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
                 document.getElementById("booking-summary-text").innerText = `${formattedDate} a las ${selectedTime}`;
             }
@@ -692,8 +686,10 @@
                 e.preventDefault();
         
                 const btnSubmit = document.getElementById("btn-submit-booking");
-                btnSubmit.innerText = "Procesando Reserva Corporativa...";
-                btnSubmit.disabled = true;
+                if (btnSubmit) {
+                    btnSubmit.innerText = "Procesando Reserva Corporativa...";
+                    btnSubmit.disabled = true;
+                }
 
                 const payload = {
                     name: document.getElementById("lead-name").value,
@@ -706,20 +702,11 @@
                 };
 
                 try {
-                    
-                    /* =================================================================
-                        ARQUITECTURA DE ENTRADA SAAS - CONEXIÓN CON EDGE FUNCTION
-                        =================================================================
-                    */
-                    
-                    // Validación Segura: Verificamos que el botón de envío exista antes de manipularlo
                     if (!btnSubmit) {
                         console.warn("Validación: El componente 'btnSubmit' no está disponible en este render.");
                         return; 
                     }
 
-                    // Configura tus credenciales de manera segura leyendo el entorno de Netlify/Vite
-                    // Si trabajas en HTML puro sin empaquetador, Netlify inyectará estos valores automáticamente
                     const SUPABASE_PROJECT_URL = import.meta.env?.VITE_SUPABASE_URL || "https://douynvwqijrlqzhbllcv.supabase.co"; 
                     const SUPABASE_ANON_KEY = import.meta.env?.VITE_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRvdXludndxaWpybHF6aGJsbGN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxOTM0MDMsImV4cCI6MjA4NDc2OTQwM30.F_xAB9DUqmcy84I57693q63NY1chlQxPTOK6FtQkAkQ";
 
@@ -739,11 +726,10 @@
                     }
 
                     console.log("Lead Capturado Exitosamente para Kaezyn:", data);
-            
-                    // Transición a pantalla de Éxito (Validación segura de elementos de UI)
+    
                     const step2 = document.getElementById("booking-step-2");
                     const stepSuccess = document.getElementById("booking-step-success");
-                    
+            
                     if (step2 && stepSuccess) {
                         step2.classList.add("hidden");
                         stepSuccess.classList.remove("hidden");
@@ -754,14 +740,14 @@
                 } catch (error) {
                     console.error("Error al procesar reserva:", error);
                     alert("Hubo un contratiempo al procesar tu solicitud: " + error.message);
-                    
-                    // Doble verificación protectora por si btnSubmit falló en otra parte de la UI
+            
                     if (btnSubmit) {
                         btnSubmit.innerText = "Agendar";
                         btnSubmit.disabled = false;
                     }
                 }
-            }
+            } // <-- ESTA LLAVE FALTABA (Cierra la función submitForm)
+
             return {
                 init,
                 nextStep,
@@ -770,8 +756,10 @@
             };
         })();
 
-        // Inicializar al cargar el DOM
-        document.addEventListener("DOMContentLoaded", KaezynBooking.init);
+        // Inicializador automático al cargar la página
+        document.addEventListener("DOMContentLoaded", () => {
+            KaezynBooking.init();
+        });
         </script>            
     </main>
 
