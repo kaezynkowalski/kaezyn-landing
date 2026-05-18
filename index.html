@@ -617,7 +617,7 @@
                         const dayNum = currentDate.getDate();
                         const dayName = currentDate.toLocaleDateString('es-ES', { weekday: 'short' }).substring(0, 3).toUpperCase();
                 
-                        // Formatear ISO Date localmente sin desfase UTC de toISOString()
+                        // Formatear la fecha en formato Local (Evita el bug del desfase de zona horaria UTC)
                         const year = currentDate.getFullYear();
                         const month = String(currentDate.getMonth() + 1).padStart(2, '0');
                         const day = String(currentDate.getDate()).padStart(2, '0');
@@ -680,7 +680,6 @@
                 document.getElementById("booking-step-1").classList.add("hidden");
                 document.getElementById("booking-step-2").classList.remove("hidden");
 
-                // Corrección del formato visual de la fecha elegida
                 const [y, m, d] = selectedDate.split('-');
                 const formattedDate = new Date(y, m - 1, d).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
                 document.getElementById("booking-summary-text").innerText = `${formattedDate} a las ${selectedTime}`;
@@ -711,9 +710,9 @@
                 };
 
                 try {
-                    // Manejo seguro de variables de entorno compatibles con Vite o variables globales
-                    const SUPABASE_PROJECT_URL = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_URL) || "https://douynvwqijrlqzhbllcv.supabase.co"; 
-                    const SUPABASE_ANON_KEY = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_ANON_KEY) || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRvdXludndxaWpybHF6aGJsbGN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxOTM0MDMsImV4cCI6MjA4NDc2OTQwM30.F_xAB9DUqmcy84I57693q63NY1chlQxPTOK6FtQkAkQ";
+                    // URLs limpias de producción sin usar import.meta
+                    const SUPABASE_PROJECT_URL = "https://douynvwqijrlqzhbllcv.supabase.co"; 
+                    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRvdXludndxaWpybHF6aGJsbGN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxOTM0MDMsImV4cCI6MjA4NDc2OTQwM30.F_xAB9DUqmcy84I57693q63NY1chlQxPTOK6FtQkAkQ";
 
                     const response = await fetch(`${SUPABASE_PROJECT_URL}/functions/v1/capture-lead`, {
                         method: "POST",
@@ -757,10 +756,10 @@
             };
         })();
 
-        // Forzar la exposición global para que los atributos 'onclick' del HTML sigan funcionando perfectamente
+        // Forzar el puente global para que los onclick="KaezynBooking..." del HTML funcionen perfectamente
         window.KaezynBooking = KaezynBooking;
 
-        // Inicialización blindada: si el DOM ya cargó, ejecuta inmediatamente; si no, espera al evento.
+        // Inicialización ultra-segura
         if (document.readyState === "loading") {
             document.addEventListener("DOMContentLoaded", () => KaezynBooking.init());
         } else {
