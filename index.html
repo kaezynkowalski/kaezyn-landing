@@ -711,9 +711,17 @@
                         ARQUITECTURA DE ENTRADA SAAS - CONEXIÓN CON EDGE FUNCTION
                         =================================================================
                     */
-                    // Configura tus credenciales (puedes dejarlas aquí porque la anon_key es pública y segura gracias a tus políticas RLS)
-                    const SUPABASE_PROJECT_URL = "https://douynvwqijrlqzhbllcv.supabase.co"; 
-                    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRvdXludndxaWpybHF6aGJsbGN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxOTM0MDMsImV4cCI6MjA4NDc2OTQwM30.F_xAB9DUqmcy84I57693q63NY1chlQxPTOK6FtQkAkQ";
+                    
+                    // Validación Segura: Verificamos que el botón de envío exista antes de manipularlo
+                    if (!btnSubmit) {
+                        console.warn("Validación: El componente 'btnSubmit' no está disponible en este render.");
+                        return; 
+                    }
+
+                    // Configura tus credenciales de manera segura leyendo el entorno de Netlify/Vite
+                    // Si trabajas en HTML puro sin empaquetador, Netlify inyectará estos valores automáticamente
+                    const SUPABASE_PROJECT_URL = import.meta.env?.VITE_SUPABASE_URL || "https://douynvwqijrlqzhbllcv.supabase.co"; 
+                    const SUPABASE_ANON_KEY = import.meta.env?.VITE_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRvdXludndxaWpybHF6aGJsbGN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxOTM0MDMsImV4cCI6MjA4NDc2OTQwM30.F_xAB9DUqmcy84I57693q63NY1chlQxPTOK6FtQkAkQ";
 
                     const response = await fetch(`${SUPABASE_PROJECT_URL}/functions/v1/capture-lead`, {
                         method: "POST",
@@ -732,17 +740,27 @@
 
                     console.log("Lead Capturado Exitosamente para Kaezyn:", data);
             
-                    // Transición a pantalla de Éxito
-                    document.getElementById("booking-step-2").classList.add("hidden");
-                    document.getElementById("booking-step-success").classList.remove("hidden");
+                    // Transición a pantalla de Éxito (Validación segura de elementos de UI)
+                    const step2 = document.getElementById("booking-step-2");
+                    const stepSuccess = document.getElementById("booking-step-success");
+                    
+                    if (step2 && stepSuccess) {
+                        step2.classList.add("hidden");
+                        stepSuccess.classList.remove("hidden");
+                    } else {
+                        console.error("Los contenedores de pasos del formulario no se encontraron en el DOM.");
+                    }
 
                 } catch (error) {
                     console.error("Error al procesar reserva:", error);
                     alert("Hubo un contratiempo al procesar tu solicitud: " + error.message);
-                    btnSubmit.innerText = "Agendar";
-                    btnSubmit.disabled = false;
+                    
+                    // Doble verificación protectora por si btnSubmit falló en otra parte de la UI
+                    if (btnSubmit) {
+                        btnSubmit.innerText = "Agendar";
+                        btnSubmit.disabled = false;
+                    }
                 }
-            }
 
             return {
                 init,
