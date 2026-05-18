@@ -602,19 +602,26 @@
             function renderDays() {
                 const container = document.getElementById("date-selector-container");
                 if (!container) return;
-        
+
                 container.innerHTML = "";
                 let daysGenerated = 0;
                 let currentDate = new Date();
 
                 while (daysGenerated < 5) {
+                    // Avanzamos un día de forma segura
                     currentDate.setDate(currentDate.getDate() + 1); 
                     const dayOfWeek = currentDate.getDay();
 
+                    // Excluir Sábados (6) y Domingos (0)
                     if (dayOfWeek !== 0 && dayOfWeek !== 6) {
                         const dayNum = currentDate.getDate();
                         const dayName = currentDate.toLocaleDateString('es-ES', { weekday: 'short' }).substring(0, 3).toUpperCase();
-                        const fullIsoDate = currentDate.toISOString().split('T')[0];
+                
+                        // Formatear ISO Date localmente sin desfase UTC de toISOString()
+                        const year = currentDate.getFullYear();
+                        const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+                        const day = String(currentDate.getDate()).padStart(2, '0');
+                        const fullIsoDate = `${year}-${month}-${day}`;
 
                         const dayCard = document.createElement("button");
                         dayCard.type = "button";
@@ -672,8 +679,10 @@
                 if (!selectedDate || !selectedTime) return;
                 document.getElementById("booking-step-1").classList.add("hidden");
                 document.getElementById("booking-step-2").classList.remove("hidden");
-        
-                const formattedDate = new Date(selectedDate + "T00:00:00").toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+
+                // Corrección del formato visual de la fecha elegida
+                const [y, m, d] = selectedDate.split('-');
+                const formattedDate = new Date(y, m - 1, d).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
                 document.getElementById("booking-summary-text").innerText = `${formattedDate} a las ${selectedTime}`;
             }
 
@@ -684,7 +693,7 @@
 
             async function submitForm(e) {
                 e.preventDefault();
-        
+
                 const btnSubmit = document.getElementById("btn-submit-booking");
                 if (btnSubmit) {
                     btnSubmit.innerText = "Procesando Reserva Corporativa...";
@@ -702,13 +711,9 @@
                 };
 
                 try {
-                    if (!btnSubmit) {
-                        console.warn("Validación: El componente 'btnSubmit' no está disponible en este render.");
-                        return; 
-                    }
-
-                    const SUPABASE_PROJECT_URL = import.meta.env?.VITE_SUPABASE_URL || "https://douynvwqijrlqzhbllcv.supabase.co"; 
-                    const SUPABASE_ANON_KEY = import.meta.env?.VITE_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRvdXludndxaWpybHF6aGJsbGN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxOTM0MDMsImV4cCI6MjA4NDc2OTQwM30.F_xAB9DUqmcy84I57693q63NY1chlQxPTOK6FtQkAkQ";
+                    // Manejo seguro de variables de entorno compatibles con Vite o variables globales
+                    const SUPABASE_PROJECT_URL = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_URL) || "https://douynvwqijrlqzhbllcv.supabase.co"; 
+                    const SUPABASE_ANON_KEY = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_ANON_KEY) || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRvdXludndxaWpybHF6aGJsbGN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxOTM0MDMsImV4cCI6MjA4NDc2OTQwM30.F_xAB9DUqmcy84I57693q63NY1chlQxPTOK6FtQkAkQ";
 
                     const response = await fetch(`${SUPABASE_PROJECT_URL}/functions/v1/capture-lead`, {
                         method: "POST",
@@ -725,28 +730,24 @@
                         throw new Error(data.error || "Error al conectar con el servidor corporativo");
                     }
 
-                    console.log("Lead Capturado Exitosamente para Kaezyn:", data);
-    
                     const step2 = document.getElementById("booking-step-2");
                     const stepSuccess = document.getElementById("booking-step-success");
-            
+
                     if (step2 && stepSuccess) {
                         step2.classList.add("hidden");
                         stepSuccess.classList.remove("hidden");
-                    } else {
-                        console.error("Los contenedores de pasos del formulario no se encontraron en el DOM.");
                     }
 
                 } catch (error) {
                     console.error("Error al procesar reserva:", error);
                     alert("Hubo un contratiempo al procesar tu solicitud: " + error.message);
-            
+
                     if (btnSubmit) {
                         btnSubmit.innerText = "Agendar";
                         btnSubmit.disabled = false;
                     }
                 }
-            } // <-- ESTA LLAVE FALTABA (Cierra la función submitForm)
+            }
 
             return {
                 init,
@@ -756,10 +757,15 @@
             };
         })();
 
-        // Inicializador automático al cargar la página
-        document.addEventListener("DOMContentLoaded", () => {
+        // Forzar la exposición global para que los atributos 'onclick' del HTML sigan funcionando perfectamente
+        window.KaezynBooking = KaezynBooking;
+
+        // Inicialización blindada: si el DOM ya cargó, ejecuta inmediatamente; si no, espera al evento.
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", () => KaezynBooking.init());
+        } else {
             KaezynBooking.init();
-        });
+        }
         </script>            
     </main>
 
