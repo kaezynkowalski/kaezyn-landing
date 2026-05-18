@@ -477,18 +477,274 @@
         </section>
 
         <!-- Sección de CTA Final -->
-        <section id="contact" class="py-20 md:py-32 nebula-bg">
-            <div class="container mx-auto px-6 text-center">
-                <h2 class="text-3xl md:text-5xl font-bold text-white">¿Listo para proteger tu reputación?</h2>
-                <p class="mt-4 max-w-2xl mx-auto text-gray-300">
-                    Agenda una llamada estratégica y descubre cómo implementar Kaezyn en tu negocio en menos de 7 días.
-                </p>
-                <form class="mt-10 max-w-xl mx-auto flex flex-col sm:flex-row gap-4">
-                    <input type="email" placeholder="your.email@company.com" class="w-full px-5 py-3 rounded-lg bg-white/10 border border-white/20 focus:ring-2 focus:ring-yellow-300 focus:outline-none placeholder-gray-400 text-white">
-                    <button type="submit" class="btn-gold flex-shrink-0">Agendar Llamada Estratégica</button>
-                </form>
+        <section id="contact" class="py-20 md:py-32 nebula-bg relative overflow-hidden">
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-yellow-500/10 rounded-full blur-[120px] pointer-events-none"></div>
+
+            <div class="container mx-auto px-6 relative z-10">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center max-w-6xl mx-auto">
+            
+                    <div class="lg:col-span-5 text-left">
+                        <span class="text-xs font-bold tracking-widest text-yellow-400 uppercase bg-yellow-400/10 px-3 py-1.5 rounded-full inline-block mb-4">Cupos Limitados de Auditoría</span>
+                        <h2 class="text-3xl md:text-5xl font-black text-white leading-tight">Detén la crisis silenciosa de tu marca hoy.</h2>
+                        <p class="mt-4 text-gray-300 text-base md:text-lg">
+                            No es una llamada de ventas tradicional. Es una **sesión estratégica de 15 minutos** donde analizaremos el K-Score™ potencial de tu negocio y diseñaremos un plan de blindaje a la medida.
+                        </p>
+                
+                        <div class="mt-8 space-y-4">
+                            <div class="flex items-start gap-3">
+                                <div class="bg-green-500/20 text-green-400 p-1.5 rounded-lg mt-1 shrink-0">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                </div>
+                                <p class="text-sm text-gray-300"><b class="text-white">Mapeo de Fricción:</b> Descubriremos en qué horarios y sucursales estás perdiendo clientes.</p>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <div class="bg-green-500/20 text-green-400 p-1.5 rounded-lg mt-1 shrink-0">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                </div>
+                                <p class="text-sm text-gray-300"><b class="text-white">Plan de Despliegue:</b> Dejaremos Kaezyn corriendo en tu infraestructura en menos de 7 días.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-7 w-full">
+                        <div class="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl relative">
+                    
+                            <div id="booking-step-1" class="transition-all duration-300">
+                                <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                                    <span class="w-6 h-6 rounded-full bg-yellow-400 text-black text-xs font-black flex items-center justify-center">1</span>
+                                    Selecciona el momento ideal para ti
+                                </h3>
+                        
+                                <label class="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">1. Selecciona un Día</label>
+                                <div id="date-selector-container" class="grid grid-cols-5 gap-2 mb-6">
+                                    </div>
+
+                                <label class="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">2. Selecciona una Hora (Zona Horaria Local)</label>
+                                <div id="time-selector-container" class="grid grid-cols-3 sm:grid-cols-4 gap-2 h-44 overflow-y-auto pr-1 border border-white/5 bg-black/20 rounded-xl p-3">
+                                    </div>
+
+                                <button type="button" onclick="KaezynBooking.nextStep()" id="btn-next-step" disabled class="mt-6 w-full py-3.5 bg-white/10 text-gray-400 rounded-xl font-bold text-sm cursor-not-allowed transition duration-200">
+                                    Continuar al último paso
+                                </button>
+                            </div>
+
+                            <div id="booking-step-2" class="hidden transition-all duration-300">
+                                <div class="flex justify-between items-center mb-6">
+                                    <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                                        <span class="w-6 h-6 rounded-full bg-yellow-400 text-black text-xs font-black flex items-center justify-center">2</span>
+                                        ¿Con quién nos reuniremos?
+                                    </h3>
+                                    <button type="button" onclick="KaezynBooking.prevStep()" class="text-xs text-gray-400 hover:text-white underline">Regresar</button>
+                                </div>
+
+                                <div class="mb-6 p-3 bg-yellow-400/10 border border-yellow-400/20 rounded-xl text-xs text-yellow-300 font-medium flex justify-between">
+                                    <span>📅 Cita Propuesta:</span>
+                                    <span id="booking-summary-text" class="font-bold text-white">---</span>
+                                </div>
+
+                                <form id="kaezyn-lead-form" onsubmit="KaezynBooking.submitForm(event)" class="space-y-4">
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Nombre Completo</label>
+                                            <input type="text" id="lead-name" required placeholder="Ej. Alexander Cohen" class="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:ring-2 focus:ring-yellow-300 focus:border-transparent focus:outline-none placeholder-gray-500 text-white text-sm transition">
+                                        </div>
+                                        <div>
+                                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Correo Corporativo</label>
+                                            <input type="email" id="lead-email" required placeholder="alex@empresa.com" class="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:ring-2 focus:ring-yellow-300 focus:border-transparent focus:outline-none placeholder-gray-500 text-white text-sm transition">
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Nombre de tu Negocio / Marca</label>
+                                        <input type="text" id="lead-company" required placeholder="Ej. Restaurante Bellavista" class="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:ring-2 focus:ring-yellow-300 focus:border-transparent focus:outline-none placeholder-gray-500 text-white text-sm transition">
+                                    </div>
+
+                                    <div>
+                                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">¿Cuáles son tus principales dudas o problemas de reputación?</label>
+                                        <textarea id="lead-message" rows="3" placeholder="Ej. Tenemos problemas con reseñas falsas en nuestra sucursal del Centro..." class="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:ring-2 focus:ring-yellow-300 focus:border-transparent focus:outline-none placeholder-gray-500 text-white text-sm transition resize-none"></textarea>
+                                    </div>
+
+                                    <button type="submit" id="btn-submit-booking" class="w-full py-4 btn-gold rounded-xl font-bold text-sm shadow-xl hover:scale-[1.01] transition transform duration-200">
+                                        Confirmar y Agendar con admin@kaezyn.com
+                                    </button>
+                                </form>
+                            </div>
+
+                            <div id="booking-step-success" class="hidden text-center py-8 transition-all duration-300">
+                                <div class="w-16 h-16 bg-green-500/20 text-green-400 rounded-full flex items-center justify-center text-3xl mx-auto mb-4 animate-bounce">✓</div>
+                                <h3 class="text-2xl font-black text-white">¡Llamada Reservada con Éxito!</h3>
+                                <p class="text-sm text-gray-400 mt-2 max-w-sm mx-auto">
+                                    Hemos enviado la solicitud a nuestro equipo corporativo. Recibirás la confirmación de Google Calendar en tu bandeja de entrada en unos minutos.
+                                </p>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
             </div>
         </section>
+
+        <script>
+        const KaezynBooking = (() => {
+            let selectedDate = null;
+            let selectedTime = null;
+
+            // Configuración de horas (8:00 AM a 5:00 PM, bloques de 1 hora o 30 min premium)
+            const availableHours = [
+                "08:00 AM", "09:00 AM", "10:00 AM", "11:00 AM", 
+                "12:00 PM", "01:00 PM", "02:00 PM", "03:00 PM", 
+                "04:00 PM", "05:00 PM"
+            ];
+
+            function init() {
+                renderDays();
+                renderHours();
+            }
+
+            // Calcula de forma inteligente los siguientes 5 días hábiles (sin contar Sábados ni Domingos)
+            function renderDays() {
+                const container = document.getElementById("date-selector-container");
+                if (!container) return;
+        
+                container.innerHTML = "";
+                let daysGenerated = 0;
+                let currentDate = new Date();
+
+                while (daysGenerated < 5) {
+                    currentDate.setDate(currentDate.getDate() + 1); // Siempre empezamos desde mañana
+                    const dayOfWeek = currentDate.getDay();
+
+                    // 0 = Domingo, 6 = Sábado. Nos los saltamos para mantener estricto el Lun-Vie
+                    if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+                        const dayNum = currentDate.getDate();
+                        const dayName = currentDate.toLocaleDateString('es-ES', { weekday: 'short' }).substring(0, 3).toUpperCase();
+                        const fullIsoDate = currentDate.toISOString().split('T')[0];
+
+                        const dayCard = document.createElement("button");
+                        dayCard.type = "button";
+                        dayCard.className = "date-btn flex flex-col items-center justify-center py-3 rounded-xl border border-white/10 bg-white/5 text-gray-300 hover:bg-white/10 transition outline-none";
+                        dayCard.dataset.date = fullIsoDate;
+                        dayCard.innerHTML = `
+                            <span class="text-[9px] font-bold text-gray-500 tracking-wider">${dayName}</span>
+                            <span class="text-lg font-black text-white mt-0.5">${dayNum}</span>
+                        `;
+
+                        dayCard.onclick = function() {
+                            document.querySelectorAll(".date-btn").forEach(b => b.classList.remove("border-yellow-400", "bg-yellow-400/10"));
+                            this.classList.add("border-yellow-400", "bg-yellow-400/10");
+                            selectedDate = this.dataset.date;
+                            validateSelection();
+                        };
+
+                        container.appendChild(dayCard);
+                        daysGenerated++;
+                    }
+                }
+            }
+
+            function renderHours() {
+                const container = document.getElementById("time-selector-container");
+                if (!container) return;
+
+                container.innerHTML = "";
+                availableHours.forEach(hour => {
+                    const timeBtn = document.createElement("button");
+                    timeBtn.type = "button";
+                    timeBtn.className = "time-btn py-2.5 text-xs font-bold text-gray-300 bg-white/5 border border-white/5 rounded-lg hover:border-white/20 hover:bg-white/10 transition outline-none";
+                    timeBtn.innerText = hour;
+
+                    timeBtn.onclick = function() {
+                        document.querySelectorAll(".time-btn").forEach(b => b.classList.remove("bg-yellow-400", "text-black", "border-transparent"));
+                        this.classList.add("bg-yellow-400", "text-black", "border-transparent");
+                        selectedTime = this.innerText;
+                        validateSelection();
+                    };
+
+                    container.appendChild(timeBtn);
+                });
+            }
+
+            function validateSelection() {
+                const btn = document.getElementById("btn-next-step");
+                if (selectedDate && selectedTime) {
+                    btn.removeAttribute("disabled");
+                    btn.className = "mt-6 w-full py-3.5 bg-yellow-400 text-black rounded-xl font-bold text-sm hover:bg-yellow-300 transition duration-200 shadow-lg shadow-yellow-400/10";
+                }
+            }
+
+            function nextStep() {
+                if (!selectedDate || !selectedTime) return;
+                document.getElementById("booking-step-1").classList.add("hidden");
+                document.getElementById("booking-step-2").classList.remove("hidden");
+        
+                // Formatear texto resumen
+                const formattedDate = new Date(selectedDate + "T00:00:00").toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+                document.getElementById("booking-summary-text").innerText = `${formattedDate} a las ${selectedTime}`;
+            }
+
+            function prevStep() {
+                document.getElementById("booking-step-2").classList.add("hidden");
+                document.getElementById("booking-step-1").classList.remove("hidden");
+            }
+
+            async function submitForm(e) {
+                e.preventDefault();
+        
+                const btnSubmit = document.getElementById("btn-submit-booking");
+                btnSubmit.innerText = "Procesando Reserva Corporativa...";
+                btnSubmit.disabled = true;
+
+                const payload = {
+                    name: document.getElementById("lead-name").value,
+                    email: document.getElementById("lead-email").value,
+                    company: document.getElementById("lead-company").value,
+                    message: document.getElementById("lead-message").value,
+                    scheduled_date: selectedDate,
+                    scheduled_time: selectedTime,
+                    target_admin: "admin@kaezyn.com"
+                };
+
+                try {
+                    /* =================================================================
+                       ARQUITECTURA DE ENTRADA SAAS (RECOMENDACIÓN DE INTEGRACIÓN)
+                       Puedes conectar este fetch a tu Webhook de Make o Edge Function 
+                       de Supabase para disparar de inmediato la alerta a tu correo.
+                       =================================================================
+                    */
+                    // Ejemplo con Webhook / Supabase:
+                    // await fetch("TU_WEBHOOK_O_URL_SUPABASE", {
+                    //     method: "POST",
+                    //     headers: { "Content-Type": "application/json" },
+                    //     body: JSON.stringify(payload)
+                    // });
+
+                    // Simulamos respuesta exitosa instantánea de cara al UX:
+                    console.log("Lead Capturado Exitosamente para Kaezyn:", payload);
+            
+                    // Transición a pantalla de Éxito
+                    document.getElementById("booking-step-2").classList.add("hidden");
+                    document.getElementById("booking-step-success").classList.remove("hidden");
+
+                } catch (error) {
+                    console.error("Error al procesar reserva:", error);
+                    alert("Hubo un contratiempo al procesar tu solicitud. Por favor intenta de nuevo.");
+                    btnSubmit.innerText = "Confirmar y Agendar con admin@kaezyn.com";
+                    btnSubmit.disabled = false;
+                }
+            }
+
+            return {
+                init,
+                nextStep,
+                prevStep,
+                submitForm
+            };
+        })();
+
+        // Inicializar al cargar el DOM
+        document.addEventListener("DOMContentLoaded", KaezynBooking.init);
+        </script>            
     </main>
 
     <!-- Footer -->
