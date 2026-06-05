@@ -65,14 +65,18 @@ const Portal = (() => {
                     document.body.innerHTML = "<div style='color:white; padding:20px;'>No hay sucursales vinculadas a este usuario.</div>";
             return;
         }
-        // 3. NUEVO: Obtenemos el K-Score Global de la vista dinámica
-        const { data: kScoreData } = await supabase
+        
+        // 3. NUEVO: Obtenemos el K-Score Global de la vista dinámica (CORREGIDO)
+        const { data: kScoreData, error: kScoreError } = await supabase
             .from("k_scores")
             .select("current_kscore_global, prev_kscore_global")
             .eq("user_id", user.id)
-            .order("created_at", { ascending: false }) // Aseguramos traer el más reciente si hay un histórico
-            .limit(1)
-            .maybeSingle(); // Evita errores en la consola si la vista está vacía inicialmente
+            .maybeSingle(); // Eliminamos .order() porque las vistas dinámicas no suelen tener 'created_at'
+
+        // Dejamos un log por si acaso para monitorear en la consola
+        if (kScoreError) {
+            console.error("Error al consultar la vista k_scores:", kScoreError);
+        }
 
         renderDashboard(branches, billingData, kScoreData);
     }
@@ -667,7 +671,6 @@ const Portal = (() => {
         requireAuth, 
         loadDashboard, 
         logout,
-        renderKScoreWidget,
         activateBranch, 
         manageBranch, 
         openStripePortal, 
