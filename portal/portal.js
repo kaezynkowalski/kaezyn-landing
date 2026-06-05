@@ -667,6 +667,7 @@ const Portal = (() => {
         requireAuth, 
         loadDashboard, 
         logout,
+        renderKScoreWidget,
         activateBranch, 
         manageBranch, 
         openStripePortal, 
