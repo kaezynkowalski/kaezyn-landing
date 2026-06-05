@@ -66,17 +66,19 @@ const Portal = (() => {
             return;
         }
         
-        // 3. NUEVO: Obtenemos el K-Score Global de la vista dinámica (CORREGIDO)
-        const { data: kScoreData, error: kScoreError } = await supabase
+        // 3. NUEVO: Obtenemos el K-Score Global de la vista dinámica (CORRECCIÓN DEFINITIVA)
+        const { data: kScoreArray, error: kScoreError } = await supabase
             .from("k_scores")
             .select("current_kscore_global, prev_kscore_global")
             .eq("user_id", user.id)
-            .maybeSingle(); // Eliminamos .order() porque las vistas dinámicas no suelen tener 'created_at'
+            .limit(1); // Traemos solo máximo 1 registro sin forzar el modo "Single"
 
-        // Dejamos un log por si acaso para monitorear en la consola
         if (kScoreError) {
             console.error("Error al consultar la vista k_scores:", kScoreError);
         }
+
+        // Extraemos el primer resultado de forma segura. Si está vacío, le pasamos null.
+        const kScoreData = (kScoreArray && kScoreArray.length > 0) ? kScoreArray[0] : null;
 
         renderDashboard(branches, billingData, kScoreData);
     }
