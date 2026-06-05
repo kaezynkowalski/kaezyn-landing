@@ -65,11 +65,19 @@ const Portal = (() => {
                     document.body.innerHTML = "<div style='color:white; padding:20px;'>No hay sucursales vinculadas a este usuario.</div>";
             return;
         }
+        // 3. NUEVO: Obtenemos el K-Score Global de la vista dinámica
+        const { data: kScoreData } = await supabase
+            .from("k_scores")
+            .select("current_kscore_global, prev_kscore_global")
+            .eq("user_id", user.id)
+            .order("created_at", { ascending: false }) // Aseguramos traer el más reciente si hay un histórico
+            .limit(1)
+            .maybeSingle(); // Evita errores en la consola si la vista está vacía inicialmente
 
-        renderDashboard(branches, billingData);
+        renderDashboard(branches, billingData, kScoreData);
     }
 
-    function renderDashboard(branches, billingData) {
+    function renderDashboard(branches, billingData, kScoreData) {
         // Asegúrate de usar fallback por si billingData está vacío al inicio
         const billing = billingData || {};
         window.currentCustomerId = branches[0].stripe_customer_id;
@@ -225,6 +233,27 @@ const Portal = (() => {
             `;
         }
         
+        // ==========================================
+        // PASO C: LÓGICA CONDICIONAL K-SCORE GLOBAL
+        // ==========================================
+        let globalKScore = 0; // Valor inicial por defecto (evita 'undefined')
+
+        if (kScoreData) {
+            // Evaluamos: Si existe el score actual y es mayor a 0, lo usamos.
+            if (Number(kScoreData.current_kscore_global) > 0) {
+                globalKScore = Number(kScoreData.current_kscore_global);
+            } 
+            // Si el actual es 0 o null, verificamos si existe uno previo válido.
+            else if (Number(kScoreData.prev_kscore_global) > 0) {
+                globalKScore = Number(kScoreData.prev_kscore_global);
+            }
+        }
+
+        // Renderizamos el widget con el valor final procesado
+        renderKScoreWidget(globalKScore);
+
+
+        
         // --- Renderizar las Tarjetas (Grid) ---
         if (dashboardDiv) {
             dashboardDiv.innerHTML = `
@@ -328,6 +357,119 @@ const Portal = (() => {
         }
     }
 
+    /* ================= WIDGET K-SCORE ================= */
+    function renderKScoreWidget(kScore) {
+        const container = document.getElementById("kscoreWidgetContainer");
+        if (!container) return;
+
+        // Si no hay kScore previo ni actual, mostramos 100 por defecto o un estado de "Calculando"
+        const score = Number(kScore) || 0; 
+        
+        // Lógica de colores y estatus del K-Score
+        let colorClass = "text-red-500";
+        let strokeColor = "#ef4444"; // red
+        let statusText = "🔴 Zona Crítica";
+        let statusDesc = "Riesgo alto de pérdida de clientes.";
+
+        if (score >= 90) {
+            colorClass = "text-green-500";
+            strokeColor = "#10b981";
+            statusText = "🟢 Excelencia Operativa";
+            statusDesc = "Operación blindada y altamente rentable.";
+        } else if (score >= 80) {
+            colorClass = "text-blue-500";
+            strokeColor = "#3b82f6";
+            statusText = "🔵 Saludable";
+            statusDesc = "Buen rendimiento con áreas menores de mejora.";
+        } else if (score >= 70) {
+            colorClass = "text-yellow-500";
+            strokeColor = "#f59e0b";
+            statusText = "🟡 Atención Preventiva";
+            statusDesc = "Requiere atención para evitar caídas en retención.";
+        } else if (score >= 60) {
+            colorClass = "text-orange-500";
+            strokeColor = "#f97316";
+            statusText = "🟠 Riesgo Creciente";
+            statusDesc = "Alerta de inestabilidad operativa.";
+        }
+
+        // Matemáticas para el gráfico circular SVG
+        const circleRadius = 40;
+        const circumference = 2 * Math.PI * circleRadius;
+        const strokeDashoffset = circumference - (score / 100) * circumference;
+
+        container.innerHTML = `
+            <div class="card p-6 md:p-8 rounded-2xl shadow-2xl relative overflow-hidden flex flex-col lg:flex-row gap-8 items-center lg:items-stretch">
+                
+                <div class="flex flex-col items-center justify-center lg:w-1/3 bg-[#0b0f2a] border border-white/10 rounded-xl p-6 shadow-inner w-full">
+                    <h3 class="text-sm font-bold text-white uppercase tracking-widest mb-6">Tu K-Score™ Global</h3>
+                    
+                    <div class="relative w-36 h-36 md:w-40 md:h-40 flex items-center justify-center">
+                        <svg class="absolute inset-0 w-full h-full transform -rotate-90 drop-shadow-2xl" viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="${circleRadius}" stroke="rgba(255,255,255,0.05)" stroke-width="8" fill="none" />
+                            <circle cx="50" cy="50" r="${circleRadius}" stroke="${strokeColor}" stroke-width="8" fill="none" 
+                                stroke-dasharray="${circumference}" stroke-dashoffset="${circumference}" 
+                                class="transition-all duration-1500 ease-out" 
+                                style="stroke-dashoffset: ${strokeDashoffset}; stroke-linecap: round;" />
+                        </svg>
+                        <div class="absolute flex flex-col items-center justify-center text-center">
+                            <span class="text-4xl md:text-5xl font-black text-white leading-none">${score > 0 ? score : '-'}</span>
+                            <span class="text-[9px] md:text-[10px] text-gray-400 uppercase tracking-widest mt-1">Puntos</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 text-center">
+                        <p class="text-sm md:text-base font-bold ${colorClass} bg-white/5 px-4 py-1.5 rounded-full border border-white/5 shadow-sm">${statusText}</p>
+                        <p class="text-xs text-gray-400 mt-2 px-2 leading-relaxed">${statusDesc}</p>
+                    </div>
+                </div>
+
+                <div class="lg:w-2/3 w-full flex flex-col justify-center">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="bg-yellow-400/20 text-yellow-400 w-8 h-8 rounded-lg flex items-center justify-center text-sm"><i class="fas fa-brain"></i></span>
+                        <h3 class="text-lg font-bold text-white">¿Cómo leer tu K-Score™?</h3>
+                    </div>
+                    <p class="text-sm text-gray-400 mb-6 leading-relaxed">
+                        El K-Score™ no cuenta estrellas, <strong class="text-white">mide el riesgo de tu negocio</strong>. Evaluamos calidad, estabilidad operativa y dirección futura para detectar crisis silenciosas antes de que impacten tu facturación.
+                    </p>
+
+                    <div class="overflow-x-auto rounded-xl border border-white/10 shadow-inner">
+                        <table class="w-full text-sm text-left">
+                            <thead class="text-xs uppercase bg-white/5 text-gray-400 border-b border-white/10">
+                                <tr>
+                                    <th class="px-4 py-3 font-bold tracking-wider">Rango</th>
+                                    <th class="px-4 py-3 font-bold tracking-wider">Estado Oficial</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-white/5 text-gray-300">
+                                <tr class="hover:bg-white/5 transition">
+                                    <td class="px-4 py-3 font-bold text-white">90–100</td>
+                                    <td class="px-4 py-3"><span class="mr-2">🟢</span> Excelencia Operativa</td>
+                                </tr>
+                                <tr class="hover:bg-white/5 transition">
+                                    <td class="px-4 py-3 font-bold text-white">80–89</td>
+                                    <td class="px-4 py-3"><span class="mr-2">🔵</span> Saludable</td>
+                                </tr>
+                                <tr class="hover:bg-white/5 transition">
+                                    <td class="px-4 py-3 font-bold text-white">70–79</td>
+                                    <td class="px-4 py-3"><span class="mr-2">🟡</span> Atención Preventiva</td>
+                                </tr>
+                                <tr class="hover:bg-white/5 transition">
+                                    <td class="px-4 py-3 font-bold text-white">60–69</td>
+                                    <td class="px-4 py-3"><span class="mr-2">🟠</span> Riesgo Creciente</td>
+                                </tr>
+                                <tr class="hover:bg-white/5 transition">
+                                    <td class="px-4 py-3 font-bold text-white">&lt;60</td>
+                                    <td class="px-4 py-3"><span class="mr-2">🔴</span> Zona Crítica</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
     function activateBranch(branchId) {
         // Usamos tu nuevo motor dinámico en lugar del link directo de Fillout
         const dynamicUrl = "https://go.kaezyn.com/activar-sucursal";
