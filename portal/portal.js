@@ -81,6 +81,10 @@ const Portal = (() => {
         const kScoreData = (kScoreArray && kScoreArray.length > 0) ? kScoreArray[0] : null;
 
         renderDashboard(branches, billingData, kScoreData);
+        
+        // --- NUEVO: CARGAR ANALÍTICA DEL DASHBOARD HÍBRIDO ---
+        const branchIds = branches.map(b => b.id);
+        await loadAnalyticsData(user.id, branchIds);
     }
 
     function renderDashboard(branches, billingData, kScoreData) {
@@ -474,6 +478,192 @@ const Portal = (() => {
                 </div>
             </div>
         `;
+    }
+
+    /* ================= ANALÍTICA HÍBRIDA (MTD, GRÁFICA Y FEED) ================= */
+
+    async function loadAnalyticsData(userId, branchIds) {
+        try {
+            // 1. Cargar Pulso MTD
+            const { data: mtdData } = await supabase
+                .from('k_scores')
+                .select('current_reviews_global, current_avg_rating_global, negative_reviews_global')
+                .eq('user_id', userId)
+                .maybeSingle();
+
+            // 2. Cargar Gráfica desde k_scores_historic (Últimos 6 registros)
+            const { data: historyData } = await supabase
+                .from('k_scores_historic')
+                .select('recorded_at, current_kscore_global')
+                .eq('user_id', userId)
+                .order('recorded_at', { ascending: false })
+                .limit(6);
+
+            // 3. Cargar Feed de Comentarios (Últimos 30 días)
+            let commentsData = [];
+            if (branchIds && branchIds.length > 0) {
+                const thirtyDaysAgo = new Date();
+                thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+                const { data: comments } = await supabase
+                    .from('feedback')
+                    .select('created_at, comment, rating, business_id, client_id')
+                    .in('business_id', branchIds)
+                    .gte('created_at', thirtyDaysAgo.toISOString())
+                    .order('created_at', { ascending: false })
+                    .limit(30);
+                
+                commentsData = comments || [];
+            }
+
+            renderAnalyticsWidget(mtdData, historyData, commentsData);
+
+        } catch (error) {
+            console.error("Error cargando Analíticas:", error);
+        }
+    }
+
+    function renderAnalyticsWidget(mtdData, historyData, comments) {
+        const container = document.getElementById('analyticsWidgetContainer');
+        if (!container) return;
+
+        // --- Cálculos de MTD ---
+        const avgRating = mtdData ? Number(mtdData.current_avg_rating_global || 0).toFixed(1) : "0.0";
+        const totalReviews = mtdData ? (mtdData.current_reviews_global || 0) : 0;
+        const negativeReviews = mtdData ? (mtdData.negative_reviews_global || 0) : 0;
+        // Calculamos las positivas restando quejas del total
+        const positiveReviews = Math.max(0, totalReviews - negativeReviews);
+
+        container.innerHTML = `
+            <!-- SECCIÓN 1: PULSO MENSUAL (MTD) -->
+            <h2 class="text-xl font-bold text-white tracking-wide mb-4">Pulso del Mes (MTD)</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div class="bg-white/5 border border-white/10 rounded-xl p-4 flex flex-col items-center justify-center text-center">
+                    <span class="text-[10px] uppercase text-gray-400 font-bold tracking-widest mb-1">Estrellas (Prom.)</span>
+                    <div class="text-2xl font-black text-yellow-400 flex items-center gap-1"><i class="fas fa-star text-sm"></i> ${avgRating}</div>
+                </div>
+                <div class="bg-white/5 border border-white/10 rounded-xl p-4 flex flex-col items-center justify-center text-center">
+                    <span class="text-[10px] uppercase text-gray-400 font-bold tracking-widest mb-1">Reseñas Totales</span>
+                    <div class="text-2xl font-black text-white">${totalReviews}</div>
+                </div>
+                <div class="bg-white/5 border border-white/10 rounded-xl p-4 flex flex-col items-center justify-center text-center">
+                    <span class="text-[10px] uppercase text-gray-400 font-bold tracking-widest mb-1 text-green-400">Positivas</span>
+                    <div class="text-2xl font-black text-green-400">${positiveReviews}</div>
+                </div>
+                <div class="bg-white/5 border border-white/10 rounded-xl p-4 flex flex-col items-center justify-center text-center">
+                    <span class="text-[10px] uppercase text-gray-400 font-bold tracking-widest mb-1 text-red-400">Negativas (Quejas)</span>
+                    <div class="text-2xl font-black text-red-400">${negativeReviews}</div>
+                </div>
+            </div>
+
+            <!-- SECCIÓN 2: GRÁFICA Y FEED -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+                
+                <!-- Gráfica de Evolución -->
+                <div class="card p-6 rounded-2xl flex flex-col h-full shadow-lg">
+                    <div class="flex items-center gap-2 mb-6">
+                        <span class="bg-blue-500/20 text-blue-400 w-8 h-8 rounded-lg flex items-center justify-center text-sm"><i class="fas fa-chart-line"></i></span>
+                        <h3 class="text-base font-bold text-white">Evolución K-Score (6 Meses)</h3>
+                    </div>
+                    <div class="relative w-full h-64 flex-grow">
+                        <canvas id="kscoreChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Feed de Voz del Cliente -->
+                <div class="card p-6 rounded-2xl flex flex-col h-full shadow-lg max-h-[360px]">
+                    <div class="flex items-center gap-2 mb-4 shrink-0">
+                        <span class="bg-purple-500/20 text-purple-400 w-8 h-8 rounded-lg flex items-center justify-center text-sm"><i class="fas fa-comment-dots"></i></span>
+                        <h3 class="text-base font-bold text-white">Voz del Cliente</h3>
+                    </div>
+                    
+                    <div id="recentCommentsFeed" class="flex-grow overflow-y-auto pr-2 custom-scrollbar flex flex-col gap-3 pb-2">
+                        <!-- El feed se inyecta aquí -->
+                    </div>
+                </div>
+
+            </div>
+        `;
+
+        // Procesar e Inyectar Gráfica
+        const ctxElement = document.getElementById('kscoreChart');
+        if (ctxElement && historyData) {
+            const chartData = historyData.length > 0 ? historyData.reverse() : [];
+            const labels = chartData.map(row => {
+                const d = new Date(row.recorded_at);
+                return d.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' }).toUpperCase();
+            });
+            const scores = chartData.map(row => row.current_kscore_global);
+
+            new Chart(ctxElement.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'K-Score',
+                        data: scores,
+                        borderColor: '#FFD700', 
+                        backgroundColor: 'rgba(255, 215, 0, 0.1)', 
+                        borderWidth: 3,
+                        tension: 0.4, 
+                        fill: true,
+                        pointBackgroundColor: '#0b0f2a',
+                        pointBorderColor: '#FFD700',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { 
+                            beginAtZero: false, 
+                            grid: { color: 'rgba(255,255,255,0.05)', borderDash: [5, 5] },
+                            ticks: { color: 'rgba(255,255,255,0.5)', font: { family: 'Poppins' } }
+                        },
+                        x: { 
+                            grid: { display: false },
+                            ticks: { color: 'rgba(255,255,255,0.5)', font: { family: 'Poppins', size: 10 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Procesar e Inyectar Comentarios
+        const feedContainer = document.getElementById('recentCommentsFeed');
+        if (feedContainer) {
+            if (!comments || comments.length === 0) {
+                feedContainer.innerHTML = `<p class="text-center text-gray-500 text-sm mt-10">Aún no hay interacciones registradas recientemente.</p>`;
+            } else {
+                feedContainer.innerHTML = comments.map(c => {
+                    const dateObj = new Date(c.created_at);
+                    const dateStr = dateObj.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+                    // Extraer la hora exacta
+                    const timeStr = dateObj.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+                    
+                    const isPositive = c.rating >= 4;
+                    const starColor = isPositive ? 'text-yellow-400' : 'text-red-400';
+                    const starsHTML = '★'.repeat(c.rating) + '☆'.repeat(5 - c.rating);
+
+                    return `
+                    <div class="bg-white/5 border border-white/10 rounded-xl p-4 transition hover:bg-white/10 shrink-0">
+                        <div class="flex justify-between items-start mb-2 border-b border-white/5 pb-2">
+                            <span class="text-[10px] uppercase font-bold text-gray-400 tracking-wider"><i class="fas fa-user-circle mr-1"></i> ${c.client_id || 'Cliente Anónimo'}</span>
+                            <span class="text-[9px] text-gray-500 font-medium">${dateStr} • ${timeStr}</span>
+                        </div>
+                        <div class="flex items-center gap-1 mb-2 ${starColor} text-sm">
+                            ${starsHTML}
+                        </div>
+                        <p class="text-xs text-gray-300 leading-relaxed italic">"${c.comment || 'Calificación sin comentario visual.'}"</p>
+                    </div>
+                    `;
+                }).join('');
+            }
+        }
     }
     
     function activateBranch(branchId) {
