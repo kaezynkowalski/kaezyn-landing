@@ -81,6 +81,10 @@ const Portal = (() => {
         const kScoreData = (kScoreArray && kScoreArray.length > 0) ? kScoreArray[0] : null;
 
         renderDashboard(branches, billingData, kScoreData);
+
+        // --- DASHBOARD V2: CARGA DE MAGIA DE DATOS ---
+        const branchIds = branches.map(b => b.id);
+        await loadAnalyticsData(user.id, branchIds);
     }
 
     function renderDashboard(branches, billingData, kScoreData) {
@@ -182,89 +186,54 @@ const Portal = (() => {
         const usageWidgetContainer = document.getElementById("usageWidgetContainer");
         if (usageWidgetContainer) {
             usageWidgetContainer.innerHTML = `
-                <div class="card p-6 md:p-8 rounded-2xl shadow-2xl relative overflow-hidden">
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
-                        
-                        <div class="lg:col-span-2">
-                            <div class="flex justify-between items-end mb-2">
-                                <div>
-                                    <h3 class="text-lg font-bold text-white mb-1"><i class="fas fa-chart-pie text-yellow-400 mr-2"></i> Consumo de Interacciones</h3>
-                                    <p class="text-xs text-gray-400">Ciclo actual (se reinicia el 1er día del mes)</p>
-                                </div>
-                                <div class="text-right">
-                                    <span class="text-2xl font-black text-white">${usedInteractions}</span>
-                                    <span class="text-sm text-gray-400 font-medium">/ ${monthlyLimit}</span>
-                                </div>
+                <div class="bg-white/5 border border-white/10 rounded-xl p-3 shadow-sm flex flex-col sm:flex-row items-center gap-4 w-full xl:w-auto">
+                    
+                    <div class="flex items-center gap-3 w-full sm:w-auto">
+                        <span class="bg-[#0b0f2a] border border-white/10 text-yellow-400 w-8 h-8 rounded-lg flex items-center justify-center shrink-0">
+                            <i class="fas fa-bolt text-sm"></i>
+                        </span>
+                        <div class="flex-grow min-w-[130px]">
+                            <div class="flex justify-between items-end mb-1">
+                                <p class="text-[9px] text-gray-400 uppercase font-bold tracking-widest leading-none">Interacciones</p>
+                                <p class="text-xs font-bold text-white leading-none">${usedInteractions} <span class="text-[10px] text-gray-500">/ ${monthlyLimit}</span></p>
                             </div>
-                            
-                            <div class="w-full bg-white/5 rounded-full h-4 mb-2 overflow-hidden border border-white/10 shadow-inner">
-                                <div class="${progressColor} h-4 rounded-full transition-all duration-1000 ease-out relative" style="width: ${usagePercent}%">
-                                    ${usagePercent >= 10 ? `<div class="absolute inset-0 bg-white/20 w-full h-full animate-pulse"></div>` : ''}
-                                </div>
-                            </div>
-                            
-                            <p class="text-[11px] text-gray-400 font-medium flex justify-between">
-                                <span>0%</span>
-                                ${usagePercent >= 90 && !autoTopup ? `<span class="text-red-400 font-bold"><i class="fas fa-exclamation-triangle"></i> Límite próximo. El servicio se pausará.</span>` : `<span>Límite del plan</span>`}
-                            </p>
-
-                            ${upsellHtml}
-                        </div>
-
-                        <div class="bg-[#0b0f2a] border border-white/10 rounded-xl p-5 shadow-inner flex flex-col justify-center h-full">
-                            <div class="flex justify-between items-center mb-4 border-b border-white/10 pb-3">
-                                <div>
-                                    <h4 class="text-sm font-bold text-white uppercase tracking-wider">Auto-Recarga</h4>
-                                    <p class="text-[10px] text-gray-400 mt-0.5 leading-tight">Nunca pierdas una reseña</p>
-                                </div>
-                                
-                                <div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
-                                    <input type="checkbox" name="toggle" id="autoTopupToggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 border-[#0b0f2a] appearance-none cursor-pointer z-10" ${autoTopup ? 'checked' : ''} onchange="Portal.toggleAutoTopup(this.checked)"/>
-                                    <label for="autoTopupToggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-600 cursor-pointer"></label>
-                                </div>
-                            </div>
-
-                            <div class="${autoTopup ? 'opacity-100' : 'opacity-40 pointer-events-none'} transition-opacity duration-300">
-                                <label class="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-2 block">Paquete de expansión:</label>
-                                <select id="topupAmountSelect" onchange="Portal.updateTopupAmount(this.value)" class="w-full bg-white/5 border border-white/20 text-white text-sm rounded-lg focus:ring-yellow-400 focus:border-yellow-400 block p-2.5 outline-none font-bold">
-                                    <option value="100" class="text-black" ${topupAmount === 100 ? 'selected' : ''}>+100 interacciones ($690)</option>
-                                    <option value="300" class="text-black" ${topupAmount === 300 ? 'selected' : ''}>+300 interacciones ($1,790)</option>
-                                    <option value="1000" class="text-black" ${topupAmount === 1000 ? 'selected' : ''}>+1,000 interacciones ($5,900)</option>
-                                </select>
+                            <div class="w-full bg-black/50 rounded-full h-1.5 overflow-hidden">
+                                <div class="${progressColor} h-1.5 rounded-full transition-all duration-1000" style="width: ${usagePercent}%"></div>
                             </div>
                         </div>
-
                     </div>
+
+                    <div class="hidden sm:block w-px h-8 bg-white/10"></div>
+
+                    <div class="flex items-center justify-between sm:justify-start gap-4 w-full sm:w-auto border-t border-white/5 sm:border-t-0 pt-3 sm:pt-0">
+                        <div class="flex flex-col justify-center">
+                            <label class="text-[8px] text-gray-400 uppercase tracking-widest font-bold mb-1">Auto-Topup</label>
+                            <div class="relative inline-block w-8 align-middle select-none">
+                                <input type="checkbox" id="autoTopupToggle" class="toggle-checkbox absolute block w-4 h-4 rounded-full bg-white border-2 border-[#0b0f2a] appearance-none cursor-pointer z-10" ${autoTopup ? 'checked' : ''} onchange="Portal.toggleAutoTopup(this.checked)"/>
+                                <label for="autoTopupToggle" class="toggle-label block overflow-hidden h-4 rounded-full bg-gray-600 cursor-pointer"></label>
+                            </div>
+                        </div>
+                        
+                        <div class="${autoTopup ? 'opacity-100' : 'opacity-40 pointer-events-none'} transition-opacity duration-300">
+                            <select id="topupAmountSelect" onchange="Portal.updateTopupAmount(this.value)" class="bg-[#0b0f2a] border border-white/20 text-white text-[10px] rounded-lg focus:ring-yellow-400 focus:border-yellow-400 block py-1.5 px-2 outline-none font-bold cursor-pointer">
+                                <option value="100" class="text-black" ${topupAmount === 100 ? 'selected' : ''}>+100 ($690)</option>
+                                <option value="300" class="text-black" ${topupAmount === 300 ? 'selected' : ''}>+300 ($1,790)</option>
+                                <option value="1000" class="text-black" ${topupAmount === 1000 ? 'selected' : ''}>+1k ($5,900)</option>
+                            </select>
+                        </div>
+                    </div>
+
                 </div>
+                ${upsellHtml}
             `;
         }
         
-        // ==========================================
-        // PASO C: LÓGICA CONDICIONAL K-SCORE GLOBAL
-        // ==========================================
-        let globalKScore = 0; // Valor inicial por defecto (evita 'undefined')
-
-        if (kScoreData) {
-            // Evaluamos: Si existe el score actual y es mayor a 0, lo usamos.
-            if (Number(kScoreData.current_kscore_global) > 0) {
-                globalKScore = Number(kScoreData.current_kscore_global);
-            } 
-            // Si el actual es 0 o null, verificamos si existe uno previo válido.
-            else if (Number(kScoreData.prev_kscore_global) > 0) {
-                globalKScore = Number(kScoreData.prev_kscore_global);
-            }
-        }
-
-        // Renderizamos el widget con el valor final procesado
-        renderKScoreWidget(globalKScore);
-
-
         
-        // --- Renderizar las Tarjetas (Grid) ---
+        // --- Renderizar las Tarjetas (Columna Lateral) ---
         if (dashboardDiv) {
             dashboardDiv.innerHTML = `
                 ${alertHtml}
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="flex flex-col gap-4">
                     ${branches.map(branch => {
                         const hasName = branch.business_name && branch.business_name !== "empty" && branch.business_name.trim() !== "";
                         const hasClientId = branch.client_id && String(branch.client_id).trim() !== "" && String(branch.client_id).toLowerCase() !== "null" && branch.client_id !== 'empty';
@@ -476,6 +445,157 @@ const Portal = (() => {
         `;
     }
     
+    /* ================= DASHBOARD V2.0 LOGIC ================= */
+
+    async function loadAnalyticsData(userId, branchIds) {
+        try {
+            // 1. Cargar Pulso MTD (Prioridad: Vista k_scores)
+            const { data: mtdData } = await supabase
+                .from('k_scores')
+                .select('current_reviews_global, current_avg_rating_global, negative_reviews_global, current_kscore_global, prev_kscore_global')
+                .eq('user_id', userId)
+                .maybeSingle();
+
+            if (mtdData) {
+                // Lógica invencible para evitar el "0" en K-Score
+                let finalKScore = 0;
+                if (Number(mtdData.current_kscore_global) > 0) {
+                    finalKScore = Number(mtdData.current_kscore_global);
+                } else if (Number(mtdData.prev_kscore_global) > 0) {
+                    finalKScore = Number(mtdData.prev_kscore_global);
+                }
+
+                const displayScore = document.getElementById('globalKscoreDisplay');
+                if (displayScore) displayScore.innerText = finalKScore || '--';
+                
+                const reviewsLabel = document.getElementById('mtdNewReviews');
+                if (reviewsLabel) reviewsLabel.innerText = mtdData.current_reviews_global || 0;
+                
+                const avgLabel = document.getElementById('mtdAvgRating');
+                if (avgLabel) avgLabel.innerText = Number(mtdData.current_avg_rating_global || 0).toFixed(1);
+                
+                const complaintsLabel = document.getElementById('mtdComplaints');
+                if (complaintsLabel) complaintsLabel.innerText = mtdData.negative_reviews_global || 0;
+            }
+
+            // 2. Cargar Gráfica desde k_scores_historic (Últimos 6 registros)
+            const { data: historyData } = await supabase
+                .from('k_scores_historic')
+                .select('recorded_at, current_kscore_global')
+                .eq('user_id', userId)
+                .order('recorded_at', { ascending: false })
+                .limit(6);
+
+            if (historyData && historyData.length > 0) {
+                renderKScoreChart(historyData.reverse());
+            } else {
+                renderKScoreChart([]); // Previene errores si no hay historial
+            }
+
+            // 3. Cargar Feed de Comentarios desde feedback (Últimos 30 días)
+            if (branchIds && branchIds.length > 0) {
+                const thirtyDaysAgo = new Date();
+                thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+                const { data: comments } = await supabase
+                    .from('feedback')
+                    .select('created_at, comment, rating, business_id, client_id')
+                    .in('business_id', branchIds)
+                    .gte('created_at', thirtyDaysAgo.toISOString())
+                    .order('created_at', { ascending: false })
+                    .limit(20);
+
+                renderCommentsFeed(comments);
+            }
+
+        } catch (error) {
+            console.error("Error cargando Magia de Datos Analytics:", error);
+        }
+    }
+
+    function renderKScoreChart(data) {
+        const ctxElement = document.getElementById('kscoreChart');
+        if(!ctxElement) return;
+
+        // Formatear fechas a Mes/Año
+        const labels = data.map(row => {
+            const d = new Date(row.recorded_at);
+            return d.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' }).toUpperCase();
+        });
+        const scores = data.map(row => row.current_kscore_global);
+
+        // Destruir gráfica anterior si el usuario redimensiona o recarga
+        if (window.kscoreChartInstance) window.kscoreChartInstance.destroy();
+
+        window.kscoreChartInstance = new Chart(ctxElement.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'K-Score',
+                    data: scores,
+                    borderColor: '#FFD700', 
+                    backgroundColor: 'rgba(255, 215, 0, 0.1)', 
+                    borderWidth: 3,
+                    tension: 0.4, 
+                    fill: true,
+                    pointBackgroundColor: '#0b0f2a',
+                    pointBorderColor: '#FFD700',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { 
+                        beginAtZero: false, 
+                        grid: { color: 'rgba(255,255,255,0.05)', borderDash: [5, 5] },
+                        ticks: { color: 'rgba(255,255,255,0.5)', font: { family: 'Poppins' } }
+                    },
+                    x: { 
+                        grid: { display: false },
+                        ticks: { color: 'rgba(255,255,255,0.5)', font: { family: 'Poppins', size: 10 } }
+                    }
+                }
+            }
+        });
+    }
+
+    function renderCommentsFeed(comments) {
+        const container = document.getElementById('recentCommentsFeed');
+        if (!container) return;
+
+        if (!comments || comments.length === 0) {
+            container.innerHTML = `<p class="text-center text-gray-500 text-sm mt-10">Aún no hay interacciones registradas recientemente.</p>`;
+            return;
+        }
+
+        container.innerHTML = comments.map(c => {
+            const dateObj = new Date(c.created_at);
+            const dateStr = dateObj.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+            const isPositive = c.rating >= 4;
+            const starColor = isPositive ? 'text-yellow-400' : 'text-red-400';
+            
+            const starsHTML = '★'.repeat(c.rating) + '☆'.repeat(5 - c.rating);
+
+            return `
+            <div class="bg-white/5 border border-white/10 rounded-xl p-4 transition hover:bg-white/10">
+                <div class="flex justify-between items-start mb-2 border-b border-white/5 pb-2">
+                    <span class="text-[10px] uppercase font-bold text-gray-400 tracking-wider"><i class="fas fa-user-circle mr-1"></i> ${c.client_id || 'Cliente Anónimo'}</span>
+                    <span class="text-[9px] text-gray-500 font-medium">${dateStr}</span>
+                </div>
+                <div class="flex items-center gap-1 mb-2 ${starColor} text-sm">
+                    ${starsHTML}
+                </div>
+                <p class="text-xs text-gray-300 leading-relaxed italic">"${c.comment || 'Solo dejó calificación por estrellas.'}"</p>
+            </div>
+            `;
+        }).join('');
+    }
     function activateBranch(branchId) {
         // Usamos tu nuevo motor dinámico en lugar del link directo de Fillout
         const dynamicUrl = "https://go.kaezyn.com/activar-sucursal";
