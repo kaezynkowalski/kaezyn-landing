@@ -1,5 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
+<!-- Librería para la gráfica dinámica -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -59,33 +61,108 @@ body {
 
 <body class="min-h-screen pb-12">
 
-<div class="container mx-auto px-6 py-10 max-w-6xl">
+<div class="container mx-auto px-6 py-10 max-w-7xl">
 
-    <div class="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
-        <img src="/assets/KAEZYN LOGO.png" class="h-10">
-        <div class="text-center sm:text-right">
-            <p id="planName" class="font-bold text-yellow-300 tracking-wider uppercase text-sm"></p>
-            <p id="renewalDate" class="text-xs text-gray-400 mt-1"></p>
-            <button onclick="Portal.logout()" class="text-xs text-gray-500 mt-2 hover:text-white transition uppercase tracking-widest"><i class="fas fa-sign-out-alt mr-1"></i> Cerrar sesión</button>
+    <!-- PISO 1: Header, Créditos y CTA -->
+    <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-6">
+        <div class="flex items-center gap-4">
+            <img src="/assets/KAEZYN LOGO.png" class="h-10">
+            <div>
+                <p id="planName" class="font-bold text-yellow-300 tracking-wider uppercase text-[10px] sm:text-sm"></p>
+                <p id="renewalDate" class="text-[10px] sm:text-xs text-gray-400 mt-1"></p>
+            </div>
+        </div>
+        <div class="flex flex-wrap justify-center sm:justify-end items-center gap-4 w-full md:w-auto">
+            <!-- El widget de uso (Créditos) se inyectará aquí -->
+            <div id="usageWidgetContainer" class="min-w-[200px]"></div>
+            
+            <button onclick="Portal.createNewBranch()" class="btn-gold flex items-center gap-2 text-sm shadow-lg">
+                <i class="fas fa-plus"></i> Añadir Sucursal
+            </button>
+            
+            <button onclick="Portal.logout()" class="text-xs text-gray-500 hover:text-white transition uppercase tracking-widest ml-2">
+                <i class="fas fa-sign-out-alt"></i>
+            </button>
         </div>
     </div>
 
-    <div id="usageWidgetContainer" class="mb-8"></div>
+    <!-- PISO 2: Bento Box (K-Score, Pulso MTD y Gráfica) -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        
+        <!-- Columna Izquierda: Pulso Táctico MTD -->
+        <div class="lg:col-span-1 flex flex-col gap-6">
+            <!-- Widget K-Score Global -->
+            <div class="card rounded-2xl p-6 shadow-2xl relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-4 opacity-10">
+                    <i class="fas fa-chart-line text-6xl text-yellow-400"></i>
+                </div>
+                <p class="text-xs text-gray-400 uppercase tracking-widest font-bold mb-2">K-Score™ Global</p>
+                <div class="flex items-baseline gap-2">
+                    <h2 class="text-6xl font-black text-white" id="globalKscoreDisplay">--</h2>
+                </div>
+            </div>
 
-    <div id="kscoreWidgetContainer" class="mb-10"></div>
+            <!-- Pulso Táctico MTD (Vista k_scores) -->
+            <div class="card rounded-2xl p-6">
+                <h3 class="text-xs font-bold text-gray-300 uppercase tracking-wider mb-4 flex items-center gap-2">
+                    <i class="fas fa-bolt text-yellow-400"></i> Pulso Mensual (MTD)
+                </h3>
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="text-center p-3 bg-white/5 rounded-xl border border-green-500/30">
+                        <p class="text-xl font-black text-green-400" id="mtdNewReviews">0</p>
+                        <p class="text-[9px] text-gray-400 uppercase font-bold mt-1">Nuevas</p>
+                    </div>
+                    <div class="text-center p-3 bg-white/5 rounded-xl border border-yellow-500/30">
+                        <p class="text-xl font-black text-yellow-400" id="mtdAvgRating">0.0</p>
+                        <p class="text-[9px] text-gray-400 uppercase font-bold mt-1">Promedio</p>
+                    </div>
+                    <div class="text-center p-3 bg-white/5 rounded-xl border border-red-500/30">
+                        <p class="text-xl font-black text-red-400" id="mtdComplaints">0</p>
+                        <p class="text-[9px] text-gray-400 uppercase font-bold mt-1">Quejas</p>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-    <div class="flex justify-between items-center mb-6">
-        <h2 class="text-xl sm:text-2xl font-bold text-white tracking-wide">Tus Sucursales</h2>
-        <button onclick="Portal.createNewBranch()" class="btn-gold flex items-center gap-2 text-sm shadow-lg">
-            <i class="fas fa-plus"></i> Añadir Sucursal
-        </button>
+        <!-- Columna Derecha: Gráfica Histórica -->
+        <div class="lg:col-span-2 card rounded-2xl p-6 flex flex-col">
+            <h3 class="text-xs font-bold text-gray-300 uppercase tracking-wider mb-4">Evolución (Últimos 6 Meses)</h3>
+            <div class="relative h-full min-h-[200px] w-full">
+                <canvas id="kscoreChart"></canvas>
+            </div>
+        </div>
     </div>
 
-    <div id="dashboard"></div>
+    <!-- PISO 3: Panel Dual (Sucursales + Comentarios Recientes) -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        <!-- Lista de Sucursales (Se inyecta lo que antes iba en #dashboard) -->
+        <div class="card rounded-2xl p-6 flex flex-col h-[500px]">
+            <h3 class="text-xs font-bold text-gray-300 uppercase tracking-wider mb-4 border-b border-white/10 pb-2">
+                <i class="fas fa-store text-yellow-400 mr-2"></i> Gestión de Sucursales
+            </h3>
+            <div id="dashboard" class="overflow-y-auto pr-2 space-y-4">
+                <!-- Portal.js inyecta las tarjetas de sucursales aquí -->
+            </div>
+        </div>
 
-    <div class="mt-10 flex justify-center sm:justify-start">
-        <button id="btnStripe" class="bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-xl font-bold transition-all border border-white/10 shadow-lg text-sm uppercase tracking-wider w-full sm:w-auto" onclick="Portal.openStripePortal(window.currentCustomerId)">
-            <i class="fas fa-credit-card mr-2"></i> Administrar Facturación
+        <!-- Feed de Comentarios Recientes -->
+        <div class="card rounded-2xl p-6 flex flex-col h-[500px]">
+            <div class="flex justify-between items-center mb-4 border-b border-white/10 pb-2">
+                <h3 class="text-xs font-bold text-gray-300 uppercase tracking-wider">
+                    <i class="fas fa-comments text-yellow-400 mr-2"></i> Voz del Cliente
+                </h3>
+            </div>
+            <div id="recentCommentsFeed" class="overflow-y-auto pr-2 space-y-3">
+                <div class="text-center text-gray-500 text-sm mt-10">Cargando inteligencia de clientes...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botón de Stripe Mantenido -->
+    <div class="mt-8 flex justify-center lg:justify-end">
+        <button id="btnStripe" class="bg-white/5 hover:bg-white/10 text-gray-300 px-6 py-3 rounded-xl transition-all border border-white/10 shadow-lg text-xs uppercase tracking-wider" onclick="Portal.openStripePortal(window.currentCustomerId)">
+            <i class="fas fa-credit-card mr-2 text-yellow-400"></i> Administrar Facturación
         </button>
     </div>
 </div>
