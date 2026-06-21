@@ -484,7 +484,7 @@ const Portal = (() => {
 
     async function loadAnalyticsData(userId, branchIds) {
         try {
-            // 1. Cargar Pulso MTD
+            // 1. Cargar Pulso MTD (Desde la vista)
             const { data: mtdData } = await supabase
                 .from('k_scores')
                 .select('current_reviews_global, current_avg_rating_global, negative_reviews_global')
@@ -499,19 +499,22 @@ const Portal = (() => {
                 .order('recorded_at', { ascending: false })
                 .limit(6);
 
-            // 3. Cargar Feed de Comentarios (Últimos 30 días)
+            // 3. Cargar Feed de Comentarios (ESTRICTAMENTE EL MES EN CURSO)
             let commentsData = [];
             if (branchIds && branchIds.length > 0) {
-                const thirtyDaysAgo = new Date();
-                thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+                // Forzamos la fecha al día 1 del mes actual a las 00:00 hrs
+                const startOfMonth = new Date();
+                startOfMonth.setDate(1);
+                startOfMonth.setHours(0, 0, 0, 0);
 
                 const { data: comments } = await supabase
                     .from('feedback')
                     .select('created_at, comment, rating, business_id, client_id')
                     .in('business_id', branchIds)
-                    .gte('created_at', thirtyDaysAgo.toISOString())
+                    .gte('created_at', startOfMonth.toISOString())
                     .order('created_at', { ascending: false })
-                    .limit(30);
+                    // Traemos suficientes para que si el MTD falla, el cálculo de respaldo en JS sea exacto
+                    .limit(500); 
                 
                 commentsData = comments || [];
             }
@@ -527,15 +530,23 @@ const Portal = (() => {
         const container = document.getElementById('analyticsWidgetContainer');
         if (!container) return;
 
-        // --- Cálculos de MTD ---
-        const avgRating = mtdData ? Number(mtdData.current_avg_rating_global || 0).toFixed(1) : "0.0";
-        const totalReviews = mtdData ? (mtdData.current_reviews_global || 0) : 0;
-        const negativeReviews = mtdData ? (mtdData.negative_reviews_global || 0) : 0;
-        // Calculamos las positivas restando quejas del total
+        // --- CÁLCULO FAIL-SAFE (A prueba de fallos) ---
+        // Si la vista falla o viene vacía, JS calcula todo desde los comentarios reales del mes
+        let jsTotal = comments ? comments.length : 0;
+        let jsNegative = comments ? comments.filter(c => c.rating <= 3).length : 0; // 3 estrellas o menos = queja
+        let jsAvg = "0.0";
+        if (jsTotal > 0) {
+            const sum = comments.reduce((acc, c) => acc + c.rating, 0);
+            jsAvg = (sum / jsTotal).toFixed(1);
+        }
+
+        // Usamos los datos de la base de datos, pero si no existen, inyectamos el cálculo matemático de JS
+        const avgRating = (mtdData && mtdData.current_avg_rating_global) ? Number(mtdData.current_avg_rating_global).toFixed(1) : jsAvg;
+        const totalReviews = (mtdData && mtdData.current_reviews_global) ? mtdData.current_reviews_global : jsTotal;
+        const negativeReviews = (mtdData && mtdData.negative_reviews_global) ? mtdData.negative_reviews_global : jsNegative;
         const positiveReviews = Math.max(0, totalReviews - negativeReviews);
 
         container.innerHTML = `
-            <!-- SECCIÓN 1: PULSO MENSUAL (MTD) -->
             <h2 class="text-xl font-bold text-white tracking-wide mb-4">Pulso del Mes (MTD)</h2>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                 <div class="bg-white/5 border border-white/10 rounded-xl p-4 flex flex-col items-center justify-center text-center">
@@ -556,10 +567,8 @@ const Portal = (() => {
                 </div>
             </div>
 
-            <!-- SECCIÓN 2: GRÁFICA Y FEED -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
                 
-                <!-- Gráfica de Evolución -->
                 <div class="card p-6 rounded-2xl flex flex-col h-full shadow-lg">
                     <div class="flex items-center gap-2 mb-6">
                         <span class="bg-blue-500/20 text-blue-400 w-8 h-8 rounded-lg flex items-center justify-center text-sm"><i class="fas fa-chart-line"></i></span>
@@ -570,7 +579,6 @@ const Portal = (() => {
                     </div>
                 </div>
 
-                <!-- Feed de Voz del Cliente -->
                 <div class="card p-6 rounded-2xl flex flex-col h-full shadow-lg max-h-[360px]">
                     <div class="flex items-center gap-2 mb-4 shrink-0">
                         <span class="bg-purple-500/20 text-purple-400 w-8 h-8 rounded-lg flex items-center justify-center text-sm"><i class="fas fa-comment-dots"></i></span>
@@ -578,22 +586,29 @@ const Portal = (() => {
                     </div>
                     
                     <div id="recentCommentsFeed" class="flex-grow overflow-y-auto pr-2 custom-scrollbar flex flex-col gap-3 pb-2">
-                        <!-- El feed se inyecta aquí -->
-                    </div>
+                        </div>
                 </div>
 
             </div>
         `;
 
-        // Procesar e Inyectar Gráfica
+        // ===============================================
+        // PROCESAR E INYECTAR GRÁFICA (Ajuste Ejes y Meses)
+        // ===============================================
         const ctxElement = document.getElementById('kscoreChart');
-        if (ctxElement && historyData) {
-            const chartData = historyData.length > 0 ? historyData.reverse() : [];
+        if (ctxElement) {
+            // Failsafe: Si no hay datos, mostramos al menos el mes actual en 0
+            let chartData = historyData && historyData.length > 0 ? historyData.reverse() : [];
+            if (chartData.length === 0) {
+                chartData = [{ recorded_at: new Date().toISOString(), current_kscore_global: 0 }];
+            }
+
             const labels = chartData.map(row => {
                 const d = new Date(row.recorded_at);
-                return d.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' }).toUpperCase();
+                // Extrae formato corto ("jun") y lo pasa a Mayúsculas ("JUN")
+                return d.toLocaleDateString('es-ES', { month: 'short' }).replace('.', '').toUpperCase();
             });
-            const scores = chartData.map(row => row.current_kscore_global);
+            const scores = chartData.map(row => row.current_kscore_global || 0);
 
             new Chart(ctxElement.getContext('2d'), {
                 type: 'line',
@@ -620,29 +635,35 @@ const Portal = (() => {
                     plugins: { legend: { display: false } },
                     scales: {
                         y: { 
-                            beginAtZero: false, 
+                            min: 0,   // Acotado rígido en 0
+                            max: 100, // Acotado rígido en 100
                             grid: { color: 'rgba(255,255,255,0.05)', borderDash: [5, 5] },
-                            ticks: { color: 'rgba(255,255,255,0.5)', font: { family: 'Poppins' } }
+                            ticks: { 
+                                stepSize: 10, // Fuerza las líneas en 10, 20, 30...
+                                color: 'rgba(255,255,255,0.5)', 
+                                font: { family: 'Poppins' } 
+                            }
                         },
                         x: { 
                             grid: { display: false },
-                            ticks: { color: 'rgba(255,255,255,0.5)', font: { family: 'Poppins', size: 10 } }
+                            ticks: { color: 'rgba(255,255,255,0.5)', font: { family: 'Poppins', size: 10, weight: 'bold' } }
                         }
                     }
                 }
             });
         }
 
-        // Procesar e Inyectar Comentarios
+        // ===============================================
+        // PROCESAR E INYECTAR COMENTARIOS (Mes Actual)
+        // ===============================================
         const feedContainer = document.getElementById('recentCommentsFeed');
         if (feedContainer) {
             if (!comments || comments.length === 0) {
-                feedContainer.innerHTML = `<p class="text-center text-gray-500 text-sm mt-10">Aún no hay interacciones registradas recientemente.</p>`;
+                feedContainer.innerHTML = `<p class="text-center text-gray-500 text-sm mt-10">Aún no hay interacciones registradas en este mes.</p>`;
             } else {
                 feedContainer.innerHTML = comments.map(c => {
                     const dateObj = new Date(c.created_at);
                     const dateStr = dateObj.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
-                    // Extraer la hora exacta
                     const timeStr = dateObj.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
                     
                     const isPositive = c.rating >= 4;
