@@ -533,9 +533,9 @@ const Portal = (() => {
         const container = document.getElementById('analyticsWidgetContainer');
         if (!container) return;
 
-        // --- CÁLCULO FAIL-SAFE (A prueba de fallos para MTD) ---
+        // --- CÁLCULO FAIL-SAFE MTD ---
         let jsTotal = comments ? comments.length : 0;
-        let jsNegative = comments ? comments.filter(c => c.rating <= 3).length : 0; 
+        let jsNegative = comments ? comments.filter(c => c.rating <= 3).length : 0;
         let jsAvg = "0.0";
         if (jsTotal > 0) {
             const sum = comments.reduce((acc, c) => acc + c.rating, 0);
@@ -564,14 +564,13 @@ const Portal = (() => {
                     <div class="text-2xl font-black text-green-400">${positiveReviews}</div>
                 </div>
                 <div class="bg-white/5 border border-white/10 rounded-xl p-4 flex flex-col items-center justify-center text-center">
-                    <span class="text-[10px] uppercase text-gray-400 font-bold tracking-widest mb-1 text-red-400">Negativas (Quejas)</span>
+                    <span class="text-[10px] uppercase text-gray-400 font-bold tracking-widest mb-1 text-red-400">Negativas</span>
                     <div class="text-2xl font-black text-red-400">${negativeReviews}</div>
                 </div>
             </div>
 
             <!-- SECCIÓN 2: GRÁFICA Y FEED -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
-                
                 <div class="card p-6 rounded-2xl flex flex-col h-full shadow-lg">
                     <div class="flex items-center gap-2 mb-6">
                         <span class="bg-blue-500/20 text-blue-400 w-8 h-8 rounded-lg flex items-center justify-center text-sm"><i class="fas fa-chart-line"></i></span>
@@ -581,63 +580,98 @@ const Portal = (() => {
                         <canvas id="kscoreChart"></canvas>
                     </div>
                 </div>
-
                 <div class="card p-6 rounded-2xl flex flex-col h-full shadow-lg max-h-[360px]">
                     <div class="flex items-center gap-2 mb-4 shrink-0">
                         <span class="bg-purple-500/20 text-purple-400 w-8 h-8 rounded-lg flex items-center justify-center text-sm"><i class="fas fa-comment-dots"></i></span>
                         <h3 class="text-base font-bold text-white">Voz del Cliente</h3>
                     </div>
-                    
                     <div id="recentCommentsFeed" class="flex-grow overflow-y-auto pr-2 custom-scrollbar flex flex-col gap-3 pb-2">
                     </div>
                 </div>
-
             </div>
         `;
 
         // ===============================================
-        // PROCESAR E INYECTAR GRÁFICA (Regla: Mes anterior y DISTINCT)
+        // PROCESAR E INYECTAR GRÁFICA (RELLENO INTELIGENTE DE MESES)
         // ===============================================
         const ctxElement = document.getElementById('kscoreChart');
         if (ctxElement) {
-            let processedHistory = [];
-            
+            let labels = [];
+            let scores = [];
+
             if (historyData && historyData.length > 0) {
-                // Usamos un Map para garantizar que solo haya 1 registro por mes (como el DISTINCT)
-                const uniqueMonths = new Map();
+                // 1. Agrupar por mes y ajustar la fecha (-1 mes)
+                const dataByMonth = {};
                 
                 historyData.forEach(row => {
-                    const dateObj = new Date(row.recorded_at);
+                    if (!row.recorded_at) return;
+                    const d = new Date(row.recorded_at);
+                    d.setMonth(d.getMonth() - 1); 
                     
-                    // REGLA CLAVE: Restamos 1 mes para reflejar el periodo evaluado
-                    dateObj.setMonth(dateObj.getMonth() - 1); 
+                    const key = `${d.getFullYear()}-${d.getMonth()}`; // Ej: "2026-2" (Marzo)
                     
-                    // Llave única mes-año (Ej. "mar 2026")
-                    const monthKey = dateObj.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' });
-                    
-                    if (!uniqueMonths.has(monthKey)) {
-                        uniqueMonths.set(monthKey, {
-                            label: dateObj.toLocaleDateString('es-ES', { month: 'short' }).replace('.', '').toUpperCase(),
-                            score: Number(row.current_kscore_global) || 0
-                        });
+                    if (!dataByMonth[key]) {
+                        dataByMonth[key] = {
+                            score: row.current_kscore_global || 0,
+                            year: d.getFullYear(),
+                            month: d.getMonth(),
+                            timestamp: d.getTime()
+                        };
                     }
                 });
-                
-                // Convertimos a array, extraemos los últimos 6, y los invertimos para orden cronológico (izq->der)
-                processedHistory = Array.from(uniqueMonths.values()).slice(0, 6).reverse();
+
+                // 2. Ordenar cronológicamente (del más viejo al más nuevo)
+                const sortedData = Object.values(dataByMonth).sort((a, b) => a.timestamp - b.timestamp);
+
+                if (sortedData.length > 0) {
+                    const first = sortedData[0];
+                    const last = sortedData[sortedData.length - 1];
+
+                    let currentYear = first.year;
+                    let currentMonth = first.month;
+                    let lastKnownScore = first.score;
+
+                    const endYear = last.year;
+                    const endMonth = last.month;
+
+                    // 3. Rellenar vacíos: Caminamos mes por mes desde el inicio hasta el fin
+                    while (currentYear < endYear || (currentYear === endYear && currentMonth <= endMonth)) {
+                        const key = `${currentYear}-${currentMonth}`;
+                        
+                        const tempDate = new Date(currentYear, currentMonth, 1);
+                        const label = tempDate.toLocaleDateString('es-ES', { month: 'short' }).replace('.', '').toUpperCase();
+
+                        // Si hay dato ese mes, actualiza; si no, hereda el anterior para no caer a 0
+                        if (dataByMonth[key]) {
+                            lastKnownScore = dataByMonth[key].score;
+                        }
+                        
+                        labels.push(label);
+                        scores.push(Number(lastKnownScore).toFixed(1));
+
+                        // Avanzamos 1 mes
+                        currentMonth++;
+                        if (currentMonth > 11) {
+                            currentMonth = 0;
+                            currentYear++;
+                        }
+                    }
+
+                    // 4. Limitar a máximo 6 meses (corta los más viejos si hay más de 6)
+                    if (labels.length > 6) {
+                        labels = labels.slice(-6);
+                        scores = scores.slice(-6);
+                    }
+                }
             }
 
-            // Failsafe visual si la política RLS falla o el usuario es 100% nuevo
-            if (processedHistory.length === 0) {
-                const fallbackDate = new Date();
-                processedHistory = [{ 
-                    label: fallbackDate.toLocaleDateString('es-ES', { month: 'short' }).replace('.', '').toUpperCase(), 
-                    score: 0 
-                }];
+            // Failsafe por si no hay historial aún
+            if (labels.length === 0) {
+                const today = new Date();
+                today.setMonth(today.getMonth() - 1); 
+                labels = [today.toLocaleDateString('es-ES', { month: 'short' }).replace('.', '').toUpperCase()];
+                scores = [0];
             }
-
-            const labels = processedHistory.map(item => item.label);
-            const scores = processedHistory.map(item => item.score);
 
             new Chart(ctxElement.getContext('2d'), {
                 type: 'line',
@@ -661,17 +695,15 @@ const Portal = (() => {
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
+                    plugins: { legend: { display: false }, tooltip: {
+                        callbacks: { label: function(context) { return 'K-Score: ' + context.parsed.y; } }
+                    }},
                     scales: {
                         y: { 
-                            min: 0,   
+                            min: 0, 
                             max: 100, 
                             grid: { color: 'rgba(255,255,255,0.05)', borderDash: [5, 5] },
-                            ticks: { 
-                                stepSize: 10, 
-                                color: 'rgba(255,255,255,0.5)', 
-                                font: { family: 'Poppins' } 
-                            }
+                            ticks: { stepSize: 10, color: 'rgba(255,255,255,0.5)', font: { family: 'Poppins' } }
                         },
                         x: { 
                             grid: { display: false },
@@ -694,7 +726,6 @@ const Portal = (() => {
                     const dateObj = new Date(c.created_at);
                     const dateStr = dateObj.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
                     const timeStr = dateObj.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-                    
                     const isPositive = c.rating >= 4;
                     const starColor = isPositive ? 'text-yellow-400' : 'text-red-400';
                     const starsHTML = '★'.repeat(c.rating) + '☆'.repeat(5 - c.rating);
