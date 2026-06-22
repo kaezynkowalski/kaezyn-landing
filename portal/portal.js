@@ -484,25 +484,29 @@ const Portal = (() => {
 
     async function loadAnalyticsData(userId, branchIds) {
         try {
-            // 1. Cargar Pulso MTD (Desde la vista)
+            // 1. Cargar Pulso MTD
             const { data: mtdData } = await supabase
                 .from('k_scores')
                 .select('current_reviews_global, current_avg_rating_global, negative_reviews_global')
                 .eq('user_id', userId)
                 .maybeSingle();
 
-            // 2. Cargar Gráfica desde k_scores_historic (Últimos 6 registros)
-            const { data: historyData } = await supabase
+            // 2. Cargar Gráfica desde k_scores_historic
+            // Traemos más registros por si hay múltiples guardados, el DISTINCT lo haremos en JS
+            const { data: historyData, error: historyError } = await supabase
                 .from('k_scores_historic')
                 .select('recorded_at, current_kscore_global')
                 .eq('user_id', userId)
                 .order('recorded_at', { ascending: false })
-                .limit(6);
+                .limit(12);
+
+            if (historyError) {
+                console.error("Error al consultar k_scores_historic. Posible fallo de permisos RLS:", historyError);
+            }
 
             // 3. Cargar Feed de Comentarios (ESTRICTAMENTE EL MES EN CURSO)
             let commentsData = [];
             if (branchIds && branchIds.length > 0) {
-                // Forzamos la fecha al día 1 del mes actual a las 00:00 hrs
                 const startOfMonth = new Date();
                 startOfMonth.setDate(1);
                 startOfMonth.setHours(0, 0, 0, 0);
@@ -513,7 +517,6 @@ const Portal = (() => {
                     .in('business_id', branchIds)
                     .gte('created_at', startOfMonth.toISOString())
                     .order('created_at', { ascending: false })
-                    // Traemos suficientes para que si el MTD falla, el cálculo de respaldo en JS sea exacto
                     .limit(500); 
                 
                 commentsData = comments || [];
@@ -530,23 +533,22 @@ const Portal = (() => {
         const container = document.getElementById('analyticsWidgetContainer');
         if (!container) return;
 
-        // --- CÁLCULO FAIL-SAFE (A prueba de fallos) ---
-        // Si la vista falla o viene vacía, JS calcula todo desde los comentarios reales del mes
+        // --- CÁLCULO FAIL-SAFE (A prueba de fallos para MTD) ---
         let jsTotal = comments ? comments.length : 0;
-        let jsNegative = comments ? comments.filter(c => c.rating <= 3).length : 0; // 3 estrellas o menos = queja
+        let jsNegative = comments ? comments.filter(c => c.rating <= 3).length : 0; 
         let jsAvg = "0.0";
         if (jsTotal > 0) {
             const sum = comments.reduce((acc, c) => acc + c.rating, 0);
             jsAvg = (sum / jsTotal).toFixed(1);
         }
 
-        // Usamos los datos de la base de datos, pero si no existen, inyectamos el cálculo matemático de JS
         const avgRating = (mtdData && mtdData.current_avg_rating_global) ? Number(mtdData.current_avg_rating_global).toFixed(1) : jsAvg;
         const totalReviews = (mtdData && mtdData.current_reviews_global) ? mtdData.current_reviews_global : jsTotal;
         const negativeReviews = (mtdData && mtdData.negative_reviews_global) ? mtdData.negative_reviews_global : jsNegative;
         const positiveReviews = Math.max(0, totalReviews - negativeReviews);
 
         container.innerHTML = `
+            <!-- SECCIÓN 1: PULSO MENSUAL (MTD) -->
             <h2 class="text-xl font-bold text-white tracking-wide mb-4">Pulso del Mes (MTD)</h2>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                 <div class="bg-white/5 border border-white/10 rounded-xl p-4 flex flex-col items-center justify-center text-center">
@@ -567,6 +569,7 @@ const Portal = (() => {
                 </div>
             </div>
 
+            <!-- SECCIÓN 2: GRÁFICA Y FEED -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
                 
                 <div class="card p-6 rounded-2xl flex flex-col h-full shadow-lg">
@@ -586,29 +589,55 @@ const Portal = (() => {
                     </div>
                     
                     <div id="recentCommentsFeed" class="flex-grow overflow-y-auto pr-2 custom-scrollbar flex flex-col gap-3 pb-2">
-                        </div>
+                    </div>
                 </div>
 
             </div>
         `;
 
         // ===============================================
-        // PROCESAR E INYECTAR GRÁFICA (Ajuste Ejes y Meses)
+        // PROCESAR E INYECTAR GRÁFICA (Regla: Mes anterior y DISTINCT)
         // ===============================================
         const ctxElement = document.getElementById('kscoreChart');
         if (ctxElement) {
-            // Failsafe: Si no hay datos, mostramos al menos el mes actual en 0
-            let chartData = historyData && historyData.length > 0 ? historyData.reverse() : [];
-            if (chartData.length === 0) {
-                chartData = [{ recorded_at: new Date().toISOString(), current_kscore_global: 0 }];
+            let processedHistory = [];
+            
+            if (historyData && historyData.length > 0) {
+                // Usamos un Map para garantizar que solo haya 1 registro por mes (como el DISTINCT)
+                const uniqueMonths = new Map();
+                
+                historyData.forEach(row => {
+                    const dateObj = new Date(row.recorded_at);
+                    
+                    // REGLA CLAVE: Restamos 1 mes para reflejar el periodo evaluado
+                    dateObj.setMonth(dateObj.getMonth() - 1); 
+                    
+                    // Llave única mes-año (Ej. "mar 2026")
+                    const monthKey = dateObj.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' });
+                    
+                    if (!uniqueMonths.has(monthKey)) {
+                        uniqueMonths.set(monthKey, {
+                            label: dateObj.toLocaleDateString('es-ES', { month: 'short' }).replace('.', '').toUpperCase(),
+                            score: Number(row.current_kscore_global) || 0
+                        });
+                    }
+                });
+                
+                // Convertimos a array, extraemos los últimos 6, y los invertimos para orden cronológico (izq->der)
+                processedHistory = Array.from(uniqueMonths.values()).slice(0, 6).reverse();
             }
 
-            const labels = chartData.map(row => {
-                const d = new Date(row.recorded_at);
-                // Extrae formato corto ("jun") y lo pasa a Mayúsculas ("JUN")
-                return d.toLocaleDateString('es-ES', { month: 'short' }).replace('.', '').toUpperCase();
-            });
-            const scores = chartData.map(row => row.current_kscore_global || 0);
+            // Failsafe visual si la política RLS falla o el usuario es 100% nuevo
+            if (processedHistory.length === 0) {
+                const fallbackDate = new Date();
+                processedHistory = [{ 
+                    label: fallbackDate.toLocaleDateString('es-ES', { month: 'short' }).replace('.', '').toUpperCase(), 
+                    score: 0 
+                }];
+            }
+
+            const labels = processedHistory.map(item => item.label);
+            const scores = processedHistory.map(item => item.score);
 
             new Chart(ctxElement.getContext('2d'), {
                 type: 'line',
@@ -635,11 +664,11 @@ const Portal = (() => {
                     plugins: { legend: { display: false } },
                     scales: {
                         y: { 
-                            min: 0,   // Acotado rígido en 0
-                            max: 100, // Acotado rígido en 100
+                            min: 0,   
+                            max: 100, 
                             grid: { color: 'rgba(255,255,255,0.05)', borderDash: [5, 5] },
                             ticks: { 
-                                stepSize: 10, // Fuerza las líneas en 10, 20, 30...
+                                stepSize: 10, 
                                 color: 'rgba(255,255,255,0.5)', 
                                 font: { family: 'Poppins' } 
                             }
@@ -654,7 +683,7 @@ const Portal = (() => {
         }
 
         // ===============================================
-        // PROCESAR E INYECTAR COMENTARIOS (Mes Actual)
+        // PROCESAR E INYECTAR COMENTARIOS
         // ===============================================
         const feedContainer = document.getElementById('recentCommentsFeed');
         if (feedContainer) {
