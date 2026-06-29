@@ -1261,25 +1261,24 @@
             <h3 class="text-white font-semibold mt-4">3. Propiedad Intelectual</h3>
             <p>El algoritmo K-Score™, la plataforma y todo el código subyacente son propiedad exclusiva de Kaezyn Consultoría. Queda prohibida su reproducción o ingeniería inversa.</p>
         </div>
-    </div>
+    </div>    
+</div>
     
-    <!-- ================= SECCIÓN: BOTÓN FLOTANTE DE WHATSAPP KAEZYN ================= -->
-    <style>
-      /* Contenedor principal flotante */
-      .wa-floating-container {
+<!-- ================= SECCIÓN: BOTÓN FLOTANTE DE WHATSAPP KAEZYN ================= -->
+<style>
+    .wa-floating-container {
         position: fixed;
         bottom: 24px;
         right: 24px;
-        z-index: 9999;
+        z-index: 99999; /* Subí un '9' más para asegurar que venza a cualquier header sticky */
         display: flex;
         align-items: center;
         gap: 12px;
         font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
       }
 
-      /* Globo de texto de ayuda (Tooltip) */
-      .wa-tooltip {
-        background-color: #111827; /* Gris oscuro ultra-premium */
+    .wa-tooltip {
+        background-color: #111827; 
         color: #ffffff;
         padding: 8px 16px;
         border-radius: 20px;
@@ -1294,11 +1293,10 @@
         pointer-events: none;
       }
 
-      /* El botón circular del icono */
-      .wa-btn {
+    .wa-btn {
         width: 56px;
         height: 56px;
-        background-color: #25D366; /* Verde oficial WhatsApp */
+        background-color: #25D366; 
         border-radius: 50%;
         display: flex;
         justify-content: center;
@@ -1308,76 +1306,67 @@
         position: relative;
       }
 
-      /* Punto de notificación sutil para llamar la atención del ojo */
-      .wa-badge {
+    .wa-badge {
         position: absolute;
         top: 2px;
         right: 2px;
         width: 12px;
         height: 12px;
-        background-color: #ef4444; /* Rojo vibrante */
+        background-color: #ef4444; 
         border-radius: 50%;
         border: 2px solid #25D366;
         animation: pulseBadge 2s infinite;
       }
 
-      /* Efectos Hover (Cuando el usuario pasa el mouse) */
-      .wa-floating-container:hover .wa-tooltip {
+    .wa-floating-container:hover .wa-tooltip {
         opacity: 1;
         transform: translateX(0);
       }
 
-      .wa-btn:hover {
+    .wa-btn:hover {
         transform: translateY(-4px) scale(1.05);
         box-shadow: 0 12px 30px rgba(37, 211, 102, 0.6);
         background-color: #20ba5a;
       }
 
-      /* Animación de pulso para el badge de notificación */
-      @keyframes pulseBadge {
+    @keyframes pulseBadge {
         0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
         70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
         100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
       }
 
-      /* Ajustes Responsivos para Pantallas Móviles */
-      @media (max-width: 768px) {
+    @media (max-width: 768px) {
         .wa-floating-container {
           bottom: 16px;
           right: 16px;
         }
-        .wa-btn {
+    .wa-btn {
           width: 50px;
           height: 50px;
         }
-        /* Ocultamos el tooltip de texto en móvil para no invadir la pantalla */
-        .wa-tooltip {
+    .wa-tooltip {
           display: none;
         }
       }
-    </style>
+</style>
 
-    <div class="wa-floating-container">
-      <!-- Tooltip que saluda al usuario -->
-      <div class="wa-tooltip">¿Hablamos por WhatsApp? 👋</div>
-  
-      <!-- Enlace directo con mensaje preconfigurado de alta conversión -->
-      <a href="https://wa.me/525573592089?text=Hola%20Kaezyn%2C%20vengo%20de%20la%20p%C3%A1gina%20web%20y%20me%20gustar%C3%ADa%20recibir%20m%C3%A1s%20informaci%C3%B3n." 
+<div class="wa-floating-container">
+    <div class="wa-tooltip" aria-hidden="true">¿Hablamos por WhatsApp? 👋</div>
+      
+    <a href="https://wa.me/525573592089?text=Hola%20Kaezyn%2C%20vengo%20de%20la%20p%C3%A1gina%20web%20y%20me%20gustar%C3%ADa%20recibir%20m%C3%A1s%20informaci%C3%B3n." 
          target="_blank" 
          rel="noopener noreferrer" 
          class="wa-btn" 
          aria-label="Contactar a Kaezyn por WhatsApp">
-    
-        <!-- Punto de notificación dinámico -->
-        <span class="wa-badge"></span>
-    
-        <!-- Icono SVG nativo de WhatsApp -->
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path fill-rule="evenodd" clip-rule="evenodd" d="M12.004 2C6.48 2 2 6.48 2 12.004c0 1.848.502 3.578 1.378 5.066l-1.33 4.856 4.972-1.304c1.432.78 3.064 1.226 4.804 1.226 5.524 0 10.004-4.48 10.004-10.004C21.832 6.48 17.354 2 12.004 2zm5.78 14.128c-.24.672-1.192 1.232-1.928 1.392-.504.104-1.16.184-3.376-.736-2.824-1.168-4.64-4.048-4.784-4.24-.136-.184-1.12-1.488-1.12-2.84 0-1.352.704-2.016.952-2.272.248-.256.656-.376.888-.376.16 0 .304.008.432.016.136.008.32-.056.504.392.192.472.656 1.6.712 1.712.056.12.096.256.016.416-.08.16-.12.264-.24.4-.12.144-.256.32-.36.432-.12.12-.248.248-.104.496.144.24.64 1.056 1.376 1.712.944.84 1.744 1.104 1.992 1.224.248.12.392.104.536-.056.144-.16.624-.728.792-.976.168-.248.336-.208.56-.128.232.08 1.464.688 1.72.816.256.128.424.192.488.304.064.112.064.648-.176 1.32z" fill="#ffffff"/>
-        </svg>
-      </a>
-    </div>    
-</div>         
+        
+    <span class="wa-badge"></span>
+        
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M12.004 2C6.48 2 2 6.48 2 12.004c0 1.848.502 3.578 1.378 5.066l-1.33 4.856 4.972-1.304c1.432.78 3.064 1.226 4.804 1.226 5.524 0 10.004-4.48 10.004-10.004C21.832 6.48 17.354 2 12.004 2zm5.78 14.128c-.24.672-1.192 1.232-1.928 1.392-.504.104-1.16.184-3.376-.736-2.824-1.168-4.64-4.048-4.784-4.24-.136-.184-1.12-1.488-1.12-2.84 0-1.352.704-2.016.952-2.272.248-.256.656-.376.888-.376.16 0 .304.008.432.016.136.008.32-.056.504.392.192.472.656 1.6.712 1.712.056.12.096.256.016.416-.08.16-.12.264-.24.4-.12.144-.256.32-.36.432-.12.12-.248.248-.104.496.144.24.64 1.056 1.376 1.712.944.84 1.744 1.104 1.992 1.224.248.12.392.104.536-.056.144-.16.624-.728.792-.976.168-.248.336-.208.56-.128.232.08 1.464.688 1.72.816.256.128.424.192.488.304.064.112.064.648-.176 1.32z" fill="#ffffff"/>
+    </svg>
+    </a>
+</div>
+
 </body>
 </html>
 
