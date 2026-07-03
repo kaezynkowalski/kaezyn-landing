@@ -82,7 +82,7 @@
 
                 <div class="relative">
                     <div class="flex justify-between items-center mb-2">
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-yellow-400">Google Place ID</label>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-yellow-400">Google Place ID (Principal)</label>
                         <button type="button" onclick="window.open('https://developers.google.com/maps/documentation/javascript/examples/places-placeid-finder', '_blank')" 
                                 class="text-[10px] text-gray-400 hover:text-yellow-400 transition italic underline">
                             ¿No sabes tu Place ID? Búscalo aquí
@@ -114,7 +114,40 @@
                     <p class="text-[10px] text-gray-500 mt-1">Ingresa el código Place ID y presiona "Probar" para verificar.</p>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="border-t border-white/10 pt-6 space-y-4">
+                    <h3 class="text-sm font-semibold text-white tracking-wide uppercase">Plataformas de Delivery (Opcionales)</h3>
+                    
+                    <div>
+                        <label class="block text-[11px] font-medium text-gray-400 mb-1">Enlace de Uber Eats</label>
+                        <input type="url" id="uber_url" class="input-field w-full px-4 py-2.5 rounded-lg text-sm" placeholder="https://www.ubereats.com/store/...">
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-medium text-gray-400 mb-1">Enlace de Rappi</label>
+                        <input type="url" id="rappi_url" class="input-field w-full px-4 py-2.5 rounded-lg text-sm" placeholder="https://www.rappi.com.mx/restaurantes/...">
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-medium text-gray-400 mb-1">Enlace de Didi Food</label>
+                        <input type="url" id="didi_url" class="input-field w-full px-4 py-2.5 rounded-lg text-sm" placeholder="https://www.didi-food.com/es-MX/food/store/...">
+                    </div>
+                </div>
+
+                <div class="border-t border-white/10 pt-6 space-y-4">
+                    <h3 class="text-sm font-semibold text-white tracking-wide uppercase">Plataformas de Reseña Alternas (Opcionales)</h3>
+                    
+                    <div>
+                        <label class="block text-[11px] font-medium text-gray-400 mb-1">Enlace de TripAdvisor</label>
+                        <input type="url" id="tripadvisor_url" class="input-field w-full px-4 py-2.5 rounded-lg text-sm" placeholder="https://www.tripadvisor.com.mx/Restaurant_Review...">
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-medium text-gray-400 mb-1">Enlace de OpenTable</label>
+                        <input type="url" id="opentable_url" class="input-field w-full px-4 py-2.5 rounded-lg text-sm" placeholder="https://www.opentable.com.mx/r/...">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-white/10 pt-6">
                     <div>
                         <label class="block text-xs font-semibold uppercase tracking-wider text-yellow-400 mb-2">Email del Manager</label>
                         <input type="email" id="manager_email" class="input-field w-full px-4 py-3 rounded-lg text-sm">
@@ -149,7 +182,6 @@
 
     <script src="portal.js"></script>
     <script>
-        // --- FUNCIONES GLOBALES ---
         function validatePlaceId(value) {
             const check = document.getElementById('check_google');
             if (value && value.trim().length > 5) {
@@ -170,7 +202,6 @@
             window.open(fullUrl, '_blank');
         }
 
-        // --- LÓGICA DE CARGA ---
         document.addEventListener('DOMContentLoaded', async () => {
             const urlParams = new URLSearchParams(window.location.search);
             const branchId = urlParams.get('id');
@@ -183,18 +214,24 @@
             const branch = await Portal.getBranchDetails(branchId);
             
             if (branch) {
-                // Procesar URL de Google para mostrar solo el ID
                 const fullGoogleUrl = branch.google_review_url || "";
                 const placeId = fullGoogleUrl.includes('placeid=') ? fullGoogleUrl.split('placeid=')[1] : "";
 
                 document.getElementById('business_name').value = branch.business_name || "";
                 document.getElementById('client_id').value = branch.client_id || "";
                 document.getElementById('google_place_id').value = placeId;
+                
+                // Mapeo e inyección de las nuevas propiedades desde Supabase
+                document.getElementById('uber_url').value = branch.uber_url || "";
+                document.getElementById('rappi_url').value = branch.rappi_url || "";
+                document.getElementById('didi_url').value = branch.didi_url || "";
+                document.getElementById('tripadvisor_url').value = branch.tripadvisor_url || "";
+                document.getElementById('opentable_url').value = branch.opentable_url || "";
+
                 document.getElementById('manager_email').value = branch.manager_email || "";
                 document.getElementById('manager_phone').value = branch.manager_phone || "";
                 document.getElementById('headerTitle').innerText = "Sucursal " + (branch.branch_number || "");
                 
-                // Activar check si ya hay datos
                 validatePlaceId(placeId);
 
                 const badge = document.getElementById('statusBadge');
@@ -202,11 +239,9 @@
                 badge.className += branch.activo ? ' bg-green-500/20 text-green-400' : ' bg-yellow-500/20 text-yellow-400';
                 document.getElementById('loader').classList.add('hidden');
 
-                // --- LÓGICA DEL BOTÓN PAUSAR/REACTIVAR ---
                 const toggleBtn = document.getElementById('toggleStatusBtn');
                 let isActivo = branch.activo;
 
-                // Función para pintar el botón según el estado
                 const renderToggleButton = () => {
                     if (isActivo) {
                         toggleBtn.innerText = "Pausar Sucursal";
@@ -219,7 +254,6 @@
                 
                 renderToggleButton();
 
-                // Acción al hacer clic en el botón
                 toggleBtn.onclick = async () => {
                     const nuevoEstado = !isActivo;
                     const confirmMsg = nuevoEstado 
@@ -231,31 +265,26 @@
                     toggleBtn.innerText = "Actualizando...";
                     toggleBtn.disabled = true;
 
-                    // Actualizamos solo el campo 'activo' en Supabase
                     const success = await Portal.updateBranch(branchId, { activo: nuevoEstado });
 
                     if (success) {
                         isActivo = nuevoEstado;
                         renderToggleButton();
-                        // Actualizar el badge visual también
                         badge.innerText = isActivo ? 'Activa' : 'Pausada';
                         badge.className = 'mt-1 px-3 py-1 rounded-full text-[10px] font-bold uppercase inline-block ' + 
                                           (isActivo ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400');
                         alert("Estado actualizado correctamente.");
                     } else {
                         alert("Error al actualizar el estado. Intenta de nuevo.");
-                        renderToggleButton(); // Regresar al estado anterior visualmente
+                        renderToggleButton();
                     }
                     toggleBtn.disabled = false;
                 };
-
-                
             } else {
                 alert("No se encontró la sucursal o no tienes permisos.");
                 window.location.href = 'dashboard.html';
             }
 
-            // --- MANEJAR GUARDADO ---
             document.getElementById('manageForm').onsubmit = async (e) => {
                 e.preventDefault();
                 const btn = document.getElementById('saveBtn');
@@ -264,7 +293,6 @@
                 const phone = document.getElementById('manager_phone').value.trim();
                 const placeId = document.getElementById('google_place_id').value.trim();
 
-                // Validar teléfono
                 const cleanPhone = phone.replace(/\s/g, "");
                 const phoneRegex = /^\+\d{10,15}$/; 
                 if (!phoneRegex.test(cleanPhone)) {
@@ -275,10 +303,16 @@
                 btn.disabled = true;
                 btn.innerText = "GUARDANDO...";
 
+                // Almacenamiento unificado de todos los enlaces hacia tu objeto updates para el Portal.js
                 const updates = {
                     business_name: document.getElementById('business_name').value,
                     client_id: document.getElementById('client_id').value,
                     google_review_url: placeId ? `https://search.google.com/local/writereview?placeid=${placeId}` : null,
+                    uber_url: document.getElementById('uber_url').value.trim() || null,
+                    rappi_url: document.getElementById('rappi_url').value.trim() || null,
+                    didi_url: document.getElementById('didi_url').value.trim() || null,
+                    tripadvisor_url: document.getElementById('tripadvisor_url').value.trim() || null,
+                    opentable_url: document.getElementById('opentable_url').value.trim() || null,
                     manager_email: document.getElementById('manager_email').value,
                     manager_phone: phone
                 };
