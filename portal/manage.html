@@ -8,6 +8,7 @@
     <link rel="icon" type="image/png" href="/assets/favicon.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 
     <style>
@@ -48,6 +49,15 @@
             background: var(--color-night-blue);
             z-index: 100;
         }
+        /* Estilos para el Drag & Drop */
+        .sortable-item {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            cursor: grab;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .sortable-item:active { cursor: grabbing; }
+        .sortable-ghost { opacity: 0.4; background: rgba(255, 215, 0, 0.2); border: 1px dashed var(--color-gold); }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -147,6 +157,35 @@
                     </div>
                 </div>
 
+                <div class="border-t border-white/10 pt-6">
+                    <h3 class="text-sm font-semibold text-yellow-400 tracking-wide uppercase mb-1">Jerarquía de Reseñas (Visitas)</h3>
+                    <p class="text-[11px] text-gray-400 mb-4">Arrastra las tarjetas para decidir la prioridad. Si la opción 1 no tiene link guardado, el sistema saltará automáticamente a la opción 2.</p>
+                    
+                    <ul id="platformList" class="space-y-2">
+                        <li data-id="google" class="sortable-item flex items-center justify-between p-3 rounded-lg">
+                            <div class="flex items-center gap-3">
+                                <span class="text-xl">⭐</span>
+                                <span class="font-semibold text-sm">Google Reviews</span>
+                            </div>
+                            <span class="text-gray-500">≡</span>
+                        </li>
+                        <li data-id="tripadvisor" class="sortable-item flex items-center justify-between p-3 rounded-lg">
+                            <div class="flex items-center gap-3">
+                                <span class="text-xl">🦉</span>
+                                <span class="font-semibold text-sm">TripAdvisor</span>
+                            </div>
+                            <span class="text-gray-500">≡</span>
+                        </li>
+                        <li data-id="opentable" class="sortable-item flex items-center justify-between p-3 rounded-lg">
+                            <div class="flex items-center gap-3">
+                                <span class="text-xl">🍽️</span>
+                                <span class="font-semibold text-sm">OpenTable</span>
+                            </div>
+                            <span class="text-gray-500">≡</span>
+                        </li>
+                    </ul>
+                </div>
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-white/10 pt-6">
                     <div>
                         <label class="block text-xs font-semibold uppercase tracking-wider text-yellow-400 mb-2">Email del Manager</label>
@@ -182,6 +221,10 @@
 
     <script src="portal.js"></script>
     <script>
+        // Inicializar Drag & Drop
+        var el = document.getElementById('platformList');
+        var sortable = Sortable.create(el, { animation: 150, ghostClass: 'sortable-ghost' });
+
         function validatePlaceId(value) {
             const check = document.getElementById('check_google');
             if (value && value.trim().length > 5) {
@@ -221,7 +264,6 @@
                 document.getElementById('client_id').value = branch.client_id || "";
                 document.getElementById('google_place_id').value = placeId;
                 
-                // Mapeo e inyección de las nuevas propiedades desde Supabase
                 document.getElementById('uber_url').value = branch.uber_url || "";
                 document.getElementById('rappi_url').value = branch.rappi_url || "";
                 document.getElementById('didi_url').value = branch.didi_url || "";
@@ -232,6 +274,16 @@
                 document.getElementById('manager_phone').value = branch.manager_phone || "";
                 document.getElementById('headerTitle').innerText = "Sucursal " + (branch.branch_number || "");
                 
+                // --- Lógica para restaurar el orden de Drag & Drop al cargar ---
+                if(branch.platform_priority) {
+                    const savedOrder = branch.platform_priority.split(',');
+                    const list = document.getElementById('platformList');
+                    savedOrder.forEach(id => {
+                        const item = list.querySelector(`[data-id="${id}"]`);
+                        if(item) list.appendChild(item); // Mueve el elemento a su posición guardada
+                    });
+                }
+
                 validatePlaceId(placeId);
 
                 const badge = document.getElementById('statusBadge');
@@ -300,10 +352,12 @@
                     return;
                 }
 
+                // Obtener el nuevo orden de arrastrar y soltar (ej. "tripadvisor,google,opentable")
+                const platformOrder = sortable.toArray().join(',');
+
                 btn.disabled = true;
                 btn.innerText = "GUARDANDO...";
 
-                // Almacenamiento unificado de todos los enlaces hacia tu objeto updates para el Portal.js
                 const updates = {
                     business_name: document.getElementById('business_name').value,
                     client_id: document.getElementById('client_id').value,
@@ -314,7 +368,8 @@
                     tripadvisor_url: document.getElementById('tripadvisor_url').value.trim() || null,
                     opentable_url: document.getElementById('opentable_url').value.trim() || null,
                     manager_email: document.getElementById('manager_email').value,
-                    manager_phone: phone
+                    manager_phone: phone,
+                    platform_priority: platformOrder // Se guarda en Supabase
                 };
 
                 const success = await Portal.updateBranch(branchId, updates);
