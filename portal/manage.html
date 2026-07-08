@@ -143,17 +143,70 @@
                     </div>
                 </div>
 
-                <div class="border-t border-white/10 pt-6 space-y-4">
+                <div class="border-t border-white/10 pt-6 space-y-6">
                     <h3 class="text-sm font-semibold text-white tracking-wide uppercase">Plataformas de Reseña Alternas (Opcionales)</h3>
                     
-                    <div>
-                        <label class="block text-[11px] font-medium text-gray-400 mb-1">Enlace de TripAdvisor</label>
-                        <input type="url" id="tripadvisor_url" class="input-field w-full px-4 py-2.5 rounded-lg text-sm" placeholder="https://www.tripadvisor.com.mx/Restaurant_Review...">
+                    <div class="space-y-2">
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-yellow-400">Configuración de Yelp</label>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-[10px] text-gray-400 mb-1">Business ID Interno</label>
+                                <input type="text" id="yelp_biz_id" class="input-field w-full px-4 py-2.5 rounded-lg text-sm" placeholder="m5fGRczOFYKpw-nOXsSPDA">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] text-gray-400 mb-1">Alias del Negocio</label>
+                                <input type="text" id="yelp_alias" class="input-field w-full px-4 py-2.5 rounded-lg text-sm" placeholder="kaezyn-ciudad-de-mexico">
+                            </div>
+                        </div>
+                        <div class="flex justify-end pt-1">
+                            <button type="button" onclick="testYelpLink()" 
+                                    class="px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-xs font-bold hover:bg-white/20 transition">
+                                Probar Yelp
+                            </button>
+                        </div>
                     </div>
 
-                    <div>
-                        <label class="block text-[11px] font-medium text-gray-400 mb-1">Enlace de OpenTable</label>
-                        <input type="url" id="opentable_url" class="input-field w-full px-4 py-2.5 rounded-lg text-sm" placeholder="https://www.opentable.com.mx/r/...">
+                    <div class="space-y-2">
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-yellow-400">ID de TripAdvisor</label>
+                        <div class="flex gap-2">
+                            <div class="relative flex grow">
+                                <span class="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-white/20 bg-white/10 text-gray-400 text-[10px] shrink-0">
+                                    ...g150800-
+                                </span>
+                                <input type="text" id="tripadvisor_id" 
+                                       class="input-field w-full px-4 py-3 rounded-r-lg text-sm font-mono text-[11px]" 
+                                       placeholder="d33283310-Kaezyn_Inteligencia-Mexico_City_Central_Mexico_and_Gulf_Coast.html">
+                            </div>
+            
+                            <button type="button" onclick="testTripAdvisorLink()" 
+                                    class="px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-xs font-bold hover:bg-white/20 transition shrink-0">
+                                Probar
+                            </button>
+                        </div>
+                        <p class="text-[10px] text-gray-500">Ingresa desde la "d" hasta el ".html" de tu enlace de opiniones.</p>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-yellow-400">ID de Facebook Reviews</label>
+                        <div class="flex gap-2">
+                            <div class="relative flex grow">
+                                <span class="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-white/20 bg-white/10 text-gray-400 text-[10px] shrink-0">
+                                    ...?id=
+                                </span>
+                                <input type="text" id="facebook_id" 
+                                       class="input-field w-full px-4 py-3 text-sm font-mono" 
+                                       placeholder="61560058804703">
+                                <span class="inline-flex items-center px-3 rounded-r-lg border border-l-0 border-white/20 bg-white/10 text-gray-400 text-[10px] shrink-0">
+                                    &sk=reviews
+                                </span>
+                            </div>
+            
+                            <button type="button" onclick="testFacebookLink()" 
+                                    class="px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-xs font-bold hover:bg-white/20 transition shrink-0">
+                                Probar
+                            </button>
+                        </div>
+                        <p class="text-[10px] text-gray-500">Ingresa únicamente el Identificador numérico de tu perfil/página.</p>
                     </div>
                 </div>
 
@@ -176,10 +229,17 @@
                             </div>
                             <span class="text-gray-500">≡</span>
                         </li>
-                        <li data-id="opentable" class="sortable-item flex items-center justify-between p-3 rounded-lg">
+                        <li data-id="yelp" class="sortable-item flex items-center justify-between p-3 rounded-lg">
                             <div class="flex items-center gap-3">
-                                <span class="text-xl">🍽️</span>
-                                <span class="font-semibold text-sm">OpenTable</span>
+                                <span class="text-xl">🔴</span>
+                                <span class="font-semibold text-sm">Yelp Reviews</span>
+                            </div>
+                            <span class="text-gray-500">≡</span>
+                        </li>
+                        <li data-id="facebook" class="sortable-item flex items-center justify-between p-3 rounded-lg">
+                            <div class="flex items-center gap-3">
+                                <span class="text-xl">👍</span>
+                                <span class="font-semibold text-sm">Facebook Reviews</span>
                             </div>
                             <span class="text-gray-500">≡</span>
                         </li>
@@ -234,6 +294,7 @@
             }
         }
 
+        // FUNCIONES DE PRUEBA DE ENLACES (TESTING BUTTONS)
         function testGoogleLink() {
             const input = document.getElementById('google_place_id');
             const placeId = input ? input.value.trim() : "";
@@ -242,6 +303,37 @@
                 return;
             }
             const fullUrl = `https://search.google.com/local/writereview?placeid=${placeId}`;
+            window.open(fullUrl, '_blank');
+        }
+
+        function testYelpLink() {
+            const bizId = document.getElementById('yelp_biz_id').value.trim();
+            const alias = document.getElementById('yelp_alias').value.trim();
+            if (!bizId || !alias) {
+                alert("Por favor, ingresa el Business ID Interno y el Alias de Yelp.");
+                return;
+            }
+            const fullUrl = `https://www.yelp.com/writeareview/biz/${bizId}?review_origin=mobile-site-biz-details-action-button&return_url=https://m.yelp.com/biz/${encodeURIComponent(alias)}`;
+            window.open(fullUrl, '_blank');
+        }
+
+        function testTripAdvisorLink() {
+            const id = document.getElementById('tripadvisor_id').value.trim();
+            if (!id) {
+                alert("Por favor, ingresa el ID de TripAdvisor primero.");
+                return;
+            }
+            const fullUrl = `https://www.tripadvisor.com.mx/UserReviewEdit-g150800-${id}`;
+            window.open(fullUrl, '_blank');
+        }
+
+        function testFacebookLink() {
+            const id = document.getElementById('facebook_id').value.trim();
+            if (!id) {
+                alert("Por favor, ingresa el ID de Facebook primero.");
+                return;
+            }
+            const fullUrl = `https://www.facebook.com/profile.php?id=${id}&sk=reviews`;
             window.open(fullUrl, '_blank');
         }
 
@@ -267,8 +359,34 @@
                 document.getElementById('uber_url').value = branch.uber_url || "";
                 document.getElementById('rappi_url').value = branch.rappi_url || "";
                 document.getElementById('didi_url').value = branch.didi_url || "";
-                document.getElementById('tripadvisor_url').value = branch.tripadvisor_url || "";
-                document.getElementById('opentable_url').value = branch.opentable_url || "";
+
+                // --- PARSEO E INYECCIÓN DE VALORES DE BASE DE DATOS A CAMPOS DE LA UI ---
+                // TripAdvisor
+                const fullTripAdvisorUrl = branch.tripadvisor_url || "";
+                const tripadvisorId = fullTripAdvisorUrl.includes('g150800-') ? fullTripAdvisorUrl.split('g150800-')[1] : "";
+                document.getElementById('tripadvisor_id').value = tripadvisorId;
+
+                // Yelp
+                const fullYelpUrl = branch.yelp_url || "";
+                let yelpBizId = "";
+                let yelpAlias = "";
+                if (fullYelpUrl) {
+                    const bizMatch = fullYelpUrl.match(/\/biz\/([^\?]+)/);
+                    if (bizMatch) yelpBizId = bizMatch[1];
+                    const aliasMatch = fullYelpUrl.match(/return_url=https:\/\/m\.yelp\.com\/biz\/([^&]+)/);
+                    if (aliasMatch) yelpAlias = decodeURIComponent(aliasMatch[1]);
+                }
+                document.getElementById('yelp_biz_id').value = yelpBizId;
+                document.getElementById('yelp_alias').value = yelpAlias;
+
+                // Facebook
+                const fullFacebookUrl = branch.facebook_url || "";
+                let facebookId = "";
+                if (fullFacebookUrl) {
+                    const fbMatch = fullFacebookUrl.match(/id=([^&]+)/);
+                    if (fbMatch) facebookId = fbMatch[1];
+                }
+                document.getElementById('facebook_id').value = facebookId;
 
                 document.getElementById('manager_email').value = branch.manager_email || "";
                 document.getElementById('manager_phone').value = branch.manager_phone || "";
@@ -279,8 +397,10 @@
                     const savedOrder = branch.platform_priority.split(',');
                     const list = document.getElementById('platformList');
                     savedOrder.forEach(id => {
-                        const item = list.querySelector(`[data-id="${id}"]`);
-                        if(item) list.appendChild(item); // Mueve el elemento a su posición guardada
+                        if (id !== 'opentable') { // Ignoramos OpenTable de arrastres anteriores si existiera
+                            const item = list.querySelector(`[data-id="${id}"]`);
+                            if(item) list.appendChild(item);
+                        }
                     });
                 }
 
@@ -352,12 +472,19 @@
                     return;
                 }
 
-                // Obtener el nuevo orden de arrastrar y soltar (ej. "tripadvisor,google,opentable")
+                // Obtener los IDs de los inputs limpios del Frontend
+                const tripIdInput = document.getElementById('tripadvisor_id').value.trim();
+                const yelpBizInput = document.getElementById('yelp_biz_id').value.trim();
+                const yelpAliasInput = document.getElementById('yelp_alias').value.trim();
+                const facebookIdInput = document.getElementById('facebook_id').value.trim();
+
+                // Obtener el nuevo orden de arrastrar y soltar (Ej: "google,yelp,tripadvisor,facebook")
                 const platformOrder = sortable.toArray().join(',');
 
                 btn.disabled = true;
                 btn.innerText = "GUARDANDO...";
 
+                // CONSTRUCCIÓN ESTRUCTURADA DE LOS ENLACES FINALES PARA SUPABASE
                 const updates = {
                     business_name: document.getElementById('business_name').value,
                     client_id: document.getElementById('client_id').value,
@@ -365,11 +492,15 @@
                     uber_url: document.getElementById('uber_url').value.trim() || null,
                     rappi_url: document.getElementById('rappi_url').value.trim() || null,
                     didi_url: document.getElementById('didi_url').value.trim() || null,
-                    tripadvisor_url: document.getElementById('tripadvisor_url').value.trim() || null,
-                    opentable_url: document.getElementById('opentable_url').value.trim() || null,
+                    
+                    // Ensamblaje Dinámico a Columnas de la Base de Datos
+                    tripadvisor_url: tripIdInput ? `https://www.tripadvisor.com.mx/UserReviewEdit-g150800-${tripIdInput}` : null,
+                    yelp_url: (yelpBizInput && yelpAliasInput) ? `https://www.yelp.com/writeareview/biz/${yelpBizInput}?review_origin=mobile-site-biz-details-action-button&return_url=https://m.yelp.com/biz/${encodeURIComponent(yelpAliasInput)}` : null,
+                    facebook_url: facebookIdInput ? `https://www.facebook.com/profile.php?id=${facebookIdInput}&sk=reviews` : null,
+                    
                     manager_email: document.getElementById('manager_email').value,
                     manager_phone: phone,
-                    platform_priority: platformOrder // Se guarda en Supabase
+                    platform_priority: platformOrder // Se guarda de forma limpia en Supabase
                 };
 
                 const success = await Portal.updateBranch(branchId, updates);
@@ -381,11 +512,9 @@
                     msg.innerText = "Error al guardar los cambios.";
                     msg.className = "mt-6 text-center text-sm font-medium text-red-400";
                 }
-                
                 msg.classList.remove('hidden');
                 btn.disabled = false;
                 btn.innerText = "GUARDAR CAMBIOS";
-                setTimeout(() => msg.classList.add('hidden'), 4000);
             };
         });
     </script>
