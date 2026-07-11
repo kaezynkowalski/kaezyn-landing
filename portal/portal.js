@@ -600,22 +600,36 @@ const Portal = (() => {
             let scores = [];
 
             if (historyData && historyData.length > 0) {
-                // 1. Agrupar por mes y ajustar la fecha (-1 mes)
+                // 1. Agrupar por mes y ajustar la fecha (-1 mes) EVITANDO ZONAS HORARIAS
                 const dataByMonth = {};
                 
                 historyData.forEach(row => {
                     if (!row.recorded_at) return;
-                    const d = new Date(row.recorded_at);
-                    d.setMonth(d.getMonth() - 1); 
                     
-                    const key = `${d.getFullYear()}-${d.getMonth()}`; // Ej: "2026-2" (Marzo)
+                    const d = new Date(row.recorded_at);
+                    
+                    // Usamos getUTC para que el 1ro de mes a las 00:00 UTC no se regrese un día
+                    let year = d.getUTCFullYear();
+                    let month = d.getUTCMonth(); 
+                    
+                    // Lógica del negocio: El dato refleja el mes anterior
+                    month -= 1;
+                    
+                    // Si al restar el mes caemos por debajo de Enero (0), regresamos a Diciembre (11) del año anterior
+                    if (month < 0) {
+                        month = 11;
+                        year -= 1;
+                    }
+                    
+                    const key = `${year}-${month}`; // Ej: "2026-2" (Marzo)
                     
                     if (!dataByMonth[key]) {
                         dataByMonth[key] = {
                             score: row.current_kscore_global || 0,
-                            year: d.getFullYear(),
-                            month: d.getMonth(),
-                            timestamp: d.getTime()
+                            year: year,
+                            month: month,
+                            // Creamos un timestamp limpio y neutral para poder ordenar correctamente en el Paso 2
+                            timestamp: new Date(year, month, 1).getTime() 
                         };
                     }
                 });
