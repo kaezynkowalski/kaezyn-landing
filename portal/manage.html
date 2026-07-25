@@ -58,6 +58,12 @@
         }
         .sortable-item:active { cursor: grabbing; }
         .sortable-ghost { opacity: 0.4; background: rgba(255, 215, 0, 0.2); border: 1px dashed var(--color-gold); }
+        /* Efecto de parpadeo verde para el primer lugar */
+        .highlight-first {
+            border-color: #22c55e !important; /* Verde de Tailwind */
+            box-shadow: 0 0 15px rgba(34, 197, 94, 0.25);
+            background: rgba(34, 197, 94, 0.05) !important;
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -214,34 +220,33 @@
                     <h3 class="text-sm font-semibold text-yellow-400 tracking-wide uppercase mb-1">Jerarquía de Reseñas (Visitas)</h3>
                     <p class="text-[11px] text-gray-400 mb-4">Arrastra las tarjetas para decidir la prioridad. Si la opción 1 no tiene link guardado, el sistema saltará automáticamente a la opción 2.</p>
                     
-                    <ul id="platformList" class="space-y-2">
-                        <li data-id="google" class="sortable-item flex items-center justify-between p-3 rounded-lg">
-                            <div class="flex items-center gap-3">
-                                <span class="text-xl">⭐</span>
-                                <span class="font-semibold text-sm">Google Reviews</span>
-                            </div>
-                            <span class="text-gray-500">≡</span>
+                    <ul id="platformList" class="space-y-3">
+                        <li data-id="google" class="sortable-item flex items-center p-3 rounded-xl gap-4 border border-transparent transition-all duration-300 bg-white/5">
+                            <div class="text-gray-500 cursor-grab text-lg tracking-[0.1em]">⋮⋮</div>
+                            <div class="rank-number text-lg font-bold text-green-500 w-4 text-center">1</div>
+                            <img src="/assets/Google.png" alt="Google" class="w-8 h-8 rounded-full object-cover shadow-sm">
+                            <span class="font-semibold text-sm">Google Reviews</span>
                         </li>
-                        <li data-id="tripadvisor" class="sortable-item flex items-center justify-between p-3 rounded-lg">
-                            <div class="flex items-center gap-3">
-                                <span class="text-xl">🦉</span>
-                                <span class="font-semibold text-sm">TripAdvisor</span>
-                            </div>
-                            <span class="text-gray-500">≡</span>
+    
+                        <li data-id="tripadvisor" class="sortable-item flex items-center p-3 rounded-xl gap-4 border border-transparent transition-all duration-300 bg-white/5">
+                            <div class="text-gray-500 cursor-grab text-lg tracking-[0.1em]">⋮⋮</div>
+                            <div class="rank-number text-lg font-bold text-indigo-500 w-4 text-center">2</div>
+                            <img src="/assets/Tripadvisor.png" alt="TripAdvisor" class="w-8 h-8 rounded-full object-cover shadow-sm">
+                            <span class="font-semibold text-sm">TripAdvisor</span>
                         </li>
-                        <li data-id="yelp" class="sortable-item flex items-center justify-between p-3 rounded-lg">
-                            <div class="flex items-center gap-3">
-                                <span class="text-xl">🔴</span>
-                                <span class="font-semibold text-sm">Yelp Reviews</span>
-                            </div>
-                            <span class="text-gray-500">≡</span>
+    
+                        <li data-id="yelp" class="sortable-item flex items-center p-3 rounded-xl gap-4 border border-transparent transition-all duration-300 bg-white/5">
+                            <div class="text-gray-500 cursor-grab text-lg tracking-[0.1em]">⋮⋮</div>
+                            <div class="rank-number text-lg font-bold text-indigo-500 w-4 text-center">3</div>
+                            <img src="/assets/Yelp.png" alt="Yelp" class="w-8 h-8 rounded-full object-cover shadow-sm">
+                            <span class="font-semibold text-sm">Yelp Reviews</span>
                         </li>
-                        <li data-id="facebook" class="sortable-item flex items-center justify-between p-3 rounded-lg">
-                            <div class="flex items-center gap-3">
-                                <span class="text-xl">👍</span>
-                                <span class="font-semibold text-sm">Facebook Reviews</span>
-                            </div>
-                            <span class="text-gray-500">≡</span>
+    
+                        <li data-id="facebook" class="sortable-item flex items-center p-3 rounded-xl gap-4 border border-transparent transition-all duration-300 bg-white/5">
+                            <div class="text-gray-500 cursor-grab text-lg tracking-[0.1em]">⋮⋮</div>
+                            <div class="rank-number text-lg font-bold text-indigo-500 w-4 text-center">4</div>
+                            <img src="/assets/facebook.png" alt="Facebook" class="w-8 h-8 rounded-full object-cover shadow-sm">
+                            <span class="font-semibold text-sm">Facebook Reviews</span>
                         </li>
                     </ul>
                 </div>
@@ -283,15 +288,44 @@
     <script>
         // Inicializar Drag & Drop
         var el = document.getElementById('platformList');
-        var sortable = Sortable.create(el, { animation: 150, ghostClass: 'sortable-ghost' });
-
-        function validatePlaceId(value) {
-            const check = document.getElementById('check_google');
-            if (value && value.trim().length > 5) {
-                check.classList.remove('hidden');
-            } else {
-                check.classList.add('hidden');
+        var sortable = Sortable.create(el, { 
+            animation: 150, 
+            ghostClass: 'sortable-ghost',
+            onEnd: function (evt) {
+                // Al terminar de arrastrar, actualizamos números y activamos animación verde
+                actualizarPosiciones(true);
             }
+        });
+
+        // FUNCIÓN NUEVA: Actualiza números de jerarquía y colores
+        function actualizarPosiciones(animar = false) {
+            const items = document.querySelectorAll('#platformList .sortable-item');
+            items.forEach((item, index) => {
+                const rank = index + 1;
+                const numEl = item.querySelector('.rank-number');
+        
+                if (numEl) {
+                    numEl.innerText = rank; // Actualiza el número dinámicamente
+            
+                    // Si es el lugar #1, el número se pone verde, los demás quedan índigo
+                    if (rank === 1) {
+                        numEl.classList.remove('text-indigo-500');
+                        numEl.classList.add('text-green-500');
+                
+                        // Aplicar el sombreado verde momentáneo al contenedor
+                        if (animar) {
+                            item.classList.add('highlight-first');
+                            setTimeout(() => {
+                                item.classList.remove('highlight-first');
+                            }, 1200); // El verde desaparece tras 1.2 segundos
+                        }
+                    } else {
+                        numEl.classList.remove('text-green-500');
+                        numEl.classList.add('text-indigo-500');
+                        item.classList.remove('highlight-first'); // Asegurar que los demás no brillen
+                    }
+                }
+            });
         }
 
         // FUNCIONES DE PRUEBA DE ENLACES (TESTING BUTTONS)
@@ -402,6 +436,8 @@
                             if(item) list.appendChild(item);
                         }
                     });
+                    // AGREGAR ESTA LÍNEA AQUÍ (Acomoda los números tras cargar desde la base de datos sin animación)
+                    actualizarPosiciones(false); 
                 }
 
                 validatePlaceId(placeId);
