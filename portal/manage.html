@@ -217,28 +217,28 @@
                     <ul id="platformList" class="space-y-3">
                         <li data-id="google" class="sortable-item flex items-center p-3 rounded-xl gap-4 border border-transparent transition-all duration-300 bg-white/5">
                             <div class="text-gray-500 cursor-grab text-lg tracking-[0.1em]">⋮⋮</div>
-                            <div class="rank-number text-lg font-bold text-green-500 w-4 text-center"></div>
+                            <div class="rank-number text-lg font-bold text-indigo-500 w-4 text-center">1</div>
                             <img src="/assets/Google.png" alt="Google" class="w-8 h-8 rounded-full object-cover shadow-sm">
                             <span class="font-semibold text-sm">Google Reviews</span>
                         </li>
     
                         <li data-id="tripadvisor" class="sortable-item flex items-center p-3 rounded-xl gap-4 border border-transparent transition-all duration-300 bg-white/5">
                             <div class="text-gray-500 cursor-grab text-lg tracking-[0.1em]">⋮⋮</div>
-                            <div class="rank-number text-lg font-bold text-indigo-500 w-4 text-center"></div>
+                            <div class="rank-number text-lg font-bold text-indigo-500 w-4 text-center">2</div>
                             <img src="/assets/Tripadvisor.png" alt="TripAdvisor" class="w-8 h-8 rounded-full object-cover shadow-sm">
                             <span class="font-semibold text-sm">TripAdvisor</span>
                         </li>
     
                         <li data-id="yelp" class="sortable-item flex items-center p-3 rounded-xl gap-4 border border-transparent transition-all duration-300 bg-white/5">
                             <div class="text-gray-500 cursor-grab text-lg tracking-[0.1em]">⋮⋮</div>
-                            <div class="rank-number text-lg font-bold text-indigo-500 w-4 text-center"></div>
+                            <div class="rank-number text-lg font-bold text-indigo-500 w-4 text-center">3</div>
                             <img src="/assets/Yelp.png" alt="Yelp" class="w-8 h-8 rounded-full object-cover shadow-sm">
                             <span class="font-semibold text-sm">Yelp Reviews</span>
                         </li>
     
                         <li data-id="facebook" class="sortable-item flex items-center p-3 rounded-xl gap-4 border border-transparent transition-all duration-300 bg-white/5">
                             <div class="text-gray-500 cursor-grab text-lg tracking-[0.1em]">⋮⋮</div>
-                            <div class="rank-number text-lg font-bold text-indigo-500 w-4 text-center"></div>
+                            <div class="rank-number text-lg font-bold text-indigo-500 w-4 text-center">4</div>
                             <img src="/assets/facebook.png" alt="Facebook" class="w-8 h-8 rounded-full object-cover shadow-sm">
                             <span class="font-semibold text-sm">Facebook Reviews</span>
                         </li>
@@ -282,7 +282,24 @@
     <script>
         // Inicializar Drag & Drop
         var el = document.getElementById('platformList');
-        var sortable = Sortable.create(el, { animation: 150, ghostClass: 'sortable-ghost' });
+        var sortable = Sortable.create(el, { 
+            animation: 150, 
+            ghostClass: 'sortable-ghost',
+            onEnd: function () {
+                updateRankNumbers(); // Actualiza los números al terminar de arrastrar
+            }
+        });
+
+        // --- 1. AGREGA ESTA FUNCIÓN AQUÍ ---
+        function updateRankNumbers() {
+            const listItems = document.querySelectorAll('#platformList .sortable-item');
+            listItems.forEach((item, index) => {
+                const rankNumber = item.querySelector('.rank-number');
+                if (rankNumber) {
+                    rankNumber.innerText = index + 1;
+                }
+            });
+        }
 
         function validatePlaceId(value) {
             const check = document.getElementById('check_google');
@@ -396,11 +413,14 @@
                     const savedOrder = branch.platform_priority.split(',');
                     const list = document.getElementById('platformList');
                     savedOrder.forEach(id => {
-                        if (id !== 'opentable') { // Ignoramos OpenTable de arrastres anteriores si existiera
+                        if (id !== 'opentable') { 
                             const item = list.querySelector(`[data-id="${id}"]`);
                             if(item) list.appendChild(item);
                         }
                     });
+                    
+                    // --- 3. AGREGA ESTA LÍNEA AQUÍ ---
+                    updateRankNumbers(); 
                 }
 
                 validatePlaceId(placeId);
