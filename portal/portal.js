@@ -208,7 +208,7 @@ const Portal = (() => {
                             </div>
                             
                             <p class="text-[11px] text-gray-400 font-medium flex justify-between">
-                                <span>0%</span>
+                                <span>${usagePercent}%</span>
                                 ${usagePercent >= 90 && !autoTopup ? `<span class="text-red-400 font-bold"><i class="fas fa-exclamation-triangle"></i> Límite próximo. El servicio se pausará.</span>` : `<span>Límite del plan</span>`}
                             </p>
 
