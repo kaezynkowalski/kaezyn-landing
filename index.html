@@ -381,7 +381,7 @@
                     </div>
                 </div>
 
-                <div id="pricing-grid" class="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch max-w-7xl mx-auto">
+                <div id="pricing-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch max-w-7xl mx-auto w-full px-4 relative z-10">
                     </div>
                 
                 <div class="max-w-5xl mx-auto mt-20 bg-gradient-to-br from-white/5 to-transparent border border-white/10 rounded-3xl p-8 md:p-12 relative overflow-hidden">
@@ -842,36 +842,36 @@
           const stripeLink = isYearly ? plan.stripe_yearly : plan.stripe_monthly;
 
           const card = document.createElement('div');
-          card.className = `feature-card p-8 rounded-2xl text-center flex flex-col relative transition-all duration-500 ${plan.popular ? 'border-2 border-yellow-300 scale-105 z-10 bg-[#0b0f2a] shadow-[0_0_40px_rgba(255,215,0,0.15)]' : 'bg-white/5 border border-white/10'}`;
+          card.className = `feature-card p-6 xl:p-8 rounded-2xl text-center flex flex-col relative transition-all duration-500 ${plan.popular ? 'border-2 border-yellow-300 scale-105 z-10 bg-[#0b0f2a] shadow-[0_0_40px_rgba(255,215,0,0.15)]' : 'bg-white/5 border border-white/10'}`;
 
           card.innerHTML = `
-            ${plan.badge ? `<span class="absolute -top-4 left-1/2 -translate-x-1/2 bg-yellow-400 text-[#0b0f2a] text-[11px] font-black px-5 py-1.5 rounded-full uppercase tracking-widest shadow-lg">${plan.badge}</span>` : ''}
-            <h3 class="text-2xl font-bold text-white uppercase tracking-widest mt-2">${plan.name}</h3>
-            <p class="text-sm text-yellow-300 mb-6 font-medium">${plan.tagline}</p>
+            ${plan.badge ? `<span class="absolute -top-4 left-1/2 -translate-x-1/2 bg-yellow-400 text-[#0b0f2a] text-[10px] xl:text-[11px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest shadow-lg whitespace-nowrap">${plan.badge}</span>` : ''}
+            <h3 class="text-xl xl:text-2xl font-bold text-white uppercase tracking-widest mt-2">${plan.name}</h3>
+            <p class="text-xs xl:text-sm text-yellow-300 mb-4 xl:mb-6 font-medium">${plan.tagline}</p>
             
-            <div class="mb-6">
+            <div class="mb-4 xl:mb-6">
                 <div class="flex items-baseline justify-center">
-                    <span class="text-5xl font-extrabold text-white">$${displayPrice.toLocaleString('en-US')}</span>
-                    <span class="text-gray-400 ml-2 text-sm font-medium">/ mes</span>
+                    <span class="text-4xl xl:text-5xl font-extrabold text-white">$${displayPrice.toLocaleString('en-US')}</span>
+                    <span class="text-gray-400 ml-1 xl:ml-2 text-xs xl:text-sm font-medium">/ mes</span>
                 </div>
-                ${isYearly ? `<p class="text-green-400 text-xs font-bold mt-2 bg-green-400/10 inline-block px-3 py-1 rounded-full">Facturado anualmente ($${plan.price_yearly_total.toLocaleString('en-US')} MXN)</p>` : '<p class="mt-2 h-6"></p>'}
+                ${isYearly ? `<p class="text-green-400 text-[10px] xl:text-xs font-bold mt-2 bg-green-400/10 inline-block px-2 xl:px-3 py-1 rounded-full">Facturado anualmente ($${plan.price_yearly_total.toLocaleString('en-US')} MXN)</p>` : '<p class="mt-2 h-6"></p>'}
             </div>
             
-            <div class="text-left mb-6">
-                <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">¿Qué incluye?</p>
-                <ul class="text-gray-300 space-y-3">
-                  ${plan.features.map(f => `<li class="flex items-start text-sm"><i class="fas fa-check text-yellow-400 mt-1 mr-3"></i> <span>${f}</span></li>`).join('')}
+            <div class="text-left mb-4 xl:mb-6">
+                <p class="text-[10px] xl:text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 xl:mb-3">¿Qué incluye?</p>
+                <ul class="text-gray-300 space-y-2 xl:space-y-3">
+                  ${plan.features.map(f => `<li class="flex items-start text-xs xl:text-sm"><i class="fas fa-check text-yellow-400 mt-1 mr-2 xl:mr-3"></i> <span class="leading-tight">${f}</span></li>`).join('')}
                 </ul>
             </div>
 
-            <div class="text-left mb-8 pt-6 border-t border-white/10 flex-grow">
-                <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Resultados esperados:</p>
-                <ul class="text-gray-300 space-y-3">
-                  ${plan.results.map(r => `<li class="flex items-start text-sm"><i class="fas fa-arrow-right text-gray-500 mt-1 mr-3"></i> <span class="font-medium text-white">${r}</span></li>`).join('')}
+            <div class="text-left mb-6 xl:mb-8 pt-4 xl:pt-6 border-t border-white/10 flex-grow">
+                <p class="text-[10px] xl:text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 xl:mb-3">Resultados esperados:</p>
+                <ul class="text-gray-300 space-y-2 xl:space-y-3">
+                  ${plan.results.map(r => `<li class="flex items-start text-xs xl:text-sm"><i class="fas fa-arrow-right text-gray-500 mt-1 mr-2 xl:mr-3"></i> <span class="font-medium text-white leading-tight">${r}</span></li>`).join('')}
                 </ul>
             </div>
             
-            <a href="${stripeLink}" class="${plan.popular ? 'btn-gold' : 'bg-white/10 hover:bg-white/20 text-white'} py-4 px-6 rounded-xl font-bold transition-all text-center mt-auto shadow-lg uppercase tracking-wider text-sm">
+            <a href="${stripeLink}" class="${plan.popular ? 'btn-gold' : 'bg-white/10 hover:bg-white/20 text-white'} py-3 xl:py-4 px-3 xl:px-6 rounded-xl font-bold transition-all text-center mt-auto shadow-lg uppercase tracking-wider text-xs xl:text-sm">
               ${plan.cta}
             </a>
           `;
