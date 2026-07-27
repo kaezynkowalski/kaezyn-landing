@@ -10,7 +10,7 @@
       "badge": "",
       "features": [
         "Ubicaciones ilimitadas (Sujeto a validación física)",
-        "Bolsa única de 50 clientes gestionados de cortesía",
+        "50 clientes gestionados de cortesía",
         "Escudo Inteligente: Filtro de reseñas negativas",
         "K-Score™: Diagnóstico básico de salud de marca",
         "*Nota: Requiere vincular tarjeta para recargas futuras",
@@ -18,7 +18,6 @@
       ],
       "results": [
         "Incrementas tus reseñas públicas",
-        "Proteges tu calificación actual",
         "Evitas reseñas negativas públicas"
       ],
       "stripe_monthly": "https://buy.stripe.com/7sYaEX9prero6Zy3x1abK06",
