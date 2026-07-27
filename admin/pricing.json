@@ -2,6 +2,31 @@
   "setup_fee": "$3,500 MXN",
   "plans": [
     {
+      "name": "Zero",
+      "tagline": "Inicio Reputacional",
+      "price_monthly": 0,
+      "price_yearly_total": 0,
+      "price_yearly_monthly": 0,
+      "badge": "NUEVO",
+      "features": [
+        "Ubicaciones ilimitadas (Sujeto a validación física)",
+        "Bolsa única de 50 clientes gestionados de cortesía",
+        "Escudo Inteligente: Filtro de reseñas negativas",
+        "K-Score™: Diagnóstico básico de salud de marca",
+        "*Nota: Requiere vincular tarjeta para recargas futuras",
+        "*Nota: El plan escala vía auto-recargas mensuales (300 o 1,000 interacciones)"
+      ],
+      "results": [
+        "Incrementas tus reseñas públicas",
+        "Proteges tu calificación actual",
+        "Evitas reseñas negativas públicas"
+      ],
+      "stripe_monthly": "https://buy.stripe.com/7sYaEX9prero6Zy3x1abK06",
+      "stripe_yearly": "https://buy.stripe.com/7sYaEX9prero6Zy3x1abK06",
+      "cta": "Empezar gratis",
+      "popular": false
+    },
+    {
       "name": "Starter",
       "tagline": "Blindaje Reputacional",
       "price_monthly": 4900,
@@ -17,9 +42,9 @@
         "Reporte Mensual de Vigilancia (Vigilancia de métricas)"
       ],
       "results": [
-          "Proteges tu calificación actual",
-          "Evitas reseñas negativas públicas",
-          "Mantienes control básico de tu negocio"
+        "Proteges tu calificación actual",
+        "Evitas reseñas negativas públicas",
+        "Mantienes control básico de tu negocio"
       ],
       "stripe_monthly": "https://buy.stripe.com/cNi14n59bfvs5Vud7BabK00",
       "stripe_yearly": "https://buy.stripe.com/00wfZh7hj4QO97G2sXabK01",
@@ -43,10 +68,10 @@
         "Alertas instantáneas vía WhatsApp"
       ],
       "results": [
-          "Aumentas tu calificación (⭐)",
-          "Generas reseñas positivas en automático",
-          "Detectas qué está afectando tu reputación",
-          "Tomas decisiones basadas en datos reales"
+        "Aumentas tu calificación (⭐)",
+        "Generas reseñas positivas en automático",
+        "Detectas qué está afectando tu reputación",
+        "Tomas decisiones basadas en datos reales"
       ],
       "stripe_monthly": "https://buy.stripe.com/00w8wPgRTab8fw49VpabK02",
       "stripe_yearly": "https://buy.stripe.com/8x23cv4572IG83C2sXabK03",
@@ -70,10 +95,10 @@
         "Account Manager dedicado"
       ],
       "results": [
-          "Estandarizas calidad en toda la cadena",
-          "Detectas problemas antes de que escalen",
-          "Tomas control total de tu negocio",
-          "Optimizas operación y experiencia del cliente"
+        "Estandarizas calidad en toda la cadena",
+        "Detectas problemas antes de que escalen",
+        "Tomas control total de tu negocio",
+        "Optimizas operación y experiencia del cliente"
       ],
       "stripe_monthly": "https://buy.stripe.com/5kQ9AT0SVgzwcjS1oTabK04",
       "stripe_yearly": "https://buy.stripe.com/aFaeVd3139741Fe3x1abK05",
