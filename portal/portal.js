@@ -92,6 +92,7 @@ const Portal = (() => {
         const billing = billingData || {};
         window.currentCustomerId = branches[0].stripe_customer_id;
 
+        const currentPlan = branches[0].plan || "Pro";
         // Cuenta activos reales, asegurando que si llega como string 'true', lo cuente bien
         const activeCount = branches.filter(b => b.activo === true || String(b.activo).toLowerCase() === 'true').length;
         const subStatus = (branches[0].subscription_status || 'active').toLowerCase();
@@ -231,7 +232,7 @@ const Portal = (() => {
                             <div class="${autoTopup ? 'opacity-100' : 'opacity-40 pointer-events-none'} transition-opacity duration-300">
                                 <label class="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-2 block">Paquete de expansión:</label>
                                 <select id="topupAmountSelect" onchange="Portal.updateTopupAmount(this.value)" class="w-full bg-white/5 border border-white/20 text-white text-sm rounded-lg focus:ring-yellow-400 focus:border-yellow-400 block p-2.5 outline-none font-bold">
-                                    <option value="100" class="text-black" ${topupAmount === 100 ? 'selected' : ''}>+100 interacciones ($690)</option>
+                                    ${currentPlan !== 'Zero' ? `<option value="100" class="text-black" ${topupAmount === 100 ? 'selected' : ''}>+100 interacciones ($690)</option>` : ''}
                                     <option value="300" class="text-black" ${topupAmount === 300 ? 'selected' : ''}>+300 interacciones ($1,790)</option>
                                     <option value="1000" class="text-black" ${topupAmount === 1000 ? 'selected' : ''}>+1,000 interacciones ($5,900)</option>
                                 </select>
@@ -923,7 +924,7 @@ const Portal = (() => {
                     contact_name: baseBranch.contact_name || "",
                     billing_address: baseBranch.billing_address || "",
                     monthly_limit: baseBranch.monthly_limit || 200, // Hereda el límite de interacciones actual
-                    topup_amount: baseBranch.topup_amount || 100,
+                    topup_amount: baseBranch.topup_amount || (baseBranch.plan === 'Zero' ? 300 : 100),
                     // Usamos ?? (Nullish coalescing) para que si el valor es estrictamente 'false', lo respete y no ponga 'true' por error
                     auto_topup: baseBranch.auto_topup ?? true, 
                     access_token: baseBranch.access_token || null,
