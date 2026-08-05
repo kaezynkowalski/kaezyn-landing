@@ -194,7 +194,14 @@ const Portal = (() => {
                             <div class="flex justify-between items-end mb-2">
                                 <div>
                                     <h3 class="text-lg font-bold text-white mb-1"><i class="fas fa-chart-pie text-yellow-400 mr-2"></i> Consumo de Interacciones</h3>
-                                    <p class="text-xs text-gray-400">Ciclo actual (se reinicia el 1er día del mes)</p>
+                                    <p class="text-xs text-gray-400">
+                                        ${currentPlan === 'Zero' && monthlyLimit === 50
+                                            ? 'Bolsa de cortesía (Sin caducidad de tiempo)'
+                                            : currentPlan === 'Zero' && monthlyLimit > 50
+                                                ? `Recarga prepago (Vigente hasta el ${expirationDateFormatted})`
+                                                : `Ciclo actual (Se reinicia el ${expirationDateFormatted})`
+                                        }
+                                    </p>
                                 </div>
                                 <div class="text-right">
                                     <span class="text-2xl font-black text-white">${usedInteractions}</span>
