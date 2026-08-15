@@ -103,6 +103,18 @@ const Portal = (() => {
         const renewalDateEl = document.getElementById("renewalDate");
         const dashboardDiv = document.getElementById("dashboard");
         const table = document.getElementById("branchesTableBody");
+        
+        // --- INICIO NUEVA FUNCIONALIDAD PUNTO 1 (Ocultar Botón en UI) ---
+        // Asegúrate de que tu botón en manage.html o dashboard tenga id="createBranchBtn"
+        const createBranchBtn = document.getElementById("createBranchBtn");
+        if (createBranchBtn) {
+            if (currentPlan === 'Zero') {
+                createBranchBtn.style.display = 'none'; // Oculta el botón
+            } else {
+                createBranchBtn.style.display = 'inline-flex'; // O 'block', según tu diseño
+            }
+        }
+        // --- FIN NUEVA FUNCIONALIDAD PUNTO 1 ---
 
         if(planNameEl) planNameEl.innerText = "Plan " + (branches[0].plan || "Pro");
         // Ahora solo mostramos cuántas tienen, sin límites
@@ -155,13 +167,20 @@ const Portal = (() => {
             </div>`;
         }
         
-        
         // ==========================================
         // LÓGICA DE USAGE & AUTO TOP-UP (NIVEL SAAS)
         // ==========================================
         const monthlyLimit = Number(billing.monthly_limit) || 200;
         const usedInteractions = Number(billing.used_interactions) || 0;
-        const autoTopup = billing.auto_topup !== false; 
+        
+        // --- INICIO NUEVA FUNCIONALIDAD PUNTO 2 (Pausar Excedentes en Zero) ---
+        const isPlanZero = (currentPlan === 'Zero');
+        // Forzamos autoTopup a false si es Zero, de lo contrario respetamos la BD
+        const autoTopup = isPlanZero ? false : (billing.auto_topup !== false); 
+        // Atributo para bloquear el checkbox visualmente si es plan Zero
+        const disableToggleAttr = isPlanZero ? 'disabled' : '';
+        // --- FIN NUEVA FUNCIONALIDAD PUNTO 2 ---
+
         const topupAmount = Number(billing.topup_amount) || 100;
         
         const usagePercent = Math.min((usedInteractions / monthlyLimit) * 100, 100);
@@ -227,12 +246,13 @@ const Portal = (() => {
                             <div class="flex justify-between items-center mb-4 border-b border-white/10 pb-3">
                                 <div>
                                     <h4 class="text-sm font-bold text-white uppercase tracking-wider">Auto-Recarga</h4>
-                                    <p class="text-[10px] text-gray-400 mt-0.5 leading-tight">Nunca pierdas una reseña</p>
+                                    <!-- Aquí también cambia el mensaje si es plan Zero -->
+                                    <p class="text-[10px] ${isPlanZero ? 'text-red-400' : 'text-gray-400'} mt-0.5 leading-tight">${isPlanZero ? 'Pausado en Plan Zero' : 'Nunca pierdas una reseña'}</p>
                                 </div>
                                 
-                                <div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
-                                    <input type="checkbox" name="toggle" id="autoTopupToggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 border-[#0b0f2a] appearance-none cursor-pointer z-10" ${autoTopup ? 'checked' : ''} onchange="Portal.toggleAutoTopup(this.checked)"/>
-                                    <label for="autoTopupToggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-600 cursor-pointer"></label>
+                                <div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in ${isPlanZero ? 'opacity-50' : ''}">
+                                    <input type="checkbox" name="toggle" id="autoTopupToggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 border-[#0b0f2a] appearance-none cursor-pointer z-10 ${isPlanZero ? 'cursor-not-allowed' : ''}" ${autoTopup ? 'checked' : ''} ${disableToggleAttr} onchange="Portal.toggleAutoTopup(this.checked)"/>
+                                    <label for="autoTopupToggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-600 ${isPlanZero ? 'cursor-not-allowed' : 'cursor-pointer'}"></label>
                                 </div>
                             </div>
 
@@ -907,6 +927,13 @@ const Portal = (() => {
             if (fetchError) throw fetchError;
             
             const baseBranch = existingBranches && existingBranches.length > 0 ? existingBranches[0] : {};
+
+            // --- INICIO NUEVA FUNCIONALIDAD PUNTO 1 (BLOQUEO PLAN ZERO) ---
+            if (baseBranch.plan === 'Zero') {
+                alert("Tu plan actual (Zero) no permite crear sucursales adicionales. Actualiza tu plan para expandir tu negocio.");
+                return; // Detiene la creación
+            }
+            // --- FIN NUEVA FUNCIONALIDAD ---
 
             // 2. Contamos de forma segura para saber qué número de sucursal toca
             const { count, error: countError } = await supabase
