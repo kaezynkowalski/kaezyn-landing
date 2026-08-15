@@ -217,8 +217,8 @@ const Portal = (() => {
                                         ${currentPlan === 'Zero' && monthlyLimit === 50
                                             ? 'Bolsa de cortesía (Sin caducidad de tiempo)'
                                             : currentPlan === 'Zero' && monthlyLimit > 50
-                                                ? `Recarga prepago (Vigente hasta el ${expirationDateFormatted})`
-                                                : `Ciclo actual (Se reinicia el ${expirationDateFormatted})`
+                                                ? \`Recarga prepago (Vigente hasta el \${expirationDateFormatted})\`
+                                                : \`Ciclo actual (Se reinicia el \${expirationDateFormatted})\`
                                         }
                                     </p>
                                 </div>
@@ -236,7 +236,7 @@ const Portal = (() => {
                             
                             <p class="text-[11px] text-gray-400 font-medium flex justify-between">
                                 <span>${usagePercent.toFixed(2)}%</span>
-                                ${usagePercent >= 90 && !autoTopup ? `<span class="text-red-400 font-bold"><i class="fas fa-exclamation-triangle"></i> Límite próximo. El servicio se pausará.</span>` : `<span>Límite del plan</span>`}
+                                ${usagePercent >= 90 && !autoTopup && currentPlan !== 'Zero' ? `<span class="text-red-400 font-bold"><i class="fas fa-exclamation-triangle"></i> Límite próximo. El servicio se pausará.</span>` : `<span>Límite del plan</span>`}
                             </p>
 
                             ${upsellHtml}
@@ -245,21 +245,28 @@ const Portal = (() => {
                         <div class="bg-[#0b0f2a] border border-white/10 rounded-xl p-5 shadow-inner flex flex-col justify-center h-full">
                             <div class="flex justify-between items-center mb-4 border-b border-white/10 pb-3">
                                 <div>
-                                    <h4 class="text-sm font-bold text-white uppercase tracking-wider">Auto-Recarga</h4>
+                                    <h4 class="text-sm font-bold text-white uppercase tracking-wider flex items-center">
+                                        Auto-Recarga
+                                        ${currentPlan === 'Zero' ? '<span class="text-[8px] bg-yellow-400/20 text-yellow-400 px-2 py-0.5 rounded-full ml-2 normal-case tracking-normal">Requerido</span>' : ''}
+                                    </h4>
                                     <p class="text-[10px] text-gray-400 mt-0.5 leading-tight">Nunca pierdas una reseña</p>
                                 </div>
-        
+                                
                                 <div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
-                                    <input type="checkbox" name="toggle" id="autoTopupToggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 border-[#0b0f2a] appearance-none cursor-pointer z-10" ${autoTopup ? 'checked' : ''} onchange="Portal.toggleAutoTopup(this.checked)"/>
-                                    <label for="autoTopupToggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-600 cursor-pointer"></label>
+                                    <input type="checkbox" name="toggle" id="autoTopupToggle" 
+                                        class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 border-[#0b0f2a] appearance-none z-10 ${currentPlan === 'Zero' ? 'cursor-not-allowed' : 'cursor-pointer'}" 
+                                        ${(autoTopup || currentPlan === 'Zero') ? 'checked' : ''} 
+                                        ${currentPlan === 'Zero' ? 'disabled' : ''} 
+                                        onchange="Portal.toggleAutoTopup(this.checked)"/>
+                                    <label for="autoTopupToggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-600 ${currentPlan === 'Zero' ? 'cursor-not-allowed opacity-80' : 'cursor-pointer'}"></label>
                                 </div>
                             </div>
 
-                            <div class="${autoTopup ? 'opacity-100' : 'opacity-40 pointer-events-none'} transition-opacity duration-300">
+                            <div class="${(autoTopup || currentPlan === 'Zero') ? 'opacity-100' : 'opacity-40 pointer-events-none'} transition-opacity duration-300">
                                 <label class="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-2 block">Paquete de expansión:</label>
                                 <select id="topupAmountSelect" onchange="Portal.updateTopupAmount(this.value)" class="w-full bg-white/5 border border-white/20 text-white text-sm rounded-lg focus:ring-yellow-400 focus:border-yellow-400 block p-2.5 outline-none font-bold">
                                     ${currentPlan !== 'Zero' ? `<option value="100" class="text-black" ${topupAmount === 100 ? 'selected' : ''}>+100 interacciones ($690)</option>` : ''}
-                                    <option value="300" class="text-black" ${topupAmount === 300 ? 'selected' : ''}>+300 interacciones ($1,790)</option>
+                                    <option value="300" class="text-black" ${(topupAmount === 300 || (currentPlan === 'Zero' && topupAmount === 100)) ? 'selected' : ''}>+300 interacciones ($1,790)</option>
                                     <option value="1000" class="text-black" ${topupAmount === 1000 ? 'selected' : ''}>+1,000 interacciones ($5,900)</option>
                                 </select>
                             </div>
