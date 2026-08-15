@@ -246,13 +246,12 @@ const Portal = (() => {
                             <div class="flex justify-between items-center mb-4 border-b border-white/10 pb-3">
                                 <div>
                                     <h4 class="text-sm font-bold text-white uppercase tracking-wider">Auto-Recarga</h4>
-                                    <!-- Aquí también cambia el mensaje si es plan Zero -->
-                                    <p class="text-[10px] ${isPlanZero ? 'text-red-400' : 'text-gray-400'} mt-0.5 leading-tight">${isPlanZero ? 'Pausado en Plan Zero' : 'Nunca pierdas una reseña'}</p>
+                                    <p class="text-[10px] text-gray-400 mt-0.5 leading-tight">Nunca pierdas una reseña</p>
                                 </div>
-                                
-                                <div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in ${isPlanZero ? 'opacity-50' : ''}">
-                                    <input type="checkbox" name="toggle" id="autoTopupToggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 border-[#0b0f2a] appearance-none cursor-pointer z-10 ${isPlanZero ? 'cursor-not-allowed' : ''}" ${autoTopup ? 'checked' : ''} ${disableToggleAttr} onchange="Portal.toggleAutoTopup(this.checked)"/>
-                                    <label for="autoTopupToggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-600 ${isPlanZero ? 'cursor-not-allowed' : 'cursor-pointer'}"></label>
+        
+                                <div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+                                    <input type="checkbox" name="toggle" id="autoTopupToggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 border-[#0b0f2a] appearance-none cursor-pointer z-10" ${autoTopup ? 'checked' : ''} onchange="Portal.toggleAutoTopup(this.checked)"/>
+                                    <label for="autoTopupToggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-600 cursor-pointer"></label>
                                 </div>
                             </div>
 
