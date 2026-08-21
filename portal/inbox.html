@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Inbox | Kaezyn Dashboard</title>
+    
+    <!-- Google Fonts: Poppins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Tailwind CSS con Configuración Kaezyn -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'night-blue': '#0b0f2a',
+                        'violet': '#4d2a7a',
+                        'gold': '#FFD700',
+                        'gold-dark': '#d4af37',
+                        'light-gray': '#EAEAEA',
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        /* Variables y Base Kaezyn */
+        body { background-color: #0b0f2a; color: #EAEAEA; overflow: hidden; }
+        
+        /* Scrollbar Premium */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.02); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 10px; transition: background 0.3s ease; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #FFD700; }
+        
+        /* Degradado tipo nebulosa para áreas destacadas (IA) */
+        .nebula-bg { background: radial-gradient(ellipse at top right, rgba(77, 42, 122, 0.4) 0%, rgba(11, 15, 42, 0) 70%); }
+        
+        /* Botón Oro Kaezyn */
+        .btn-gold {
+            background: linear-gradient(145deg, #FFD700, #d4af37);
+            color: #1a1a1a;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2);
+        }
+        .btn-gold:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4); }
+
+        /* Tarjetas Glassmorphism (Basado en feature-card) */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        .glass-card:hover { background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 215, 0, 0.5); }
+        .glass-card.active { background: rgba(77, 42, 122, 0.2); border-color: #FFD700; }
+
+        /* Animación IA Mágica */
+        .ai-pulse { animation: ai-glow 2s infinite; }
+        @keyframes ai-glow { 0% { box-shadow: 0 0 10px rgba(77,42,122,0.3); } 50% { box-shadow: 0 0 20px rgba(77,42,122,0.6); } 100% { box-shadow: 0 0 10px rgba(77,42,122,0.3); } }
+    </style>
+</head>
+<body class="h-screen flex text-sm">
+
+    <!-- BARRA LATERAL KAEZYN -->
+    <aside class="w-20 md:w-64 border-r border-white/10 flex flex-col justify-between h-full z-10 shrink-0 bg-night-blue">
+        <div class="p-6">
+            <!-- Logo (Reemplaza con tu img si deseas) -->
+            <h1 class="text-2xl font-extrabold text-white hidden md:block mb-10 tracking-widest uppercase">
+                KAEZ<span class="text-gold">YN</span>
+            </h1>
+            <nav class="space-y-3">
+                <a href="dashboard.html" class="flex items-center gap-4 text-gray-400 hover:text-gold transition px-3 py-2.5 rounded-lg"><i class="fas fa-chart-pie w-5"></i> <span class="hidden md:block font-medium">Dashboard</span></a>
+                <!-- Menú Activo con resplandor violeta/dorado -->
+                <a href="#" class="flex items-center gap-4 text-white bg-violet/30 border border-violet/50 px-3 py-2.5 rounded-lg shadow-[0_0_15px_rgba(77,42,122,0.3)]"><i class="fas fa-inbox text-gold w-5"></i> <span class="hidden md:block font-medium">Smart Inbox</span></a>
+                <a href="#" class="flex items-center gap-4 text-gray-400 hover:text-gold transition px-3 py-2.5 rounded-lg"><i class="fas fa-qrcode w-5"></i> <span class="hidden md:block font-medium">Código QR</span></a>
+            </nav>
+        </div>
+    </aside>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="flex-1 flex flex-col h-full bg-night-blue nebula-bg">
+        
+        <!-- Top Bar -->
+        <header class="h-20 border-b border-white/10 flex items-center justify-between px-8 shrink-0">
+            <div>
+                <h2 class="text-2xl font-bold text-white">Gestor de Reputación</h2>
+                <p class="text-gray-400 text-xs mt-1">Responde reseñas públicas e internas en segundos.</p>
+            </div>
+            <button onclick="abrirAutopilotModal()" class="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 px-5 py-2.5 rounded-lg transition font-medium text-white shadow-lg">
+                <i class="fas fa-robot text-gold"></i> Autopilot IA
+            </button>
+        </header>
+
+        <!-- LAYOUT 3 COLUMNAS -->
+        <div class="flex-1 flex overflow-hidden">
+            
+            <!-- Columna 1: Filtros -->
+            <div class="w-56 border-r border-white/10 p-6 shrink-0 overflow-y-auto hidden lg:block">
+                <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-4">Estado de Reseña</h3>
+                <ul class="space-y-2 mb-8">
+                    <li><button class="w-full text-left px-4 py-2.5 bg-white/10 text-white rounded-lg font-medium flex justify-between items-center border border-white/5">Pendientes <span class="bg-gold text-night-blue text-[10px] font-bold px-2 py-0.5 rounded-full">3</span></button></li>
+                    <li><button class="w-full text-left px-4 py-2.5 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition font-medium">Respondidas</button></li>
+                </ul>
+
+                <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-4">Plataforma / Origen</h3>
+                <ul class="space-y-2">
+                    <li><button class="w-full text-left px-4 py-2.5 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition flex items-center gap-3"><i class="fab fa-google text-white text-lg"></i> Google</button></li>
+                    <li><button class="w-full text-left px-4 py-2.5 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition flex items-center gap-3"><i class="fas fa-bolt text-gold text-lg"></i> Directo Kaezyn</button></li>
+                </ul>
+            </div>
+
+            <!-- Columna 2: Feed de Reseñas -->
+            <div class="w-full lg:w-96 border-r border-white/10 flex flex-col shrink-0 bg-black/20">
+                <div class="p-4 border-b border-white/10">
+                    <div class="relative">
+                        <i class="fas fa-search absolute left-4 top-3 text-gray-500"></i>
+                        <input type="text" placeholder="Buscar por cliente o contenido..." class="w-full bg-white/5 border border-white/10 rounded-lg py-2.5 pl-10 pr-4 focus:outline-none focus:border-gold text-white transition placeholder-gray-600">
+                    </div>
+                </div>
+                
+                <!-- Lista Custom Scrollbar -->
+                <div class="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-3">
+                    
+                    <!-- Tarjeta Activa (Seleccionada) - Google -->
+                    <div class="glass-card active p-4 rounded-xl cursor-pointer shadow-lg">
+                        <div class="flex justify-between items-start mb-3">
+                            <div class="flex items-center gap-3">
+                                <div class="bg-white w-7 h-7 rounded-full flex items-center justify-center shrink-0">
+                                    <i class="fab fa-google text-[#4285F4] text-xs"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-white font-semibold">Roberto Sánchez</h4>
+                                    <div class="text-gold text-[10px] tracking-widest mt-0.5">
+                                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="bg-red-500/10 text-red-400 text-[10px] font-bold px-2 py-1 rounded border border-red-500/20 uppercase tracking-wider">Pendiente</span>
+                        </div>
+                        <p class="text-gray-300 text-xs leading-relaxed line-clamp-2">"Excelente ambiente, los tacos al pastor estaban increíbles. Definitivamente el mejor lugar..."</p>
+                        <p class="text-gray-500 text-[10px] mt-3 font-medium">Hace 2 horas</p>
+                    </div>
+
+                    <!-- Tarjeta - Directo Kaezyn -->
+                    <div class="glass-card p-4 rounded-xl cursor-pointer">
+                        <div class="flex justify-between items-start mb-3">
+                            <div class="flex items-center gap-3">
+                                <div class="bg-violet/40 w-7 h-7 rounded-full flex items-center justify-center shrink-0 border border-violet">
+                                    <i class="fas fa-bolt text-gold text-xs"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-white font-semibold">Ana Laura</h4>
+                                    <div class="text-gold text-[10px] tracking-widest mt-0.5">
+                                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star text-gray-600"></i><i class="fas fa-star text-gray-600"></i><i class="fas fa-star text-gray-600"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="bg-red-500/10 text-red-400 text-[10px] font-bold px-2 py-1 rounded border border-red-500/20 uppercase tracking-wider">Pendiente</span>
+                        </div>
+                        <p class="text-gray-300 text-xs leading-relaxed line-clamp-2">"El mesero tardó 40 minutos en traernos la cuenta. Pésimo servicio hoy, no creo volver."</p>
+                        <p class="text-gray-500 text-[10px] mt-3 font-medium"><i class="fas fa-lock text-[9px] mr-1"></i> Feedback Interno - Hace 5 horas</p>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Columna 3: Detalles y Panel IA -->
+            <div class="flex-1 flex flex-col relative">
+                
+                <!-- Cabecera de la reseña seleccionada -->
+                <div class="p-8 border-b border-white/10 shrink-0 bg-white/5">
+                    <div class="flex items-center gap-5 mb-6">
+                        <div class="bg-white w-14 h-14 rounded-full flex items-center justify-center shadow-xl">
+                            <i class="fab fa-google text-[#4285F4] text-2xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-white mb-1">Roberto Sánchez</h2>
+                            <div class="flex items-center gap-3">
+                                <div class="text-gold text-sm tracking-widest"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+                                <span class="text-gray-400 text-xs font-medium px-2 py-1 bg-white/5 rounded border border-white/10">Vía Google Maps</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-night-blue border border-white/10 p-5 rounded-xl shadow-inner relative">
+                        <i class="fas fa-quote-left absolute top-4 left-4 text-white/5 text-4xl"></i>
+                        <p class="text-gray-200 text-sm leading-relaxed relative z-10 pl-6">"Excelente ambiente, los tacos al pastor estaban increíbles. Definitivamente el mejor lugar de la zona. 100% recomendado para ir en familia los fines de semana."</p>
+                    </div>
+                </div>
+
+                <!-- Panel de Respuesta IA -->
+                <div class="p-8 flex-1 flex flex-col justify-end">
+                    
+                    <div class="flex justify-between items-end mb-4">
+                        <h3 class="text-xs font-bold text-gold uppercase tracking-widest"><i class="fas fa-wand-magic-sparkles mr-2"></i> Asistente Kaezyn IA</h3>
+                        <span class="text-[10px] text-gray-500 font-medium">Modo: Google API Connect</span>
+                    </div>
+                    
+                    <!-- Botones de Tono IA -->
+                    <div class="flex gap-4 mb-4">
+                        <button onclick="generarIA('agradecido')" class="flex-1 bg-violet hover:bg-[#5b3291] text-white font-medium py-3 px-4 rounded-xl transition shadow-lg ai-pulse flex justify-center items-center gap-2 border border-[#6b3cb0]">
+                            Tono Agradecido
+                        </button>
+                        <button onclick="generarIA('conciliador')" class="flex-1 bg-white/5 hover:bg-white/10 border border-white/10 text-white font-medium py-3 px-4 rounded-xl transition flex justify-center items-center gap-2">
+                            Tono Conciliador
+                        </button>
+                    </div>
+
+                    <!-- Caja de Edición de Respuesta -->
+                    <div class="relative flex flex-col h-48">
+                        <textarea id="replyBox" class="flex-1 w-full bg-night-blue border border-white/20 rounded-xl p-5 text-white resize-none focus:outline-none focus:border-gold transition custom-scrollbar" placeholder="La respuesta generada por IA aparecerá aquí... Puedes editarla antes de publicar."></textarea>
+                        
+                        <div class="absolute bottom-4 right-4 flex gap-3">
+                            <button class="text-gray-400 hover:text-white px-3 py-2 transition"><i class="fas fa-keyboard"></i> Manual</button>
+                            <!-- El botón usa el estilo btn-gold nativo de tu Landing -->
+                            <button class="btn-gold px-6 py-2.5 flex items-center gap-2 text-sm">
+                                <i class="fas fa-paper-plane"></i> Publicar en Google
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- MODAL AUTOPILOT -->
+    <div id="autopilotModal" class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 hidden backdrop-blur-md">
+        <div class="bg-night-blue border border-violet w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col relative">
+            <!-- Nebulosa en el modal -->
+            <div class="absolute top-0 left-0 w-full h-full nebula-bg opacity-50 pointer-events-none"></div>
+            
+            <div class="p-6 flex justify-between items-center border-b border-white/10 relative z-10">
+                <div>
+                    <h2 class="text-xl font-bold text-white flex items-center gap-3"><i class="fas fa-robot text-gold"></i> Autopilot Kaezyn</h2>
+                    <p class="text-gray-400 text-xs mt-1 font-medium">Automatiza respuestas según las estrellas y el origen.</p>
+                </div>
+                <!-- Toggle -->
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" value="" class="sr-only peer" checked>
+                    <div class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-night-blue after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gold"></div>
+                </label>
+            </div>
+            
+            <div class="p-6 space-y-4 relative z-10">
+                <!-- Regla 1 -->
+                <div class="glass-card p-5 rounded-xl flex flex-col gap-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-bold text-white">Regla #1: Reseñas Perfectas</span>
+                        <button class="text-gray-500 hover:text-red-400 transition"><i class="fas fa-trash"></i></button>
+                    </div>
+                    <div class="text-xs text-gray-300 flex items-center gap-2 flex-wrap font-medium">
+                        <span class="text-gold">SI</span> calificación es <span class="bg-white/10 px-2 py-1 rounded text-white border border-white/5">5 Estrellas</span>
+                        <span class="text-gold">Y</span> el texto está <span class="bg-white/10 px-2 py-1 rounded text-white border border-white/5">Vacío</span>
+                        <span class="text-gold w-full mt-2">ENTONCES</span>
+                        <span class="bg-violet/30 border border-violet px-3 py-1.5 rounded text-white"><i class="fas fa-wand-magic-sparkles text-[10px] mr-1"></i> Generar agradecimiento y auto-publicar</span>
+                    </div>
+                </div>
+
+                <button class="w-full py-4 border border-dashed border-white/20 text-gray-400 rounded-xl hover:bg-white/5 hover:text-white hover:border-gold transition flex items-center justify-center gap-2 text-sm font-medium">
+                    <i class="fas fa-plus"></i> Añadir Nueva Condición
+                </button>
+            </div>
+            
+            <div class="p-5 bg-black/40 flex justify-end gap-4 border-t border-white/10 relative z-10">
+                <button onclick="cerrarAutopilotModal()" class="px-5 py-2.5 text-gray-400 hover:text-white transition font-medium">Cancelar</button>
+                <button onclick="cerrarAutopilotModal()" class="btn-gold px-6 py-2.5 text-sm">Guardar Configuración</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function generarIA(tono) {
+            const textarea = document.getElementById('replyBox');
+            textarea.value = "Kaezyn IA está analizando la reseña y el contexto del restaurante...";
+            textarea.classList.add('animate-pulse', 'border-violet');
+            
+            setTimeout(() => {
+                textarea.classList.remove('animate-pulse', 'border-violet');
+                textarea.classList.add('border-gold'); // Éxito visual
+                
+                if(tono === 'agradecido') {
+                    textarea.value = "¡Hola Roberto! Muchísimas gracias por tus 5 estrellas y tus amables palabras. Nos llena de orgullo saber que disfrutaste del ambiente y consideras nuestros tacos al pastor los mejores de la zona. ¡Será un placer recibir a toda la familia nuevamente este fin de semana!";
+                } else {
+                    textarea.value = "Hola Roberto, agradecemos mucho el tiempo que tomaste para dejarnos tu reseña. Nos alegra que el ambiente haya sido de tu agrado, aunque nos encantaría saber cómo podemos lograr que tu próxima experiencia sea de 5 estrellas. ¡Te esperamos pronto!";
+                }
+                
+                // Quitar el borde dorado después de un momento
+                setTimeout(() => { textarea.classList.remove('border-gold'); }, 1500);
+            }, 1200);
+        }
+
+        function abrirAutopilotModal() { document.getElementById('autopilotModal').classList.remove('hidden'); }
+        function cerrarAutopilotModal() { document.getElementById('autopilotModal').classList.add('hidden'); }
+    </script>
+</body>
+</html>
