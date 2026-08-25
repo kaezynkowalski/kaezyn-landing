@@ -986,6 +986,43 @@ const Portal = (() => {
         }
     }
 
+    // --- Nueva funcionalidad inbox--- //
+
+    connectGoogle: function() {
+        // Tu Client ID público (este sí es seguro ponerlo en el frontend)
+        const clientId = '606647143241-ja520egb5vrt56m9rnrg0uo73451v4df.apps.googleusercontent.com';
+        
+        // Hacia dónde devuelve Google al usuario tras aceptar los permisos.
+        // Debe coincidir EXACTAMENTE con los "Orígenes de redireccionamiento autorizados" 
+        // que pusiste en tu consola de Google Cloud (ej. https://tudominio.com/inbox.html)
+        const redirectUri = window.location.origin + '/inbox.html'; 
+        
+        // El scope que nos permite leer y contestar reseñas
+        const scope = 'https://www.googleapis.com/auth/business.manage profile email';
+        
+        // Pedimos un 'code' para que el backend lo intercambie por el Access y Refresh Token
+        const responseType = 'code';
+
+        // access_type=offline fuerza que nos den el Refresh Token
+        // prompt=consent obliga a que salga la pantalla de aceptar permisos (garantiza el refresh token)
+        const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` + 
+            `client_id=${clientId}` +
+            `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+            `&response_type=${responseType}` +
+            `&scope=${encodeURIComponent(scope)}` +
+            `&access_type=offline` +
+            `&prompt=consent`;
+
+        // Opcional: Podrías guardar el ID del negocio actual en localStorage 
+        // por si lo necesitas al regresar de Google.
+        // localStorage.setItem('kaezyn_syncing_business_id', this.currentBusinessId);
+
+        // Redirigimos al usuario a la pantalla de Google
+        window.location.href = authUrl;
+    },
+
+    // ------------------------Fin-inbox-------------------------------- //
+
     
     return {
         login, 
