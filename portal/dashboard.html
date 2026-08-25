@@ -81,10 +81,17 @@ body {
 
     <div class="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
         <img src="/assets/KAEZYN LOGO.png" class="h-10">
-        <div class="text-center sm:text-right">
+        <div class="text-center sm:text-right flex flex-col sm:items-end">
             <p id="planName" class="font-bold text-yellow-300 tracking-wider uppercase text-sm"></p>
             <p id="renewalDate" class="text-xs text-gray-400 mt-1"></p>
-            <button onclick="Portal.logout()" class="text-xs text-gray-500 mt-2 hover:text-white transition uppercase tracking-widest"><i class="fas fa-sign-out-alt mr-1"></i> Cerrar sesión</button>
+            <div class="flex justify-center sm:justify-end gap-4 mt-3">
+                <button onclick="Portal.connectGoogle()" class="text-xs bg-white/5 hover:bg-white/10 text-white px-3 py-1.5 rounded-lg border border-white/10 transition-all flex items-center shadow-sm">
+                    <i class="fab fa-google text-[#FFD700] mr-2"></i> Vincular Google
+                </button>
+                <button onclick="Portal.logout()" class="text-xs text-gray-500 hover:text-white transition uppercase tracking-widest flex items-center">
+                    <i class="fas fa-sign-out-alt mr-1"></i> Cerrar sesión
+                </button>
+            </div>
         </div>
     </div>
 
