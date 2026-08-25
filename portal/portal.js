@@ -922,7 +922,7 @@ const Portal = (() => {
                 .select("*")
                 .eq("user_id", user.id)
                 .limit(1);
-
+    
             if (fetchError) throw fetchError;
             
             const baseBranch = existingBranches && existingBranches.length > 0 ? existingBranches[0] : {};
@@ -986,25 +986,17 @@ const Portal = (() => {
         }
     }
 
-    // --- Nueva funcionalidad inbox--- //
-
-    connectGoogle: function() {
-        // Tu Client ID público (este sí es seguro ponerlo en el frontend)
+    /* ================= SMART INBOX ================= */
+    
+    function connectGoogle() {
         const clientId = '606647143241-ja520egb5vrt56m9rnrg0uo73451v4df.apps.googleusercontent.com';
         
-        // Hacia dónde devuelve Google al usuario tras aceptar los permisos.
-        // Debe coincidir EXACTAMENTE con los "Orígenes de redireccionamiento autorizados" 
-        // que pusiste en tu consola de Google Cloud (ej. https://tudominio.com/inbox.html)
+        // window.location.origin detecta automáticamente si estás en localhost o en tu dominio real
         const redirectUri = window.location.origin + '/inbox.html'; 
         
-        // El scope que nos permite leer y contestar reseñas
         const scope = 'https://www.googleapis.com/auth/business.manage profile email';
-        
-        // Pedimos un 'code' para que el backend lo intercambie por el Access y Refresh Token
         const responseType = 'code';
 
-        // access_type=offline fuerza que nos den el Refresh Token
-        // prompt=consent obliga a que salga la pantalla de aceptar permisos (garantiza el refresh token)
         const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` + 
             `client_id=${clientId}` +
             `&redirect_uri=${encodeURIComponent(redirectUri)}` +
@@ -1013,16 +1005,28 @@ const Portal = (() => {
             `&access_type=offline` +
             `&prompt=consent`;
 
-        // Opcional: Podrías guardar el ID del negocio actual en localStorage 
-        // por si lo necesitas al regresar de Google.
-        // localStorage.setItem('kaezyn_syncing_business_id', this.currentBusinessId);
-
-        // Redirigimos al usuario a la pantalla de Google
         window.location.href = authUrl;
-    },
+    }
 
-    // ------------------------Fin-inbox-------------------------------- //
+    async function loadInbox() {
+        // Verificamos que esté logueado
+        const user = await requireAuth();
+        if (!user) return;
 
+        // Aquí es donde próximamente atraparemos el "?code=" de la URL 
+        // cuando Google nos regrese a esta página.
+        console.log("Smart Inbox iniciado. Usuario autenticado:", user.email);
+        
+        // Quitamos el icono de carga por ahora
+        const inboxList = document.getElementById('inboxList');
+        if (inboxList) {
+            inboxList.innerHTML = `
+                <div class="text-center text-gray-500 py-10 text-sm">
+                    <p>Bandeja lista. Conecta tu cuenta de Google para ver las reseñas.</p>
+                </div>
+            `;
+        }
+    }
     
     return {
         login, 
@@ -1037,7 +1041,9 @@ const Portal = (() => {
         updateBranch,
         toggleAutoTopup,
         updateTopupAmount,
-        createNewBranch
+        createNewBranch,
+        connectGoogle,
+        loadInbox
     };
 
 })();
