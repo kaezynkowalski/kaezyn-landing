@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Inbox | Kaezyn Dashboard</title>
+    <title>Smart Inbox | Kaezyn</title>
+    
+    <link rel="icon" type="image/png" href="/assets/favicon.png">
+    <link rel="apple-touch-icon" href="/assets/favicon.png">
     
     <!-- Google Fonts: Poppins -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,7 +16,7 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
-    <!-- Tailwind CSS con Configuración Kaezyn -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -35,19 +38,15 @@
     </script>
     
     <style>
-        /* Variables y Base Kaezyn */
         body { background-color: #0b0f2a; color: #EAEAEA; overflow: hidden; }
         
-        /* Scrollbar Premium */
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.02); }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 10px; transition: background 0.3s ease; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #FFD700; }
         
-        /* Degradado tipo nebulosa para áreas destacadas (IA) */
         .nebula-bg { background: radial-gradient(ellipse at top right, rgba(77, 42, 122, 0.4) 0%, rgba(11, 15, 42, 0) 70%); }
         
-        /* Botón Oro Kaezyn */
         .btn-gold {
             background: linear-gradient(145deg, #FFD700, #d4af37);
             color: #1a1a1a;
@@ -58,7 +57,6 @@
         }
         .btn-gold:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4); }
 
-        /* Tarjetas Glassmorphism (Basado en feature-card) */
         .glass-card {
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(255, 255, 255, 0.08);
@@ -67,10 +65,6 @@
         }
         .glass-card:hover { background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 215, 0, 0.5); }
         .glass-card.active { background: rgba(77, 42, 122, 0.2); border-color: #FFD700; }
-
-        /* Animación IA Mágica */
-        .ai-pulse { animation: ai-glow 2s infinite; }
-        @keyframes ai-glow { 0% { box-shadow: 0 0 10px rgba(77,42,122,0.3); } 50% { box-shadow: 0 0 20px rgba(77,42,122,0.6); } 100% { box-shadow: 0 0 10px rgba(77,42,122,0.3); } }
     </style>
 </head>
 <body class="h-screen flex text-sm">
@@ -78,15 +72,21 @@
     <!-- BARRA LATERAL KAEZYN -->
     <aside class="w-20 md:w-64 border-r border-white/10 flex flex-col justify-between h-full z-10 shrink-0 bg-night-blue">
         <div class="p-6">
-            <h1 class="text-2xl font-extrabold text-white hidden md:block mb-10 tracking-widest uppercase">
-                KAEZ<span class="text-gold">YN</span>
-            </h1>
+            <!-- LOGO OFICIAL -->
+            <div class="mb-10">
+                <img src="/assets/KAEZYN LOGO.png" class="h-9 hidden md:block" alt="Kaezyn Logo">
+                <img src="/assets/favicon.png" class="h-8 md:hidden" alt="Kaezyn Icon">
+            </div>
+            
             <nav class="space-y-3">
                 <a href="dashboard.html" class="flex items-center gap-4 text-gray-400 hover:text-gold transition px-3 py-2.5 rounded-lg"><i class="fas fa-chart-pie w-5"></i> <span class="hidden md:block font-medium">Dashboard</span></a>
-                <!-- Menú Activo con resplandor violeta/dorado -->
                 <a href="inbox.html" class="flex items-center gap-4 text-white bg-violet/30 border border-violet/50 px-3 py-2.5 rounded-lg shadow-[0_0_15px_rgba(77,42,122,0.3)]"><i class="fas fa-inbox text-gold w-5"></i> <span class="hidden md:block font-medium">Smart Inbox</span></a>
-                <a href="#" class="flex items-center gap-4 text-gray-400 hover:text-gold transition px-3 py-2.5 rounded-lg"><i class="fas fa-qrcode w-5"></i> <span class="hidden md:block font-medium">Código QR</span></a>
             </nav>
+        </div>
+        <div class="p-6 border-t border-white/10">
+            <button onclick="Portal.logout()" class="flex items-center gap-4 text-gray-400 hover:text-white transition w-full">
+                <i class="fas fa-sign-out-alt w-5"></i> <span class="hidden md:block font-medium">Cerrar sesión</span>
+            </button>
         </div>
     </aside>
 
@@ -136,7 +136,6 @@
                     </div>
                 </div>
                 
-                <!-- Lista Custom Scrollbar (CONTENEDOR DINÁMICO) -->
                 <div class="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-3" id="inboxList">
                     <div class="text-center text-gray-500 py-10 text-sm">
                         <i class="fas fa-circle-notch fa-spin text-2xl mb-3 text-gold"></i>
@@ -145,7 +144,7 @@
                 </div>
             </div>
 
-            <!-- Columna 3: Detalles y Panel IA (CONTENEDOR DINÁMICO) -->
+            <!-- Columna 3: Detalles y Panel IA -->
             <div class="flex-1 flex flex-col relative bg-white/5" id="inboxDetail">
                 <div class="flex-1 flex flex-col justify-center items-center text-gray-500">
                     <i class="far fa-comments text-5xl mb-4 opacity-50"></i>
@@ -157,7 +156,7 @@
         </div>
     </main>
 
-    <!-- MODAL AUTOPILOT (Se mantiene igual tu estructura) -->
+    <!-- MODAL AUTOPILOT -->
     <div id="autopilotModal" class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 hidden backdrop-blur-md">
         <div class="bg-night-blue border border-violet w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col relative">
             <div class="absolute top-0 left-0 w-full h-full nebula-bg opacity-50 pointer-events-none"></div>
@@ -174,7 +173,6 @@
             </div>
             
             <div class="p-6 space-y-4 relative z-10">
-                <!-- Regla 1 de prueba -->
                 <div class="glass-card p-5 rounded-xl flex flex-col gap-3">
                     <div class="flex items-center justify-between">
                         <span class="text-sm font-bold text-white">Regla #1: Reseñas Perfectas</span>
@@ -206,7 +204,6 @@
         function abrirAutopilotModal() { document.getElementById('autopilotModal').classList.remove('hidden'); }
         function cerrarAutopilotModal() { document.getElementById('autopilotModal').classList.add('hidden'); }
 
-        // Inicializamos la lógica real del Inbox
         document.addEventListener('DOMContentLoaded', () => {
             if(typeof Portal !== 'undefined' && typeof Portal.loadInbox === 'function') {
                 Portal.loadInbox();
