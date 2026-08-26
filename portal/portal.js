@@ -1013,11 +1013,31 @@ const Portal = (() => {
         const user = await requireAuth();
         if (!user) return;
 
-        // Aquí es donde próximamente atraparemos el "?code=" de la URL 
-        // cuando Google nos regrese a esta página.
         console.log("Smart Inbox iniciado. Usuario autenticado:", user.email);
+
+        // 1. Obtenemos las sucursales para poder leer el Plan y el total activas
+        const { data: branches, error } = await supabase
+            .from("businesses")
+            .select("*")
+            .eq("user_id", user.id)
+            .order("branch_number", { ascending: true });
+
+        if (error) {
+            console.error("Error al cargar datos del plan en Inbox:", error);
+        } else if (branches && branches.length > 0) {
+            // Extraemos qué plan es y cuántas están activas
+            const currentPlan = branches[0].plan || "Pro";
+            const activeCount = branches.filter(b => b.activo === true || String(b.activo).toLowerCase() === 'true').length;
+
+            // Inyectamos los textos en el HTML de inbox.html
+            const planNameEl = document.getElementById("planName");
+            const renewalDateEl = document.getElementById("renewalDate");
+
+            if (planNameEl) planNameEl.innerText = "Plan " + currentPlan;
+            if (renewalDateEl) renewalDateEl.innerText = `${activeCount} sucursales activas`;
+        }
         
-        // Quitamos el icono de carga por ahora
+        // 2. Quitamos el icono de carga e indicamos que conecte Google
         const inboxList = document.getElementById('inboxList');
         if (inboxList) {
             inboxList.innerHTML = `
