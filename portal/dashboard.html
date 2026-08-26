@@ -9,6 +9,26 @@
 <link rel="apple-touch-icon" href="/assets/favicon.png">
 
 <script src="https://cdn.tailwindcss.com"></script>
+<!-- CONFIGURACIÓN DE COLORES TAILWIND (Indispensable para reconocer 'violet' y 'gold') -->
+<script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                colors: {
+                    'night-blue': '#0b0f2a',
+                    'violet': '#4d2a7a',
+                    'gold': '#FFD700',
+                    'gold-dark': '#d4af37',
+                    'light-gray': '#EAEAEA',
+                },
+                fontFamily: {
+                    sans: ['Poppins', 'sans-serif'],
+                }
+            }
+        }
+    }
+</script>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <!-- Agregamos Chart.js para la gráfica de evolución -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -77,15 +97,13 @@ body {
 
 <body class="min-h-screen pb-12">
 
-<div class="container mx-auto px-6 py-10 max-w-6xl">
-
-    <!-- HEADER SUPERIOR CON NAVEGACIÓN -->
-    <div class="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4 pb-6 border-b border-white/10">
+    <!-- HEADER SUPERIOR FULL-WIDTH (Identico en posicion y sangría a inbox.html) -->
+    <div class="px-8 py-5 border-b border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 shrink-0 bg-night-blue/80 backdrop-blur-md z-20 mb-8">
         <div class="flex items-center gap-6">
             <img src="/assets/KAEZYN LOGO.png" class="h-10" alt="Kaezyn Logo">
             <!-- NAVEGACIÓN ENTRE SECCIONES -->
             <nav class="flex items-center gap-2 bg-white/5 p-1 rounded-xl border border-white/10">
-                <!-- DASHBOARD (ACTIVO) -->
+                <!-- DASHBOARD (ACTIVO CON FONDO MORADO Y ICONO DORADO) -->
                 <a href="dashboard.html" class="px-4 py-1.5 rounded-lg text-xs font-semibold bg-violet/40 text-white border border-violet/60 flex items-center gap-2 shadow-sm">
                     <i class="fas fa-chart-pie text-gold"></i> Dashboard
                 </a>
@@ -107,30 +125,33 @@ body {
         </div>
     </div>
 
-    <!-- Mantiene estética de Consumo y Autorecarga original -->
-    <div id="usageWidgetContainer" class="mb-8"></div>
+    <!-- CONTENEDOR DEL CONTENIDO PRINCIPAL -->
+    <div class="container mx-auto px-6 max-w-6xl">
 
-    <!-- Mantiene estética de K-Score Global original -->
-    <div id="kscoreWidgetContainer" class="mb-10"></div>
+        <!-- Mantiene estética de Consumo y Autorecarga original -->
+        <div id="usageWidgetContainer" class="mb-8"></div>
 
-    <!-- NUEVO: Contenedor Híbrido para Analítica (Pulso, Gráfica y Comentarios) -->
-    <div id="analyticsWidgetContainer" class="mb-12"></div>
+        <!-- Mantiene estética de K-Score Global original -->
+        <div id="kscoreWidgetContainer" class="mb-10"></div>
 
-    <div class="flex justify-between items-center mb-6">
-        <h2 class="text-xl sm:text-2xl font-bold text-white tracking-wide">Gestión de Sucursales</h2>
-        <button id="createBranchBtn" onclick="Portal.createNewBranch()" class="btn-gold flex items-center gap-2 text-sm shadow-lg">
-            <i class="fas fa-plus"></i> Añadir Sucursal
-        </button>
+        <!-- NUEVO: Contenedor Híbrido para Analítica (Pulso, Gráfica y Comentarios) -->
+        <div id="analyticsWidgetContainer" class="mb-12"></div>
+
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl sm:text-2xl font-bold text-white tracking-wide">Gestión de Sucursales</h2>
+            <button id="createBranchBtn" onclick="Portal.createNewBranch()" class="btn-gold flex items-center gap-2 text-sm shadow-lg">
+                <i class="fas fa-plus"></i> Añadir Sucursal
+            </button>
+        </div>
+
+        <div id="dashboard"></div>
+
+        <div class="mt-10 flex justify-center sm:justify-start">
+            <button id="btnStripe" class="bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-xl font-bold transition-all border border-white/10 shadow-lg text-sm uppercase tracking-wider w-full sm:w-auto" onclick="Portal.openStripePortal(window.currentCustomerId)">
+                <i class="fas fa-credit-card mr-2"></i> Administrar Facturación
+            </button>
+        </div>
     </div>
-
-    <div id="dashboard"></div>
-
-    <div class="mt-10 flex justify-center sm:justify-start">
-        <button id="btnStripe" class="bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-xl font-bold transition-all border border-white/10 shadow-lg text-sm uppercase tracking-wider w-full sm:w-auto" onclick="Portal.openStripePortal(window.currentCustomerId)">
-            <i class="fas fa-credit-card mr-2"></i> Administrar Facturación
-        </button>
-    </div>
-</div>
 
 <script src="portal.js"></script>
 <script>
