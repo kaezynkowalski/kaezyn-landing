@@ -38,9 +38,16 @@ const Portal = (() => {
     /* ================= DASHBOARD ================= */
 
     async function loadDashboard() {
-        const user = await requireAuth();
-        if (!user) return;
-
+        // 1. Obtenemos la SESIÓN completa (que contiene el token y el user)
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError || !session) {
+            window.location.href = '/index.html'; // Si no hay sesión, al login
+            return;
+        }
+        
+        const user = session.user; // Extraemos el user de la sesión
+    
         // 0. INTERCEPTOR PARA USUARIOS MASTER / ADMIN
         if (user.email === 'admin@kaezyn.com') {
             renderSalesIntelligence(session);
