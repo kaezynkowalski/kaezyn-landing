@@ -41,6 +41,12 @@ const Portal = (() => {
         const user = await requireAuth();
         if (!user) return;
 
+        // 0. INTERCEPTOR PARA USUARIOS MASTER / ADMIN
+        if (user.email === 'admin@kaezyn.com') {
+            renderSalesIntelligence(session);
+            return;
+        }
+
         // 1. Obtenemos los datos de facturación de la nueva Vista
         const { data: billingData, error: billingError } = await supabase
             .from("billing_metrics")
@@ -984,6 +990,129 @@ const Portal = (() => {
             console.error("Detalle completo del error en Supabase:", error);
             alert("Error al crear sucursal. Revisa la consola para más detalles.");
         }
+    }
+
+    /* ================= SALES INTELLIGENCE (MASTER UI) ================= */
+
+    function renderSalesIntelligence(session) {
+        document.body.innerHTML = `
+            <div style="max-width: 800px; margin: 40px auto; padding: 24px; font-family: system-ui, -apple-system, sans-serif; color: #111;">
+                <div style="margin-bottom: 24px;">
+                    <span style="background: #fee2e2; color: #b91c1c; padding: 4px 12px; border-radius: 9999px; font-size: 12px; font-weight: 700;">Uso Exclusivo Master</span>
+                    <h1 style="font-size: 30px; font-weight: 800; margin: 12px 0 4px 0;">Kaezyn Sales Intelligence™</h1>
+                    <p style="color: #6b7280; margin: 0; font-size: 15px;">Descubre la vulnerabilidad oculta del prospecto antes de hacer la primera llamada.</p>
+                </div>
+
+                <form id="intel-form" style="background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+                        <div>
+                            <label style="display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; color: #374151;">Nombre del Negocio</label>
+                            <input type="text" id="business_name" placeholder="Ej. Restaurante El Cardenal" required style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; box-sizing: border-box; outline: none;" />
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; color: #374151;">Ciudad / Ubicación</label>
+                            <input type="text" id="city" placeholder="Ej. CDMX" style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; box-sizing: border-box; outline: none;" />
+                        </div>
+                    </div>
+                    <button type="submit" id="btn-analyze" style="width: 100%; background: #000000; color: #ffffff; padding: 12px; border: none; border-radius: 8px; font-weight: 600; font-size: 15px; cursor: pointer; transition: background 0.2s;">
+                        ANALIZAR NEGOCIO
+                    </button>
+                </form>
+
+                <div id="intel-status" style="display: none; margin-top: 20px; padding: 20px; background: #f9fafb; border: 1px dashed #d1d5db; border-radius: 12px; text-align: center;">
+                    <p id="status-text" style="font-weight: 600; margin: 0; color: #374151; font-size: 14px;"></p>
+                    <p style="font-size: 12px; color: #6b7280; margin-top: 6px;">Make está procesando la información. No cierres esta ventana.</p>
+                </div>
+
+                <div id="intel-result"></div>
+            </div>
+        `;
+
+        document.getElementById('intel-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const businessName = document.getElementById('business_name').value;
+            const city = document.getElementById('city').value;
+            const btn = document.getElementById('btn-analyze');
+            const statusDiv = document.getElementById('intel-status');
+            const statusText = document.getElementById('status-text');
+
+            btn.disabled = true;
+            btn.style.opacity = '0.5';
+            btn.innerText = 'Generando Radiografía...';
+            statusDiv.style.display = 'block';
+            statusText.innerText = 'Iniciando auditoría inteligente...';
+
+            try {
+                const res = await fetch(`${SUPABASE_URL}/functions/v1/analyze-prospect`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${session.access_token}`
+                    },
+                    body: JSON.stringify({ business_name: businessName, city: city })
+                });
+
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Error al iniciar análisis');
+
+                statusText.innerText = 'Scrapeando reseñas y analizando patrones con IA (aprox 30 seg)...';
+
+                // Escuchar cambios en tiempo real
+                const channel = supabase
+                    .channel('prospect-' + data.prospect_id)
+                    .on('postgres_changes', {
+                        event: 'UPDATE',
+                        schema: 'public',
+                        table: 'sales_prospects',
+                        filter: 'id=eq.' + data.prospect_id
+                    }, (payload) => {
+                        if (payload.new.status === 'completed') {
+                            renderDiagnosis(payload.new);
+                            btn.disabled = false;
+                            btn.style.opacity = '1';
+                            btn.innerText = 'ANALIZAR NEGOCIO';
+                            statusDiv.style.display = 'none';
+                            supabase.removeChannel(channel);
+                        }
+                    })
+                    .subscribe();
+
+            } catch (err) {
+                alert('Error: ' + err.message);
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                btn.innerText = 'ANALIZAR NEGOCIO';
+                statusDiv.style.display = 'none';
+            }
+        });
+    }
+
+    function renderDiagnosis(prospect) {
+        const diag = prospect.diagnosis || {};
+        const resultDiv = document.getElementById('intel-result');
+        resultDiv.innerHTML = `
+            <div style="background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 24px; margin-top: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f3f4f6; padding-bottom: 16px;">
+                    <div>
+                        <h2 style="margin: 0; font-size: 22px; font-weight: 800; color: #111827;">${prospect.business_name}</h2>
+                        <p style="margin: 4px 0 0 0; color: #6b7280; font-size: 14px;">${prospect.city || ''}</p>
+                    </div>
+                    <span style="background: #fee2e2; color: #991b1b; padding: 6px 12px; border-radius: 8px; font-weight: 700; font-size: 13px;">
+                        Riesgo Operativo: ${diag.risk_level || 'ALTO'}
+                    </span>
+                </div>
+
+                <div style="background: #fef2f2; border-left: 4px solid #ef4444; padding: 16px; margin-top: 16px; border-radius: 0 8px 8px 0;">
+                    <h3 style="margin: 0 0 6px 0; color: #7f1d1d; font-size: 16px; font-weight: 700;">${diag.headline || ''}</h3>
+                    <p style="margin: 0; color: #991b1b; font-size: 14px;">${diag.summary || ''}</p>
+                </div>
+
+                <div style="background: #111827; color: #ffffff; padding: 20px; border-radius: 12px; margin-top: 20px;">
+                    <span style="font-size: 11px; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 8px;">Script de Apertura (Qué decirle al cliente)</span>
+                    <p style="margin: 0; font-size: 15px; font-weight: 500; color: #facc15; line-height: 1.5;">"${diag.sales_hook || ''}"</p>
+                </div>
+            </div>
+        `;
     }
 
     /* ================= SMART INBOX ================= */
