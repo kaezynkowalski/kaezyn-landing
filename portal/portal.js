@@ -999,42 +999,96 @@ const Portal = (() => {
         }
     }
 
-    /* ================= SALES INTELLIGENCE (MASTER UI) ================= */
+    /* ================= SALES INTELLIGENCE (MASTER UI - DARK MODE) ================= */
 
     function renderSalesIntelligence(session) {
+        // Asegurar fondo y tipografía global de Kaezyn
+        document.body.className = "min-h-screen pb-12 bg-night-blue text-light-gray font-sans";
+
         document.body.innerHTML = `
-            <div style="max-width: 800px; margin: 40px auto; padding: 24px; font-family: system-ui, -apple-system, sans-serif; color: #111;">
-                <div style="margin-bottom: 24px;">
-                    <span style="background: #fee2e2; color: #b91c1c; padding: 4px 12px; border-radius: 9999px; font-size: 12px; font-weight: 700;">Uso Exclusivo Master</span>
-                    <h1 style="font-size: 30px; font-weight: 800; margin: 12px 0 4px 0;">Kaezyn Sales Intelligence™</h1>
-                    <p style="color: #6b7280; margin: 0; font-size: 15px;">Descubre la vulnerabilidad oculta del prospecto antes de hacer la primera llamada.</p>
+            <!-- HEADER SUPERIOR FULL-WIDTH -->
+            <div class="px-6 md:px-8 py-5 border-b border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 bg-night-blue/90 backdrop-blur-md sticky top-0 z-50">
+                <div class="flex items-center gap-4 md:gap-6">
+                    <img src="/assets/KAEZYN LOGO.png" class="h-8 md:h-10" alt="Kaezyn Logo">
+                    <span class="px-3 py-1 bg-red-500/20 text-red-400 border border-red-500/30 text-[10px] md:text-xs font-semibold rounded-full uppercase tracking-wider hidden sm:inline-block">
+                        Uso Exclusivo Master
+                    </span>
                 </div>
 
-                <form id="intel-form" style="background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
-                        <div>
-                            <label style="display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; color: #374151;">Nombre del Negocio</label>
-                            <input type="text" id="business_name" placeholder="Ej. Restaurante El Cardenal" required style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; box-sizing: border-box; outline: none;" />
+                <div class="flex items-center">
+                    <button onclick="Portal.logout()" class="text-xs text-gray-400 hover:text-white transition uppercase tracking-widest flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/5">
+                        <i class="fas fa-sign-out-alt"></i> Cerrar sesión
+                    </button>
+                </div>
+            </div>
+
+            <!-- CONTENEDOR PRINCIPAL -->
+            <div class="max-w-4xl mx-auto p-6 space-y-10 mt-6">
+                
+                <!-- Título de Sección -->
+                <div class="text-center space-y-3">
+                    <span class="inline-block sm:hidden px-3 py-1 bg-red-500/20 text-red-400 border border-red-500/30 text-[10px] font-semibold rounded-full uppercase tracking-wider mb-2">
+                        Uso Exclusivo Master
+                    </span>
+                    <h1 class="text-3xl md:text-4xl font-extrabold text-white tracking-wide">
+                        Kaezyn <span class="text-gold">Sales Intelligence™</span>
+                    </h1>
+                    <p class="text-gray-400 text-sm md:text-base max-w-2xl mx-auto">
+                        Descubre la vulnerabilidad oculta del prospecto antes de hacer la primera llamada. Analiza sus reseñas y obtén un ángulo de venta imbatible.
+                    </p>
+                </div>
+
+                <!-- Formulario Estilo Glassmorphism -->
+                <form id="intel-form" class="card p-6 md:p-8 rounded-2xl shadow-2xl space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-2">
+                            <label class="block text-sm font-semibold text-gray-300">
+                                Nombre del Negocio
+                            </label>
+                            <input 
+                                type="text" 
+                                id="business_name" 
+                                placeholder="Ej. Restaurante El Cardenal" 
+                                required 
+                                class="w-full bg-night-blue/50 border border-white/20 text-white placeholder-gray-500 rounded-xl p-3.5 text-sm focus:border-gold focus:ring-1 focus:ring-gold outline-none transition-all" 
+                            />
                         </div>
-                        <div>
-                            <label style="display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; color: #374151;">Ciudad / Ubicación</label>
-                            <input type="text" id="city" placeholder="Ej. CDMX" style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; box-sizing: border-box; outline: none;" />
+                        <div class="space-y-2">
+                            <label class="block text-sm font-semibold text-gray-300">
+                                Ciudad / Ubicación
+                            </label>
+                            <input 
+                                type="text" 
+                                id="city" 
+                                placeholder="Ej. CDMX" 
+                                class="w-full bg-night-blue/50 border border-white/20 text-white placeholder-gray-500 rounded-xl p-3.5 text-sm focus:border-gold focus:ring-1 focus:ring-gold outline-none transition-all" 
+                            />
                         </div>
                     </div>
-                    <button type="submit" id="btn-analyze" style="width: 100%; background: #000000; color: #ffffff; padding: 12px; border: none; border-radius: 8px; font-weight: 600; font-size: 15px; cursor: pointer; transition: background 0.2s;">
-                        ANALIZAR NEGOCIO
+
+                    <button 
+                        type="submit" 
+                        id="btn-analyze" 
+                        class="btn-gold w-full py-4 text-sm font-bold uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg cursor-pointer"
+                    >
+                        <i class="fas fa-search"></i> ANALIZAR NEGOCIO
                     </button>
                 </form>
 
-                <div id="intel-status" style="display: none; margin-top: 20px; padding: 20px; background: #f9fafb; border: 1px dashed #d1d5db; border-radius: 12px; text-align: center;">
-                    <p id="status-text" style="font-weight: 600; margin: 0; color: #374151; font-size: 14px;"></p>
-                    <p style="font-size: 12px; color: #6b7280; margin-top: 6px;">Make está procesando la información. No cierres esta ventana.</p>
+                <!-- Estado / Loader -->
+                <div id="intel-status" class="hidden p-8 text-center bg-violet/10 rounded-2xl border border-violet/30 relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-gold to-transparent animate-pulse"></div>
+                    <i class="fas fa-robot text-3xl text-gold mb-4 animate-bounce"></i>
+                    <p id="status-text" class="text-sm font-semibold text-white tracking-wide"></p>
+                    <p class="text-xs text-gray-400 mt-2">La IA está extrayendo y procesando patrones de fricción. No cierres esta ventana.</p>
                 </div>
 
+                <!-- Resultado de la Radiografía -->
                 <div id="intel-result"></div>
             </div>
         `;
 
+        // Event listener del formulario
         document.getElementById('intel-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const businessName = document.getElementById('business_name').value;
@@ -1042,11 +1096,13 @@ const Portal = (() => {
             const btn = document.getElementById('btn-analyze');
             const statusDiv = document.getElementById('intel-status');
             const statusText = document.getElementById('status-text');
+            const resultDiv = document.getElementById('intel-result');
 
             btn.disabled = true;
-            btn.style.opacity = '0.5';
-            btn.innerText = 'Generando Radiografía...';
-            statusDiv.style.display = 'block';
+            btn.classList.add('opacity-50', 'cursor-not-allowed');
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Generando Radiografía...`;
+            resultDiv.innerHTML = '';
+            statusDiv.classList.remove('hidden');
             statusText.innerText = 'Iniciando auditoría inteligente...';
 
             try {
@@ -1076,9 +1132,9 @@ const Portal = (() => {
                         if (payload.new.status === 'completed') {
                             renderDiagnosis(payload.new);
                             btn.disabled = false;
-                            btn.style.opacity = '1';
-                            btn.innerText = 'ANALIZAR NEGOCIO';
-                            statusDiv.style.display = 'none';
+                            btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                            btn.innerHTML = `<i class="fas fa-search"></i> ANALIZAR NEGOCIO`;
+                            statusDiv.classList.add('hidden');
                             supabase.removeChannel(channel);
                         }
                     })
@@ -1087,9 +1143,9 @@ const Portal = (() => {
             } catch (err) {
                 alert('Error: ' + err.message);
                 btn.disabled = false;
-                btn.style.opacity = '1';
-                btn.innerText = 'ANALIZAR NEGOCIO';
-                statusDiv.style.display = 'none';
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                btn.innerHTML = `<i class="fas fa-search"></i> ANALIZAR NEGOCIO`;
+                statusDiv.classList.add('hidden');
             }
         });
     }
@@ -1097,26 +1153,101 @@ const Portal = (() => {
     function renderDiagnosis(prospect) {
         const diag = prospect.diagnosis || {};
         const resultDiv = document.getElementById('intel-result');
-        resultDiv.innerHTML = `
-            <div style="background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 24px; margin-top: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
-                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f3f4f6; padding-bottom: 16px;">
-                    <div>
-                        <h2 style="margin: 0; font-size: 22px; font-weight: 800; color: #111827;">${prospect.business_name}</h2>
-                        <p style="margin: 4px 0 0 0; color: #6b7280; font-size: 14px;">${prospect.city || ''}</p>
+
+        // Renderizar patrones de fricción negativos
+        let patternsHtml = '';
+        if (diag.negative_patterns && Array.isArray(diag.negative_patterns) && diag.negative_patterns.length > 0) {
+            patternsHtml = `
+                <div>
+                    <h4 class="font-bold text-light-gray mb-4 text-xs md:text-sm uppercase tracking-widest flex items-center gap-2">
+                        <i class="fas fa-chart-line text-violet"></i> Patrones de Fricción Detectados
+                    </h4>
+                    <div class="grid grid-cols-1 gap-4">
+                        ${diag.negative_patterns.map(pat => `
+                            <div class="bg-white/5 border border-white/10 p-5 rounded-xl hover:bg-white/10 transition-colors">
+                                <div class="flex justify-between items-start md:items-center mb-3 flex-col md:flex-row gap-2">
+                                    <span class="font-semibold text-white text-sm">${pat.pattern || ''}</span>
+                                    <span class="text-xs font-bold bg-red-500/20 border border-red-500/30 text-red-400 px-3 py-1 rounded-full whitespace-nowrap">
+                                        ${pat.percentage || ''}
+                                    </span>
+                                </div>
+                                <p class="text-sm text-gray-400 italic bg-night-blue/50 p-3 rounded-lg border border-white/5">
+                                    "${pat.evidence || ''}"
+                                </p>
+                            </div>
+                        `).join('')}
                     </div>
-                    <span style="background: #fee2e2; color: #991b1b; padding: 6px 12px; border-radius: 8px; font-weight: 700; font-size: 13px;">
+                </div>
+            `;
+        }
+
+        // Renderizar oportunidad Kaezyn
+        let kaezynOpportunityHtml = '';
+        if (diag.kaezyn_opportunity) {
+            kaezynOpportunityHtml = `
+                <div class="border-t border-white/10 pt-6">
+                    <h4 class="font-bold text-white text-sm mb-3 flex items-center gap-2">
+                        <i class="fas fa-lightbulb text-gold"></i> Cómo posicionar Kaezyn:
+                    </h4>
+                    <div class="bg-violet/20 border border-violet/50 p-5 rounded-xl">
+                        <p class="text-sm text-gray-300 leading-relaxed">
+                            ${diag.kaezyn_opportunity}
+                        </p>
+                    </div>
+                </div>
+            `;
+        }
+
+        const isHighRisk = diag.risk_level === 'CRÍTICO' || diag.risk_level === 'ALTO';
+        const riskBadgeStyle = isHighRisk 
+            ? 'bg-red-500/20 text-red-400 border-red-500/30' 
+            : 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
+
+        resultDiv.innerHTML = `
+            <div class="card rounded-2xl shadow-2xl overflow-hidden mt-8">
+                
+                <!-- Header del Diagnóstico -->
+                <div class="p-6 md:p-8 border-b border-white/10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/[0.02]">
+                    <div>
+                        <h2 class="text-2xl md:text-3xl font-extrabold text-white">${prospect.business_name}</h2>
+                        <p class="text-sm text-gray-400 flex items-center gap-2 mt-1">
+                            <i class="fas fa-map-marker-alt text-gold"></i> ${prospect.city || 'Ubicación no especificada'}
+                        </p>
+                    </div>
+                    <div class="px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-wider border shadow-inner flex items-center gap-2 ${riskBadgeStyle}">
+                        <i class="fas fa-exclamation-triangle"></i>
                         Riesgo Operativo: ${diag.risk_level || 'ALTO'}
-                    </span>
+                    </div>
                 </div>
 
-                <div style="background: #fef2f2; border-left: 4px solid #ef4444; padding: 16px; margin-top: 16px; border-radius: 0 8px 8px 0;">
-                    <h3 style="margin: 0 0 6px 0; color: #7f1d1d; font-size: 16px; font-weight: 700;">${diag.headline || ''}</h3>
-                    <p style="margin: 0; color: #991b1b; font-size: 14px;">${diag.summary || ''}</p>
-                </div>
+                <div class="p-6 md:p-8 space-y-8">
+                    <!-- Resumen / Titular -->
+                    ${diag.headline ? `
+                    <div class="bg-red-500/10 border-l-4 border-red-500 p-5 rounded-r-xl">
+                        <h3 class="font-bold text-red-400 text-lg md:text-xl mb-2 flex items-center gap-2">
+                            <i class="fas fa-fire-alt"></i> ${diag.headline}
+                        </h3>
+                        <p class="text-sm text-gray-300 leading-relaxed">${diag.summary || ''}</p>
+                    </div>
+                    ` : ''}
 
-                <div style="background: #111827; color: #ffffff; padding: 20px; border-radius: 12px; margin-top: 20px;">
-                    <span style="font-size: 11px; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 8px;">Script de Apertura (Qué decirle al cliente)</span>
-                    <p style="margin: 0; font-size: 15px; font-weight: 500; color: #facc15; line-height: 1.5;">"${diag.sales_hook || ''}"</p>
+                    <!-- Patrones Negativos -->
+                    ${patternsHtml}
+
+                    <!-- Script de Apertura -->
+                    ${diag.sales_hook ? `
+                    <div class="bg-night-blue border border-gold/30 p-6 rounded-xl relative overflow-hidden shadow-lg shadow-gold/5">
+                        <span class="text-xs font-bold tracking-widest text-gold uppercase flex items-center gap-2 mb-3">
+                            <i class="fas fa-comment-dots"></i> Script de Apertura (Qué decirle al cliente)
+                        </span>
+                        <p class="text-base md:text-lg font-medium leading-relaxed text-white relative z-10 italic">
+                            "${diag.sales_hook}"
+                        </p>
+                    </div>
+                    ` : ''}
+
+                    <!-- Posicionamiento / Oportunidad Kaezyn -->
+                    ${kaezynOpportunityHtml}
                 </div>
             </div>
         `;
