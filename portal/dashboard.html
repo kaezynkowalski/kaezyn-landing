@@ -93,6 +93,32 @@ body {
     background: rgba(255, 255, 255, 0.2);
 }
 </style>
+    
+<style>
+    /* Estilos específicos para generar el PDF limpio */
+    @media print {
+        body {
+            background: white !important;
+            margin: 0;
+            padding: 0;
+        }
+        /* Ocultar header, formulario de búsqueda y menú al imprimir */
+        .sticky, form#intel-form, .print\:hidden {
+            display: none !important;
+        }
+        /* Asegurar que el reporte ocupe toda la hoja sin sombras extrañas */
+        #pdf-report {
+            box-shadow: none !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+        }
+        /* Forzar impresión de colores de fondo y gradientes en Chrome/Safari */
+        * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+    }
+</style>
 </head>
 
 <body class="min-h-screen pb-12">
