@@ -1153,102 +1153,172 @@ const Portal = (() => {
     function renderDiagnosis(prospect) {
         const diag = prospect.diagnosis || {};
         const resultDiv = document.getElementById('intel-result');
+        const statusDiv = document.getElementById('intel-status');
+        
+        // Ocultar el loader
+        if (statusDiv) statusDiv.classList.add('hidden');
 
-        // Renderizar patrones de fricción negativos
-        let patternsHtml = '';
+        // 1. Lógica de Nivel de Riesgo (Colores dinámicos)
+        const riskLevel = diag.risk_level?.toUpperCase() || 'ALTO';
+        let riskBadgeStyle = 'bg-red-500/20 text-red-400 border-red-500/30 shadow-[0_0_15px_rgba(239,68,68,0.2)]';
+        let riskIcon = '<i class="fas fa-exclamation-triangle"></i>';
+        
+        if (riskLevel === 'MEDIO') {
+            riskBadgeStyle = 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30 shadow-[0_0_15px_rgba(234,179,8,0.2)]';
+            riskIcon = '<i class="fas fa-exclamation-circle"></i>';
+        } else if (riskLevel === 'BAJO') {
+            riskBadgeStyle = 'bg-green-500/20 text-green-400 border-green-500/30 shadow-[0_0_15px_rgba(34,197,94,0.2)]';
+            riskIcon = '<i class="fas fa-check-circle"></i>';
+        }
+
+        // 2. Renderizar Patrones de Fricción Negativos (Tu diseño original premium)
+        let patternsHtml = '<p class="text-gray-500 text-sm italic">No se detectaron patrones críticos.</p>';
         if (diag.negative_patterns && Array.isArray(diag.negative_patterns) && diag.negative_patterns.length > 0) {
             patternsHtml = `
-                <div>
-                    <h4 class="font-bold text-light-gray mb-4 text-xs md:text-sm uppercase tracking-widest flex items-center gap-2">
-                        <i class="fas fa-chart-line text-violet"></i> Patrones de Fricción Detectados
-                    </h4>
-                    <div class="grid grid-cols-1 gap-4">
-                        ${diag.negative_patterns.map(pat => `
-                            <div class="bg-white/5 border border-white/10 p-5 rounded-xl hover:bg-white/10 transition-colors">
-                                <div class="flex justify-between items-start md:items-center mb-3 flex-col md:flex-row gap-2">
-                                    <span class="font-semibold text-white text-sm">${pat.pattern || ''}</span>
-                                    <span class="text-xs font-bold bg-red-500/20 border border-red-500/30 text-red-400 px-3 py-1 rounded-full whitespace-nowrap">
-                                        ${pat.percentage || ''}
-                                    </span>
-                                </div>
-                                <p class="text-sm text-gray-400 italic bg-night-blue/50 p-3 rounded-lg border border-white/5">
-                                    "${pat.evidence || ''}"
-                                </p>
+                <div class="grid grid-cols-1 gap-4">
+                    ${diag.negative_patterns.map(pat => `
+                        <div class="bg-white/5 border border-white/10 p-4 rounded-xl hover:bg-white/10 transition-colors">
+                            <div class="flex justify-between items-start md:items-center mb-2 flex-col md:flex-row gap-2">
+                                <span class="font-semibold text-white text-sm flex items-center gap-2">
+                                    <i class="fas fa-bullseye text-red-400"></i> ${pat.pattern || ''}
+                                </span>
+                                <span class="text-xs font-bold bg-red-500/20 border border-red-500/30 text-red-400 px-3 py-1 rounded-full whitespace-nowrap">
+                                    Impacto: ${pat.percentage || ''}
+                                </span>
                             </div>
-                        `).join('')}
-                    </div>
+                            <p class="text-xs text-gray-400 italic bg-black/30 p-3 rounded-lg border border-white/5 m-0 mt-2">
+                                "${pat.evidence || ''}"
+                            </p>
+                        </div>
+                    `).join('')}
                 </div>
             `;
         }
 
-        // Renderizar oportunidad Kaezyn
-        let kaezynOpportunityHtml = '';
-        if (diag.kaezyn_opportunity) {
-            kaezynOpportunityHtml = `
-                <div class="border-t border-white/10 pt-6">
-                    <h4 class="font-bold text-white text-sm mb-3 flex items-center gap-2">
-                        <i class="fas fa-lightbulb text-gold"></i> Cómo posicionar Kaezyn:
-                    </h4>
-                    <div class="bg-violet/20 border border-violet/50 p-5 rounded-xl">
-                        <p class="text-sm text-gray-300 leading-relaxed">
-                            ${diag.kaezyn_opportunity}
-                        </p>
+        // 3. Renderizar Reseñas Crudas (La nueva función de Voz del Cliente)
+        let reviewsHtml = '<p class="text-sm text-gray-500 italic">No hay reseñas indexadas recientes.</p>';
+        if (prospect.reseñas) {
+            let reviewsArray = typeof prospect.reseñas === 'string' ? JSON.parse(prospect.reseñas) : prospect.reseñas;
+            if (Array.isArray(reviewsArray) && reviewsArray.length > 0) {
+                reviewsHtml = reviewsArray.map((rev, index) => `
+                    <div class="bg-white/5 border-l-2 border-gold/50 p-3 mb-3 rounded-r-lg hover:bg-white/10 transition-colors">
+                        <p class="m-0 text-xs italic text-gray-300 leading-relaxed">"${rev.text || rev}"</p>
                     </div>
-                </div>
-            `;
+                `).join('');
+            }
         }
 
-        const isHighRisk = diag.risk_level === 'CRÍTICO' || diag.risk_level === 'ALTO';
-        const riskBadgeStyle = isHighRisk 
-            ? 'bg-red-500/20 text-red-400 border-red-500/30' 
-            : 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
-
+        // 4. Inyectar HTML del Dashboard Híbrido (Auditoría + Ventas + PDF)
         resultDiv.innerHTML = `
-            <div class="card rounded-2xl shadow-2xl overflow-hidden mt-8">
+            <!-- Botón de Exportación -->
+            <div class="flex justify-end mb-4 print:hidden mt-8">
+                <button onclick="window.print()" class="px-5 py-2.5 bg-gradient-to-r from-red-500/20 to-red-600/10 hover:from-red-500/30 hover:to-red-600/20 text-white rounded-lg text-sm font-bold flex items-center gap-2 transition-all border border-red-500/30 shadow-lg">
+                    <i class="fas fa-file-pdf text-red-400"></i> Generar PDF para Cliente
+                </button>
+            </div>
+
+            <!-- CONTENEDOR PRINCIPAL DEL REPORTE -->
+            <div id="pdf-report" class="bg-[#0b0f2a] rounded-2xl overflow-hidden shadow-2xl max-w-4xl mx-auto font-sans text-gray-200 border border-white/10">
                 
                 <!-- Header del Diagnóstico -->
-                <div class="p-6 md:p-8 border-b border-white/10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/[0.02]">
-                    <div>
-                        <h2 class="text-2xl md:text-3xl font-extrabold text-white">${prospect.business_name}</h2>
-                        <p class="text-sm text-gray-400 flex items-center gap-2 mt-1">
-                            <i class="fas fa-map-marker-alt text-gold"></i> ${prospect.city || 'Ubicación no especificada'}
+                <div class="bg-gradient-to-br from-[#0b0f2a] to-[#12183b] p-6 md:p-8 border-b-4 border-gold flex flex-col md:flex-row justify-between items-start md:items-center gap-4 relative overflow-hidden">
+                    <!-- Logo / Marca de agua sutil de fondo -->
+                    <div class="absolute -right-10 -top-10 opacity-5 pointer-events-none">
+                        <i class="fas fa-chart-line text-[150px] text-white"></i>
+                    </div>
+                    
+                    <div class="relative z-10">
+                        <p class="text-gold text-[10px] uppercase tracking-[3px] font-bold m-0 mb-2">Auditoría de Reputación Digital</p>
+                        <h2 class="text-2xl md:text-3xl font-extrabold text-white m-0">${prospect.business_name}</h2>
+                        <p class="text-xs text-gray-400 flex items-center gap-2 mt-2 m-0">
+                            <i class="fas fa-map-marker-alt text-violet"></i> ${prospect.city || 'Ubicación no especificada'} • ${new Date().toLocaleDateString('es-MX')}
                         </p>
                     </div>
-                    <div class="px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-wider border shadow-inner flex items-center gap-2 ${riskBadgeStyle}">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        Riesgo Operativo: ${diag.risk_level || 'ALTO'}
+                    
+                    <div class="relative z-10 px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-wider border flex items-center gap-2 ${riskBadgeStyle} backdrop-blur-sm">
+                        ${riskIcon}
+                        Riesgo Operativo: ${riskLevel}
                     </div>
                 </div>
 
-                <div class="p-6 md:p-8 space-y-8">
-                    <!-- Resumen / Titular -->
+                <div class="p-6 md:p-8 space-y-8 bg-[#0b0f2a]">
+                    
+                    <!-- Resumen / Titular IA -->
                     ${diag.headline ? `
-                    <div class="bg-red-500/10 border-l-4 border-red-500 p-5 rounded-r-xl">
+                    <div class="bg-red-500/10 border-l-4 border-red-500 p-5 rounded-r-xl shadow-lg">
                         <h3 class="font-bold text-red-400 text-lg md:text-xl mb-2 flex items-center gap-2">
                             <i class="fas fa-fire-alt"></i> ${diag.headline}
                         </h3>
-                        <p class="text-sm text-gray-300 leading-relaxed">${diag.summary || ''}</p>
+                        <p class="text-sm text-gray-300 leading-relaxed m-0">${diag.summary || ''}</p>
                     </div>
                     ` : ''}
 
-                    <!-- Patrones Negativos -->
-                    ${patternsHtml}
+                    <!-- Zona de Evidencia Dividida (Patrones vs Reseñas Reales) -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        
+                        <!-- Columna Izquierda: Patrones -->
+                        <div>
+                            <h4 class="font-bold text-light-gray mb-4 text-xs md:text-sm uppercase tracking-widest flex items-center gap-2">
+                                <i class="fas fa-chart-line text-violet"></i> Patrones Detectados por IA
+                            </h4>
+                            ${patternsHtml}
+                        </div>
 
-                    <!-- Script de Apertura -->
-                    ${diag.sales_hook ? `
-                    <div class="bg-night-blue border border-gold/30 p-6 rounded-xl relative overflow-hidden shadow-lg shadow-gold/5">
-                        <span class="text-xs font-bold tracking-widest text-gold uppercase flex items-center gap-2 mb-3">
-                            <i class="fas fa-comment-dots"></i> Script de Apertura (Qué decirle al cliente)
-                        </span>
-                        <p class="text-base md:text-lg font-medium leading-relaxed text-white relative z-10 italic">
-                            "${diag.sales_hook}"
-                        </p>
+                        <!-- Columna Derecha: Evidencia (Reseñas) -->
+                        <div>
+                            <h4 class="font-bold text-light-gray mb-4 text-xs md:text-sm uppercase tracking-widest flex items-center gap-2">
+                                <i class="fas fa-quote-left text-gold"></i> La Voz del Cliente
+                            </h4>
+                            <div class="bg-black/20 p-4 rounded-xl border border-white/5 h-full">
+                                ${reviewsHtml}
+                            </div>
+                        </div>
+
                     </div>
-                    ` : ''}
 
-                    <!-- Posicionamiento / Oportunidad Kaezyn -->
-                    ${kaezynOpportunityHtml}
+                    <!-- KAEZYN PLAYBOOK: Estrategia de Cierre -->
+                    <div class="border-t border-white/10 pt-8 mt-4 page-break-inside-avoid">
+                        <h4 class="font-bold text-white text-sm mb-4 flex items-center gap-2 uppercase tracking-widest">
+                            <i class="fas fa-chess-knight text-gold"></i> Kaezyn Sales Playbook
+                        </h4>
+                        
+                        <div class="grid grid-cols-1 gap-4">
+                            
+                            <!-- Script de Apertura -->
+                            ${diag.sales_hook ? `
+                            <div class="bg-night-blue border border-gold/30 p-6 rounded-xl relative overflow-hidden shadow-lg shadow-gold/5">
+                                <span class="text-[10px] font-bold tracking-widest text-gold uppercase flex items-center gap-2 mb-3">
+                                    <i class="fas fa-comment-dots"></i> Script de Apertura Sugerido
+                                </span>
+                                <p class="text-base md:text-lg font-medium leading-relaxed text-white relative z-10 italic m-0">
+                                    "${diag.sales_hook}"
+                                </p>
+                            </div>
+                            ` : ''}
+
+                            <!-- Posicionamiento de Venta -->
+                            ${diag.kaezyn_opportunity ? `
+                            <div class="bg-violet/10 border border-violet/30 p-5 rounded-xl">
+                                <span class="text-[10px] font-bold tracking-widest text-violet uppercase flex items-center gap-2 mb-2">
+                                    <i class="fas fa-lightbulb"></i> Ángulo de Venta
+                                </span>
+                                <p class="text-sm text-gray-300 leading-relaxed m-0">
+                                    ${diag.kaezyn_opportunity}
+                                </p>
+                            </div>
+                            ` : ''}
+                            
+                        </div>
+                    </div>
+
                 </div>
+                
+                <!-- Footer PDF -->
+                <div class="bg-black/40 p-4 border-t border-white/5 text-center flex justify-between items-center px-8">
+                    <img src="/assets/KAEZYN LOGO.png" class="h-4 opacity-50 filter grayscale invert" alt="Kaezyn">
+                    <p class="text-[9px] text-gray-600 uppercase tracking-widest m-0">Documento Confidencial • Propiedad de Kaezyn</p>
+                </div>
+
             </div>
         `;
     }
