@@ -1039,7 +1039,7 @@ const Portal = (() => {
                 </div>
 
                 <!-- Formulario Estilo Glassmorphism -->
-                <form id="intel-form" class="card p-6 md:p-8 rounded-2xl shadow-2xl space-y-6">
+                <form id="intel-form" onsubmit="Portal.analyzeProspect(event)" class="card p-6 md:p-8 rounded-2xl shadow-2xl space-y-6">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="space-y-2">
                             <label class="block text-sm font-semibold text-gray-300">
@@ -1386,28 +1386,39 @@ const Portal = (() => {
     }
 
     async function analyzeProspect(event) {
-        event.preventDefault(); // Evita que la página recargue
+        if (event) event.preventDefault(); // Evita recargas de página
         
-        const businessName = document.getElementById('tu-input-nombre').value; // Ajusta los IDs a tu HTML
-        const city = document.getElementById('tu-input-ciudad').value;
+        // Ajusta estos IDs si en tu HTML inyectado se llaman diferente
+        const nameInput = document.getElementById('business-name-input');
+        const cityInput = document.getElementById('city-input');
+        
+        if (!nameInput || !cityInput) {
+            console.error("No se encontraron los inputs de nombre y ciudad.");
+            return;
+        }
+
+        const businessName = nameInput.value;
+        const city = cityInput.value;
         const statusDiv = document.getElementById('intel-status');
         const resultDiv = document.getElementById('intel-result');
 
+        // Mostrar estado inicial
         statusDiv.classList.remove('hidden');
         resultDiv.innerHTML = '';
+        console.log("🚀 Iniciando análisis para:", businessName);
 
         try {
-            // 1. Obtener el usuario actual para el created_by
+            // 1. Obtener usuario (CRÍTICO para RLS)
             const { data: { user }, error: authErr } = await supabase.auth.getUser();
             if (authErr || !user) throw new Error("No hay usuario autenticado.");
 
-            // 2. Crear el registro en Supabase asegurando el created_by
+            // 2. Crear el registro
             const { data: insertData, error: insertErr } = await supabase
                 .from('sales_prospects')
                 .insert([{ 
                     business_name: businessName, 
                     city: city, 
-                    created_by: user.id // ¡CRÍTICO PARA QUE PUEDAS LEERLO DESPUÉS!
+                    created_by: user.id 
                 }])
                 .select()
                 .single();
@@ -1415,16 +1426,15 @@ const Portal = (() => {
             if (insertErr) throw insertErr;
             
             const recordId = insertData.id;
+            console.log("✅ Fila creada en Supabase. ID:", recordId, "Esperando a Make...");
 
-            // 3. (Opcional) Llamar al webhook de Make aquí si no usas los triggers nativos de Supabase
-            // fetch('TU_WEBHOOK_DE_MAKE', { method: 'POST', body: JSON.stringify({ id: recordId, business_name: businessName, city: city }) });
-
-            // 4. Iniciar el "Polling" (Escuchar si Make ya terminó)
+            // 3. Polling (Consultar a Supabase cada 3 segundos)
             let attempts = 0;
-            const maxAttempts = 30; // 30 intentos = aprox 90 segundos máximo
+            const maxAttempts = 30; // 90 segundos máximo
 
             const pollInterval = setInterval(async () => {
                 attempts++;
+                console.log(`⏳ Intento ${attempts}/30: Consultando si Make ya terminó...`);
                 
                 const { data: prospect, error: fetchErr } = await supabase
                     .from('sales_prospects')
@@ -1433,29 +1443,30 @@ const Portal = (() => {
                     .single();
 
                 if (fetchErr) {
-                    console.error("Error leyendo:", fetchErr);
+                    console.error("❌ Error leyendo Supabase:", fetchErr);
                     return;
                 }
 
-                // Verificamos si Make ya llenó la columna 'diagnosis'
+                // 4. Si Make ya actualizó el diagnóstico
                 if (prospect && prospect.diagnosis) {
-                    clearInterval(pollInterval); // Detenemos la búsqueda
+                    console.log("🎉 ¡Diagnóstico recibido de Make!");
+                    clearInterval(pollInterval);
                     
-                    // Aseguramos que diagnosis sea un objeto (por si Make lo guardó como texto)
                     if (typeof prospect.diagnosis === 'string') {
                         prospect.diagnosis = JSON.parse(prospect.diagnosis);
                     }
                     
-                    statusDiv.classList.add('hidden'); // Ocultar loader
-                    renderDiagnosis(prospect); // ¡Disparamos el diseño premium!
+                    statusDiv.classList.add('hidden'); 
+                    renderDiagnosis(prospect); // Disparar el diseño
                 } else if (attempts >= maxAttempts) {
+                    console.warn("⚠️ Tiempo de espera agotado.");
                     clearInterval(pollInterval);
-                    statusDiv.innerHTML = '<p class="text-red-400">El análisis tomó demasiado tiempo. Intenta de nuevo.</p>';
+                    statusDiv.innerHTML = '<p class="text-red-400">El análisis tomó demasiado tiempo. Make.com podría estar retrasado.</p>';
                 }
-            }, 3000); // Revisa cada 3 segundos
+            }, 3000);
 
         } catch (error) {
-            console.error("Error en el flujo:", error);
+            console.error("❌ Error fatal en el flujo:", error);
             statusDiv.innerHTML = '<p class="text-red-400">Hubo un error al iniciar la radiografía.</p>';
         }
     }
