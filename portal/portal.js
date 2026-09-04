@@ -1428,6 +1428,21 @@ const Portal = (() => {
             const recordId = insertData.id;
             console.log("✅ Fila creada en Supabase. ID:", recordId, "Esperando a Make...");
 
+            // 2.5 NOTIFICAR A MK (Paso faltante)
+            // Reemplaza esta URL con la URL real de tu Custom Webhook en Make
+            const MAKE_WEBHOOK_URL = 'https://hook.us2.make.com/vu0yj4qmn650tpulb0i73wn14d33mczw'; 
+
+            console.log("📡 Enviando datos a Make...");
+            await fetch(MAKE_WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    prospect_id: recordId, // Envia el ID exacto que acabamos de crear
+                    business_name: businessName,
+                    city: city
+                })
+            });
+
             // 3. Polling (Consultar a Supabase cada 3 segundos)
             let attempts = 0;
             const maxAttempts = 30; // 90 segundos máximo
