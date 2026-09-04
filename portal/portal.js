@@ -1087,9 +1087,7 @@ const Portal = (() => {
                 <div id="intel-result"></div>
             </div>
         `;
-        
-        });
-    }
+    } // ✅ ERROR CORREGIDO: Solo se cierra la función
 
     function renderDiagnosis(prospect) {
         const diag = prospect.diagnosis || {};
@@ -1264,6 +1262,152 @@ const Portal = (() => {
         `;
     }
 
+    async function analyzeProspect(event) {
+        if (event) event.preventDefault(); // Evita recargas de página
+        
+        // Ajusta estos IDs si en tu HTML inyectado se llaman diferente
+        const nameInput = document.getElementById('business_name');
+        const cityInput = document.getElementById('city');
+        const btn = document.getElementById('btn-analyze');
+        const statusDiv = document.getElementById('intel-status');
+        const statusText = document.getElementById('status-text');
+        const resultDiv = document.getElementById('intel-result');
+        
+        if (!nameInput || !cityInput) {
+            console.error("No se encontraron los inputs de nombre y ciudad.");
+            return;
+        }
+
+        const businessName = nameInput.value;
+        const city = cityInput.value;
+
+        // Mostrar estado inicial, deshabilitar botón y activar animaciones
+        if (btn) {
+            btn.disabled = true;
+            btn.classList.add('opacity-50', 'cursor-not-allowed');
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Generando Radiografía...`;
+        }
+        
+        statusDiv.classList.remove('hidden');
+        if (statusText) statusText.innerText = 'Creando registro y conectando con IA...';
+        resultDiv.innerHTML = '';
+        console.log("🚀 Iniciando análisis para:", businessName);
+
+        try {
+            // 1. Obtener usuario (CRÍTICO para RLS)
+            const { data: { user }, error: authErr } = await supabase.auth.getUser();
+            if (authErr || !user) throw new Error("No hay usuario autenticado.");
+
+            // 2. Crear el registro
+            const { data: insertData, error: insertErr } = await supabase
+                .from('sales_prospects')
+                .insert([{ 
+                    business_name: businessName, 
+                    city: city, 
+                    created_by: user.id 
+                }])
+                .select()
+                .single();
+
+            if (insertErr) throw insertErr;
+            
+            const recordId = insertData.id;
+            console.log("✅ Fila creada en Supabase. ID:", recordId, "Esperando a Make...");
+
+            // 2.5 NOTIFICAR A MAKE
+            // ⚠️ IMPORTANTE: Aquí está tu Webhook de Make
+            const MAKE_WEBHOOK_URL = 'https://hook.us2.make.com/vu0yj4qmn650tpulb0i73wn14d33mczw'; 
+            
+            if (statusText) statusText.innerText = 'Scrapeando reseñas y analizando patrones con IA (aprox 30 seg)...';
+
+            console.log("📡 Enviando datos a Make...");
+            await fetch(MAKE_WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    prospect_id: recordId, // Envia el ID exacto que acabamos de crear
+                    business_name: businessName,
+                    city: city
+                })
+            });
+
+            // 3. Polling (Consultar a Supabase cada 3 segundos)
+            let attempts = 0;
+            const maxAttempts = 30; // 90 segundos máximo
+
+            const pollInterval = setInterval(async () => {
+                attempts++;
+                console.log(`⏳ Intento ${attempts}/30: Consultando si Make ya terminó...`);
+                
+                const { data: prospect, error: fetchErr } = await supabase
+                    .from('sales_prospects')
+                    .select('*')
+                    .eq('id', recordId)
+                    .single();
+
+                if (fetchErr) {
+                    console.error("❌ Error leyendo Supabase:", fetchErr);
+                    return;
+                }
+
+                // 4. Si Make ya actualizó el estado a 'completed' (o si llenó el diagnosis)
+                if (prospect && (prospect.status === 'completed' || prospect.diagnosis)) {
+                    console.log("🎉 ¡Diagnóstico recibido de Make!");
+                    clearInterval(pollInterval);
+                    
+                    if (typeof prospect.diagnosis === 'string') {
+                        try {
+                            // Intentamos leerlo como JSON estructurado
+                            prospect.diagnosis = JSON.parse(prospect.diagnosis);
+                        } catch (parseError) {
+                            console.warn("⚠️ Make guardó texto plano en lugar de JSON. Adaptando formato de emergencia...");
+                            // Si Make mandó texto crudo, lo empaquetamos para que el diseño no explote
+                            prospect.diagnosis = {
+                                risk_level: "MEDIO", 
+                                headline: "Análisis de Reputación Completado",
+                                summary: prospect.diagnosis // Mostramos el texto crudo aquí
+                            };
+                        }
+                    }
+                    
+                    if (typeof prospect.reseñas === 'string') {
+                        try { prospect.reseñas = JSON.parse(prospect.reseñas); } catch (e) { prospect.reseñas = []; }
+                    }
+                    
+                    // Restaurar el botón a la normalidad
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                        btn.innerHTML = `<i class="fas fa-search"></i> ANALIZAR NEGOCIO`;
+                    }
+                    
+                    statusDiv.classList.add('hidden'); 
+                    renderDiagnosis(prospect); // Disparar el diseño
+                    
+                } else if (attempts >= maxAttempts) {
+                    console.warn("⚠️ Tiempo de espera agotado.");
+                    clearInterval(pollInterval);
+                    
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                        btn.innerHTML = `<i class="fas fa-search"></i> REINTENTAR`;
+                    }
+                    statusDiv.innerHTML = '<p class="text-red-400">El análisis tomó demasiado tiempo. Make.com podría estar retrasado.</p>';
+                }
+            }, 3000);
+
+        } catch (error) {
+            console.error("❌ Error fatal en el flujo:", error);
+            if (btn) {
+                btn.disabled = false;
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                btn.innerHTML = `<i class="fas fa-search"></i> ANALIZAR NEGOCIO`;
+            }
+            if (statusText) statusText.innerText = 'Hubo un error al iniciar la radiografía.';
+        }
+    }
+
     /* ================= SMART INBOX ================= */
     
     function connectGoogle() {
@@ -1326,122 +1470,6 @@ const Portal = (() => {
         }
     }
 
-    async function analyzeProspect(event) {
-        if (event) event.preventDefault(); // Evita recargas de página
-        
-        // Ajusta estos IDs si en tu HTML inyectado se llaman diferente
-        const nameInput = document.getElementById('business_name');
-        const cityInput = document.getElementById('city');
-        
-        if (!nameInput || !cityInput) {
-            console.error("No se encontraron los inputs de nombre y ciudad.");
-            return;
-        }
-
-        const businessName = nameInput.value;
-        const city = cityInput.value;
-        const statusDiv = document.getElementById('intel-status');
-        const resultDiv = document.getElementById('intel-result');
-
-        // Mostrar estado inicial
-        statusDiv.classList.remove('hidden');
-        resultDiv.innerHTML = '';
-        console.log("🚀 Iniciando análisis para:", businessName);
-
-        try {
-            // 1. Obtener usuario (CRÍTICO para RLS)
-            const { data: { user }, error: authErr } = await supabase.auth.getUser();
-            if (authErr || !user) throw new Error("No hay usuario autenticado.");
-
-            // 2. Crear el registro
-            const { data: insertData, error: insertErr } = await supabase
-                .from('sales_prospects')
-                .insert([{ 
-                    business_name: businessName, 
-                    city: city, 
-                    created_by: user.id 
-                }])
-                .select()
-                .single();
-
-            if (insertErr) throw insertErr;
-            
-            const recordId = insertData.id;
-            console.log("✅ Fila creada en Supabase. ID:", recordId, "Esperando a Make...");
-
-            // 2.5 NOTIFICAR A MK (Paso faltante)
-            // Reemplaza esta URL con la URL real de tu Custom Webhook en Make
-            const MAKE_WEBHOOK_URL = 'https://hook.us2.make.com/vu0yj4qmn650tpulb0i73wn14d33mczw'; 
-
-            console.log("📡 Enviando datos a Make...");
-            await fetch(MAKE_WEBHOOK_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    prospect_id: recordId, // Envia el ID exacto que acabamos de crear
-                    business_name: businessName,
-                    city: city
-                })
-            });
-
-            // 3. Polling (Consultar a Supabase cada 3 segundos)
-            let attempts = 0;
-            const maxAttempts = 30; // 90 segundos máximo
-
-            const pollInterval = setInterval(async () => {
-                attempts++;
-                console.log(`⏳ Intento ${attempts}/30: Consultando si Make ya terminó...`);
-                
-                const { data: prospect, error: fetchErr } = await supabase
-                    .from('sales_prospects')
-                    .select('*')
-                    .eq('id', recordId)
-                    .single();
-
-                if (fetchErr) {
-                    console.error("❌ Error leyendo Supabase:", fetchErr);
-                    return;
-                }
-
-                // 4. Si Make ya actualizó la fila original
-                if (prospect && prospect.diagnosis) {
-                    console.log("🎉 ¡Diagnóstico recibido de Make!");
-                    clearInterval(pollInterval);
-                    
-                    if (typeof prospect.diagnosis === 'string') {
-                        try {
-                            // Intentamos leerlo como JSON estructurado
-                            prospect.diagnosis = JSON.parse(prospect.diagnosis);
-                        } catch (parseError) {
-                            console.warn("⚠️ Make guardó texto plano en lugar de JSON. Adaptando formato de emergencia...");
-                            // Si Make mandó texto crudo, lo empaquetamos para que el diseño no explote
-                            prospect.diagnosis = {
-                                risk_level: "MEDIO", 
-                                headline: "Análisis de Reputación Completado",
-                                summary: prospect.diagnosis // Mostramos el texto crudo aquí
-                            };
-                        }
-                    }
-                    
-                    if (typeof prospect.reseñas === 'string') {
-                        try { prospect.reseñas = JSON.parse(prospect.reseñas); } catch (e) { prospect.reseñas = []; }
-                    }
-                    
-                    statusDiv.classList.add('hidden'); 
-                    renderDiagnosis(prospect); // Disparar el diseño
-                } else if (attempts >= maxAttempts) {
-                    console.warn("⚠️ Tiempo de espera agotado.");
-                    clearInterval(pollInterval);
-                    statusDiv.innerHTML = '<p class="text-red-400">El análisis tomó demasiado tiempo. Make.com podría estar retrasado.</p>';
-                }
-            }, 3000);
-
-        } catch (error) {
-            console.error("❌ Error fatal en el flujo:", error);
-            statusDiv.innerHTML = '<p class="text-red-400">Hubo un error al iniciar la radiografía.</p>';
-        }
-    }
-    
     return {
         login, 
         requireAuth, 
