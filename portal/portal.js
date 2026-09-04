@@ -1389,8 +1389,8 @@ const Portal = (() => {
         if (event) event.preventDefault(); // Evita recargas de página
         
         // Ajusta estos IDs si en tu HTML inyectado se llaman diferente
-        const nameInput = document.getElementById('business-name-input');
-        const cityInput = document.getElementById('city-input');
+        const nameInput = document.getElementById('business_name');
+        const cityInput = document.getElementById('city');
         
         if (!nameInput || !cityInput) {
             console.error("No se encontraron los inputs de nombre y ciudad.");
