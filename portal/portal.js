@@ -1039,7 +1039,7 @@ const Portal = (() => {
                 </div>
 
                 <!-- Formulario Estilo Glassmorphism -->
-                <form id="intel-form" onsubmit="Portal.analyzeProspect(event)" class="card p-6 md:p-8 rounded-2xl shadow-2xl space-y-6">
+                <form id="intel-form" class="card p-6 md:p-8 rounded-2xl shadow-2xl space-y-6">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="space-y-2">
                             <label class="block text-sm font-semibold text-gray-300">
@@ -1462,13 +1462,28 @@ const Portal = (() => {
                     return;
                 }
 
-                // 4. Si Make ya actualizó el diagnóstico
+                // 4. Si Make ya actualizó la fila original
                 if (prospect && prospect.diagnosis) {
                     console.log("🎉 ¡Diagnóstico recibido de Make!");
                     clearInterval(pollInterval);
                     
                     if (typeof prospect.diagnosis === 'string') {
-                        prospect.diagnosis = JSON.parse(prospect.diagnosis);
+                        try {
+                            // Intentamos leerlo como JSON estructurado
+                            prospect.diagnosis = JSON.parse(prospect.diagnosis);
+                        } catch (parseError) {
+                            console.warn("⚠️ Make guardó texto plano en lugar de JSON. Adaptando formato de emergencia...");
+                            // Si Make mandó texto crudo, lo empaquetamos para que el diseño no explote
+                            prospect.diagnosis = {
+                                risk_level: "MEDIO", 
+                                headline: "Análisis de Reputación Completado",
+                                summary: prospect.diagnosis // Mostramos el texto crudo aquí
+                            };
+                        }
+                    }
+                    
+                    if (typeof prospect.reseñas === 'string') {
+                        try { prospect.reseñas = JSON.parse(prospect.reseñas); } catch (e) { prospect.reseñas = []; }
                     }
                     
                     statusDiv.classList.add('hidden'); 
