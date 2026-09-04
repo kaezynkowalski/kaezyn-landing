@@ -1039,7 +1039,7 @@ const Portal = (() => {
                 </div>
 
                 <!-- Formulario Estilo Glassmorphism -->
-                <form id="intel-form" class="card p-6 md:p-8 rounded-2xl shadow-2xl space-y-6">
+                <form id="intel-form" onsubmit="Portal.analyzeProspect(event)" class="card p-6 md:p-8 rounded-2xl shadow-2xl space-y-6">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="space-y-2">
                             <label class="block text-sm font-semibold text-gray-300">
@@ -1087,66 +1087,7 @@ const Portal = (() => {
                 <div id="intel-result"></div>
             </div>
         `;
-
-        // Event listener del formulario
-        document.getElementById('intel-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const businessName = document.getElementById('business_name').value;
-            const city = document.getElementById('city').value;
-            const btn = document.getElementById('btn-analyze');
-            const statusDiv = document.getElementById('intel-status');
-            const statusText = document.getElementById('status-text');
-            const resultDiv = document.getElementById('intel-result');
-
-            btn.disabled = true;
-            btn.classList.add('opacity-50', 'cursor-not-allowed');
-            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Generando Radiografía...`;
-            resultDiv.innerHTML = '';
-            statusDiv.classList.remove('hidden');
-            statusText.innerText = 'Iniciando auditoría inteligente...';
-
-            try {
-                const res = await fetch(`${SUPABASE_URL}/functions/v1/analyze-prospect`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${session.access_token}`
-                    },
-                    body: JSON.stringify({ business_name: businessName, city: city })
-                });
-
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.error || 'Error al iniciar análisis');
-
-                statusText.innerText = 'Scrapeando reseñas y analizando patrones con IA (aprox 30 seg)...';
-
-                // Escuchar cambios en tiempo real
-                const channel = supabase
-                    .channel('prospect-' + data.prospect_id)
-                    .on('postgres_changes', {
-                        event: 'UPDATE',
-                        schema: 'public',
-                        table: 'sales_prospects',
-                        filter: 'id=eq.' + data.prospect_id
-                    }, (payload) => {
-                        if (payload.new.status === 'completed') {
-                            renderDiagnosis(payload.new);
-                            btn.disabled = false;
-                            btn.classList.remove('opacity-50', 'cursor-not-allowed');
-                            btn.innerHTML = `<i class="fas fa-search"></i> ANALIZAR NEGOCIO`;
-                            statusDiv.classList.add('hidden');
-                            supabase.removeChannel(channel);
-                        }
-                    })
-                    .subscribe();
-
-            } catch (err) {
-                alert('Error: ' + err.message);
-                btn.disabled = false;
-                btn.classList.remove('opacity-50', 'cursor-not-allowed');
-                btn.innerHTML = `<i class="fas fa-search"></i> ANALIZAR NEGOCIO`;
-                statusDiv.classList.add('hidden');
-            }
+        
         });
     }
 
