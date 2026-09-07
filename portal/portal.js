@@ -1019,7 +1019,7 @@ const Portal = (() => {
                     <button onclick="Portal.logout()" class="text-xs text-gray-400 hover:text-white transition uppercase tracking-widest flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/5">
                         <i class="fas fa-sign-out-alt"></i> Cerrar sesión
                     </button>
-                    <button onclick="openHistoryModal()" class="text-xs text-gray-300 hover:text-white transition uppercase tracking-widest flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/5 bg-white/5 border border-white/10">
+                    <button onclick="Portal.openHistoryModal()" class="text-xs text-gray-300 hover:text-white transition uppercase tracking-widest flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/5 bg-white/5 border border-white/10">
                         <i class="fas fa-history text-gold"></i> Historial
                     </button>
                 </div>
@@ -1093,7 +1093,17 @@ const Portal = (() => {
     } // ✅ ERROR CORREGIDO: Solo se cierra la función
 
     function renderDiagnosis(prospect) {
-        const diag = prospect.diagnosis || {};
+        // ---------------------------------------------------------
+        // AJUSTE 2: PARSEO SEGURO DE DATOS (Evita errores de lectura)
+        // ---------------------------------------------------------
+        let diag = {};
+        if (typeof prospect.diagnosis === 'string') {
+            try { diag = JSON.parse(prospect.diagnosis); } 
+            catch (e) { console.error("Error parseando diagnosis:", e); }
+        } else {
+            diag = prospect.diagnosis || {};
+        }
+
         const resultDiv = document.getElementById('intel-result');
         const statusDiv = document.getElementById('intel-status');
         
@@ -1113,12 +1123,20 @@ const Portal = (() => {
             riskIcon = '<i class="fas fa-check-circle"></i>';
         }
 
-        // 2. Renderizar Patrones de Fricción Negativos (Tu diseño original premium)
+        // 2. Renderizar Patrones de Fricción Negativos (Parseo Seguro)
+        let patternsArray = [];
+        if (typeof diag.negative_patterns === 'string') {
+            try { patternsArray = JSON.parse(diag.negative_patterns); } 
+            catch(e) { console.error("Error parseando patrones:", e); }
+        } else if (Array.isArray(diag.negative_patterns)) {
+            patternsArray = diag.negative_patterns;
+        }
+
         let patternsHtml = '<p class="text-gray-500 text-sm italic">No se detectaron patrones críticos.</p>';
-        if (diag.negative_patterns && Array.isArray(diag.negative_patterns) && diag.negative_patterns.length > 0) {
+        if (patternsArray.length > 0) {
             patternsHtml = `
                 <div class="grid grid-cols-1 gap-4">
-                    ${diag.negative_patterns.map(pat => `
+                    ${patternsArray.map(pat => `
                         <div class="bg-white/5 border border-white/10 p-4 rounded-xl hover:bg-white/10 transition-colors">
                             <div class="flex justify-between items-start md:items-center mb-2 flex-col md:flex-row gap-2">
                                 <span class="font-semibold text-white text-sm flex items-center gap-2">
@@ -1137,20 +1155,27 @@ const Portal = (() => {
             `;
         }
 
-        // 3. Renderizar Reseñas Crudas (La nueva función de Voz del Cliente)
-        let reviewsHtml = '<p class="text-sm text-gray-500 italic">No hay reseñas indexadas recientes.</p>';
-        if (prospect.reseñas) {
-            let reviewsArray = typeof prospect.reseñas === 'string' ? JSON.parse(prospect.reseñas) : prospect.reseñas;
-            if (Array.isArray(reviewsArray) && reviewsArray.length > 0) {
-                reviewsHtml = reviewsArray.map((rev, index) => `
-                    <div class="bg-white/5 border-l-2 border-gold/50 p-3 mb-3 rounded-r-lg hover:bg-white/10 transition-colors">
-                        <p class="m-0 text-xs italic text-gray-300 leading-relaxed">"${rev.text || rev}"</p>
-                    </div>
-                `).join('');
-            }
+        // 3. Renderizar Reseñas Crudas (Parseo Seguro)
+        let reviewsArray = [];
+        if (typeof prospect.reseñas === 'string') {
+            try { reviewsArray = JSON.parse(prospect.reseñas); } 
+            catch(e) { console.error("Error parseando reseñas:", e); }
+        } else if (Array.isArray(prospect.reseñas)) {
+            reviewsArray = prospect.reseñas;
         }
 
-        // 4. Inyectar HTML del Dashboard Híbrido (Auditoría + Ventas + PDF)
+        let reviewsHtml = '<p class="text-sm text-gray-500 italic">No hay reseñas indexadas recientes.</p>';
+        if (reviewsArray.length > 0) {
+            reviewsHtml = reviewsArray.map((rev, index) => `
+                <div class="bg-white/5 border-l-2 border-gold/50 p-3 mb-3 rounded-r-lg hover:bg-white/10 transition-colors">
+                    <p class="m-0 text-xs italic text-gray-300 leading-relaxed">"${rev.text || rev}"</p>
+                </div>
+            `).join('');
+        }
+
+        // ---------------------------------------------------------
+        // 4. Inyectar HTML del Dashboard Híbrido (100% TU DISEÑO ORIGINAL)
+        // ---------------------------------------------------------
         resultDiv.innerHTML = `
             <!-- Botón de Exportación -->
             <div class="flex justify-end mb-4 print:hidden mt-8">
@@ -1171,7 +1196,7 @@ const Portal = (() => {
                     
                     <div class="relative z-10">
                         <p class="text-gold text-[10px] uppercase tracking-[3px] font-bold m-0 mb-2">Auditoría de Reputación Digital</p>
-                        <h2 class="text-2xl md:text-3xl font-extrabold text-white m-0">${prospect.business_name}</h2>
+                        <h2 class="text-2xl md:text-3xl font-extrabold text-white m-0">${prospect.business_name || 'Prospecto'}</h2>
                         <p class="text-xs text-gray-400 flex items-center gap-2 mt-2 m-0">
                             <i class="fas fa-map-marker-alt text-violet"></i> ${prospect.city || 'Ubicación no especificada'} • ${new Date().toLocaleDateString('es-MX')}
                         </p>
@@ -1458,7 +1483,7 @@ const Portal = (() => {
             const badgeColor = risk.toUpperCase() === 'CRÍTICO' || risk.toUpperCase() === 'ALTO' ? 'bg-red-500/20 text-red-400 border-red-500/30' : 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
 
             return `
-                <div onclick="loadPastProspect('${p.id}')" class="bg-white/5 hover:bg-white/10 border border-white/10 p-4 rounded-xl cursor-pointer transition-all flex justify-between items-center group">
+                <div onclick="Portal.loadPastProspect('${p.id}')" class="bg-white/5 hover:bg-white/10 border border-white/10 p-4 rounded-xl cursor-pointer transition-all flex justify-between items-center group">
                     <div>
                         <h4 class="text-white font-bold group-hover:text-gold transition-colors">${p.business_name}</h4>
                         <p class="text-xs text-gray-400 mt-1"><i class="fas fa-map-marker-alt text-violet"></i> ${p.city || 'N/D'} • Analizado el ${date}</p>
@@ -1584,7 +1609,9 @@ const Portal = (() => {
         connectGoogle,
         loadInbox,
         analyzeProspect,
-        renderDiagnosis
+        renderDiagnosis,
+        openHistoryModal,
+        loadPastProspect
     };
 
 })();
