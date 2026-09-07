@@ -1093,157 +1093,216 @@ const Portal = (() => {
     } // ✅ ERROR CORREGIDO: Solo se cierra la función
 
     function renderDiagnosis(prospect) {
-        const container = document.getElementById('intel-result'); // Asegúrate que tu div tenga este ID en el HTML
+        const container = document.getElementById('intel-result');
         if (!container) return;
 
-        // 1. Manejo si no hay datos
-        if (!prospect || !prospect.diagnosis) {
-            container.innerHTML = `<div class="p-6 text-center text-gray-500 bg-[#0b0f2a]/80 rounded-xl">No hay un diagnóstico disponible para este prospecto aún.</div>`;
+        if (!prospect || (!prospect.diagnosis && !prospect.reseñas)) {
+            container.innerHTML = `<div class="p-6 text-center text-gray-500 bg-[#0b0f2a]/80 rounded-xl">No hay datos suficientes para este prospecto.</div>`;
             return;
         }
 
-        // 2. Parsear el JSON guardado en la columna de la base de datos
+        // ==========================================
+        // 1. PARSER ANTI-BOMBAS (Para el Diagnóstico)
+        // ==========================================
         let diagnosisData = {};
-        try {
-            diagnosisData = typeof prospect.diagnosis === 'string' 
-                ? JSON.parse(prospect.diagnosis) 
-                : prospect.diagnosis;
-        } catch (error) {
-            container.innerHTML = `<div class="p-4 bg-red-500/20 text-red-400 border border-red-500/30 rounded-lg">Error al leer el diagnóstico. El formato de la IA no es un JSON válido.</div>`;
-            return;
+        let rawTextFallback = "";
+
+        if (typeof prospect.diagnosis === 'string') {
+            try {
+                diagnosisData = JSON.parse(prospect.diagnosis);
+                // Si la base de datos guardó un string plano dentro del JSONB
+                if (typeof diagnosisData === 'string') {
+                    rawTextFallback = diagnosisData;
+                    diagnosisData = {};
+                }
+            } catch (e) {
+                // Falló el parseo porque la IA mandó texto mezclado en vez de JSON
+                rawTextFallback = prospect.diagnosis;
+            }
+        } else if (prospect.diagnosis && typeof prospect.diagnosis === 'object') {
+            diagnosisData = prospect.diagnosis;
         }
 
-        // 3. Extraer Variables Clave del JSON (puedes ajustar los nombres si tu IA los manda distinto)
-        const riskLevel = diagnosisData.risk_level || 'MEDIO';
-        const executiveSummary = diagnosisData.executive_summary || 'Sin resumen disponible.';
-        const negativePatterns = diagnosisData.negative_patterns || [];
-        const salesImpact = diagnosisData.sales_impact || 'Impacto no calculado.';
-        const recommendations = diagnosisData.recommendations || [];
-        const objectionHandling = diagnosisData.objection_handling || [];
+        // Variables por defecto
+        let riskLevel = diagnosisData.risk_level || 'MEDIO';
+        let executiveSummary = diagnosisData.executive_summary || diagnosisData.resumen || '';
+        let negativePatterns = diagnosisData.negative_patterns || diagnosisData.patterns || [];
+        let salesImpact = diagnosisData.sales_impact || '';
+        let playbook = diagnosisData.playbook || '';
 
-        // 4. Variables Generales del Prospecto
-        const businessName = prospect.business_name || prospect.name || 'Prospecto Confidencial';
-        const address = prospect.direccion || prospect.address || prospect.formatted_address || 'Dirección no registrada';
+        // Si la IA mandó texto crudo (el caso de tu error), lo rescatamos:
+        if (rawTextFallback) {
+            // 1. Cazar los fragmentos de JSON dentro del texto (ej. {"pattern":"Comida fría"...})
+            const jsonRegex = /\{.*?\}/g;
+            const matches = rawTextFallback.match(jsonRegex);
+            if (matches) {
+                matches.forEach(match => {
+                    try {
+                        const parsedMatch = JSON.parse(match);
+                        if (parsedMatch.pattern) {
+                            negativePatterns.push(`${parsedMatch.pattern} (${parsedMatch.percentage || ''}): ${parsedMatch.evidence || ''}`);
+                        }
+                    } catch (err) { /* ignorar si un fragmento no sirve */ }
+                });
+                // Quitamos los pedazos de código del texto para que el resumen se lea limpio
+                rawTextFallback = rawTextFallback.replace(jsonRegex, '').trim();
+            }
 
-        // 5. Estilo dinámico de riesgo (Kaezyn Dark Mode)
-        let riskBadgeColor = 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30 print:bg-yellow-100 print:text-yellow-800';
-        const rl = String(riskLevel).toUpperCase();
-        if (rl.includes('CRÍTICO') || rl.includes('ALTO')) {
-            riskBadgeColor = 'bg-red-500/20 text-red-400 border-red-500/30 print:bg-red-100 print:text-red-800';
-        } else if (rl.includes('BAJO')) {
-            riskBadgeColor = 'bg-green-500/20 text-green-400 border-green-500/30 print:bg-green-100 print:text-green-800';
+            // 2. Extraer el riesgo de la primera palabra si existe
+            const firstWord = rawTextFallback.split(' ')[0].toUpperCase();
+            if (['ALTO', 'CRÍTICO', 'MEDIO', 'BAJO'].includes(firstWord)) {
+                riskLevel = firstWord;
+                rawTextFallback = rawTextFallback.substring(firstWord.length).trim();
+            }
+
+            if (!executiveSummary) executiveSummary = rawTextFallback;
         }
 
-        // 6. Generar las listas (Map a Strings de HTML)
+        // ==========================================
+        // 2. PARSEAR RESEÑAS 
+        // ==========================================
+        let reviewsList = prospect.reseñas;
+        if (typeof reviewsList === 'string') {
+            try { reviewsList = JSON.parse(reviewsList); } catch (e) { reviewsList = []; }
+        } else if (!reviewsList || !Array.isArray(reviewsList)) {
+            reviewsList = [];
+        }
+
+        // ==========================================
+        // 3. VARIABLES GENERALES DEL HEADER
+        // ==========================================
+        const businessName = prospect.business_name || 'Prospecto Confidencial';
+        const city = prospect.city || 'Ubicación no especificada';
+        const address = prospect.direccion || prospect.address || 'Dirección no registrada';
+        const rating = prospect.google_rating ?? 'N/A';
+        const reviewCount = prospect.google_review_count ?? 0;
+        const dateStr = prospect.created_at ? new Date(prospect.created_at).toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' }) : '';
+
+        // Estilos dinámicos según el nivel de riesgo
+        let riskBadgeColor = 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30 print:bg-yellow-100 print:text-yellow-800 print:border-yellow-300';
+        if (String(riskLevel).toUpperCase().includes('CRÍTICO') || String(riskLevel).toUpperCase().includes('ALTO')) {
+            riskBadgeColor = 'bg-red-500/20 text-red-400 border-red-500/30 print:bg-red-100 print:text-red-800 print:border-red-300';
+        } else if (String(riskLevel).toUpperCase().includes('BAJO')) {
+            riskBadgeColor = 'bg-green-500/20 text-green-400 border-green-500/30 print:bg-green-100 print:text-green-800 print:border-green-300';
+        }
+
+        // Generar listas dinámicas
         const patternsHtml = negativePatterns.length > 0 
             ? negativePatterns.map(p => `<li class="flex items-start bg-red-500/10 p-3 rounded-md border border-red-500/20 print:bg-red-50 print:border-red-200"><span class="text-red-500 mr-2">▪</span><span class="text-sm text-gray-300 print:text-gray-700">${p}</span></li>`).join('')
-            : `<p class="text-sm text-gray-500">No se detectaron patrones negativos graves.</p>`;
+            : `<p class="text-sm text-gray-500">No se detectaron patrones negativos específicos.</p>`;
 
-        const recommendationsHtml = recommendations.length > 0
-            ? recommendations.map(r => `<div class="bg-green-500/10 border border-green-500/20 print:bg-green-50 print:border-green-200 p-4 rounded-lg shadow-sm"><p class="text-sm text-gray-300 print:text-gray-800 font-medium">${r}</p></div>`).join('')
-            : `<p class="text-sm text-gray-500">Generando recomendaciones estratégicas...</p>`;
-
-        const objectionsHtml = objectionHandling.length > 0
-            ? objectionHandling.map(obj => `
-                <div class="bg-purple-500/10 border border-purple-500/20 print:bg-purple-50 print:border-purple-200 p-4 rounded-lg">
-                    <p class="text-sm font-bold text-purple-400 print:text-purple-800 mb-1">Cliente: "${obj.objection || obj.objecion || '?'}"</p>
-                    <p class="text-sm text-gray-300 print:text-gray-700"><span class="font-semibold text-purple-500 print:text-purple-600">Respuesta: </span>${obj.response || obj.respuesta || '?'}</p>
+        const reviewsHtml = reviewsList.length > 0
+            ? reviewsList.slice(0, 5).map(r => `
+                <div class="bg-[#0b0f2a]/50 print:bg-white print:border-gray-200 p-4 rounded-lg border border-white/5 text-xs text-gray-300 print:text-gray-700 shadow-inner break-inside-avoid mb-3">
+                    <div class="flex justify-between items-center text-gray-400 mb-2">
+                        <span class="font-bold text-white print:text-gray-900 flex items-center gap-2"><i class="fas fa-user-circle text-gray-500"></i> ${r.author_name || r.author || 'Usuario Google'}</span>
+                        <span class="text-yellow-400 text-[10px] tracking-widest">${'★'.repeat(r.rating || 5)}${'☆'.repeat(5 - (r.rating || 5))}</span>
+                    </div>
+                    <p class="italic leading-relaxed">"${r.text || r.texto || r}"</p>
                 </div>
-            `).join('')
-            : `<p class="text-sm text-gray-500">Sin objeciones pre-cargadas.</p>`;
+              `).join('')
+            : `<p class="text-xs text-gray-500 italic mt-2">No hay reseñas indexadas.</p>`;
 
-        // 7. Inyectar al HTML (Vanilla JS)
+        // ==========================================
+        // 4. GENERAR EL HTML 
+        // ==========================================
         container.innerHTML = `
-            <div class="bg-[#0b0f2a]/90 backdrop-blur-md border border-white/10 rounded-2xl p-8 text-white shadow-2xl mt-8 print:bg-white print:text-black print:border-none print:shadow-none" id="diagnosis-report">
+            <div class="bg-[#0b0f2a]/90 backdrop-blur-md border border-white/10 rounded-2xl p-6 text-white space-y-6 shadow-2xl mt-8 print:bg-white print:text-black print:border-none print:shadow-none" id="diagnosis-report">
                 
-                <!-- HEADER DEL REPORTE -->
-                <div class="flex flex-col md:flex-row md:justify-between md:items-start border-b border-white/10 print:border-gray-300 pb-6 mb-6">
-                    <div>
-                        <h1 class="text-xs font-bold text-gold uppercase tracking-widest flex items-center gap-2 mb-2">
-                            <i class="fas fa-search-chart"></i> Reporte de Inteligencia Comercial
-                        </h1>
-                        <h2 class="text-3xl font-extrabold text-white print:text-black mt-1">
-                            ${businessName}
-                        </h2>
-                        <p class="text-gray-400 print:text-gray-500 text-sm mt-2">
-                            <i class="fas fa-map-marker-alt text-violet"></i> ${address}
-                        </p>
+                <!-- HEADER (Exactamente como el diseño anterior) -->
+                <div class="border-b border-white/10 print:border-gray-300 pb-5">
+                    <div class="flex flex-col md:flex-row md:justify-between md:items-start gap-4 mb-3">
+                        <div>
+                            <span class="text-[10px] uppercase tracking-widest text-gold print:text-gray-500 font-semibold flex items-center gap-2">
+                                <i class="fas fa-search-chart"></i> Auditoría de Reputación Digital
+                            </span>
+                            <h2 class="text-2xl font-extrabold text-white print:text-black mt-1">${businessName}</h2>
+                        </div>
+                        <span class="px-4 py-1.5 rounded-full text-xs font-bold border tracking-wider uppercase text-center ${riskBadgeColor}">
+                            Riesgo Operativo: ${riskLevel}
+                        </span>
                     </div>
-                    <div class="mt-4 md:mt-0 px-4 py-2 rounded-full border font-bold text-sm tracking-wider uppercase ${riskBadgeColor}">
-                        Riesgo: ${riskLevel}
+
+                    <div class="text-sm text-gray-300 print:text-gray-600 space-y-2 mt-4">
+                        <div class="flex items-center gap-2 text-gray-400 print:text-gray-600 text-xs">
+                            <i class="fas fa-calendar-alt w-4 text-center"></i>
+                            <span>${city} • Analizado el ${dateStr}</span>
+                        </div>
+                        
+                        <div class="flex items-start gap-2">
+                            <i class="fas fa-map-marker-alt w-4 text-center text-violet print:text-gray-600 mt-1"></i>
+                            <span class="font-medium text-gray-200 print:text-gray-700">${address}</span>
+                        </div>
+
+                        <div class="flex flex-wrap items-center gap-3 pt-2">
+                            <span class="inline-flex items-center gap-1.5 bg-yellow-500/10 print:bg-yellow-50 text-yellow-400 print:text-yellow-700 px-3 py-1.5 rounded-lg text-xs font-bold border border-yellow-500/20 print:border-yellow-200">
+                                <i class="fas fa-star"></i> ${rating} / 5.0
+                            </span>
+                            <span class="inline-flex items-center gap-1.5 bg-white/5 print:bg-gray-100 text-gray-300 print:text-gray-700 px-3 py-1.5 rounded-lg text-xs border border-white/10 print:border-gray-200">
+                                <i class="fab fa-google text-white print:text-blue-600"></i> ${reviewCount} reseñas
+                            </span>
+                        </div>
                     </div>
                 </div>
 
-                <!-- 1. RESUMEN EJECUTIVO -->
-                <div class="mb-8 block break-inside-avoid">
-                    <h3 class="text-lg font-bold text-gray-200 print:text-gray-800 border-l-4 border-blue-500 pl-3 mb-3">
-                        Resumen Ejecutivo
+                <!-- RESUMEN EJECUTIVO (Texto recuperado de la IA) -->
+                ${executiveSummary ? `
+                <div class="space-y-3 break-inside-avoid">
+                    <h3 class="text-xs font-bold uppercase tracking-widest text-blue-400 print:text-blue-600 flex items-center gap-2">
+                        <i class="fas fa-info-circle text-blue-400"></i> Resumen de Situación
                     </h3>
-                    <p class="text-gray-300 print:text-gray-700 leading-relaxed bg-white/5 print:bg-gray-50 p-4 rounded-lg border border-white/5 print:border-gray-200">
-                        ${executiveSummary}
-                    </p>
+                    <div class="bg-white/5 print:bg-gray-50 rounded-xl p-5 border border-white/10 print:border-gray-200 text-sm text-gray-300 print:text-gray-700 leading-relaxed">
+                        <p>${executiveSummary}</p>
+                    </div>
                 </div>
+                ` : ''}
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                    <!-- 2. PUNTOS DE DOLOR -->
-                    <div class="break-inside-avoid">
-                        <h3 class="text-lg font-bold text-red-400 print:text-red-600 border-l-4 border-red-500 pl-3 mb-3">
-                            <i class="fas fa-exclamation-triangle mr-1"></i> Áreas de Alerta
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- PATRONES NEGATIVOS -->
+                    <div class="space-y-3 break-inside-avoid">
+                        <h3 class="text-xs font-bold uppercase tracking-widest text-gray-400 print:text-gray-600 flex items-center gap-2">
+                            <i class="fas fa-brain text-gold"></i> Patrones Detectados
                         </h3>
                         <ul class="space-y-2">
                             ${patternsHtml}
                         </ul>
                     </div>
 
-                    <!-- 3. IMPACTO FINANCIERO -->
-                    <div class="break-inside-avoid">
-                        <h3 class="text-lg font-bold text-orange-400 print:text-orange-600 border-l-4 border-orange-500 pl-3 mb-3">
-                            <i class="fas fa-chart-line mr-1"></i> Impacto Financiero
+                    <!-- LA VOZ DEL CLIENTE (Muestra hasta 5 reseñas) -->
+                    <div class="space-y-3 break-inside-avoid">
+                        <h3 class="text-xs font-bold uppercase tracking-widest text-gray-400 print:text-gray-600 flex items-center gap-2">
+                            <i class="fas fa-comments text-gold"></i> La Voz del Cliente
                         </h3>
-                        <div class="bg-orange-500/10 border border-orange-500/20 print:bg-orange-50 print:border-orange-200 p-4 rounded-lg h-full">
-                            <p class="text-gray-300 print:text-gray-700 text-sm leading-relaxed">${salesImpact}</p>
+                        <div class="bg-white/5 print:bg-transparent print:border-none rounded-xl p-4 border border-white/10">
+                            ${reviewsHtml}
                         </div>
                     </div>
                 </div>
 
-                <!-- 4. RECOMENDACIONES -->
-                <div class="mb-8 break-inside-avoid">
-                    <h3 class="text-lg font-bold text-green-400 print:text-green-600 border-l-4 border-green-500 pl-3 mb-3">
-                        <i class="fas fa-check-circle mr-1"></i> Plan de Acción
+                <!-- KAEZYN PLAYBOOK (Ángulo de venta) -->
+                ${playbook ? `
+                <div class="space-y-3 break-inside-avoid">
+                    <h3 class="text-xs font-bold uppercase tracking-widest text-gold print:text-gray-700 flex items-center gap-2">
+                        <i class="fas fa-crosshairs text-gold"></i> Kaezyn Sales Playbook
                     </h3>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        ${recommendationsHtml}
+                    <div class="bg-gradient-to-br from-gold/10 to-transparent print:bg-none print:bg-gray-50 border border-gold/20 print:border-gray-300 rounded-xl p-5 text-sm text-gray-100 print:text-gray-800 leading-relaxed shadow-[0_0_15px_rgba(212,175,55,0.1)] print:shadow-none whitespace-pre-line">
+                        ${playbook}
                     </div>
                 </div>
+                ` : ''}
 
-                <!-- 5. MANEJO DE OBJECIONES -->
-                <div class="mb-8 break-inside-avoid">
-                    <h3 class="text-lg font-bold text-purple-400 print:text-purple-600 border-l-4 border-purple-500 pl-3 mb-3">
-                        <i class="fas fa-shield-alt mr-1"></i> Manejo de Objeciones
-                    </h3>
-                    <div class="space-y-3">
-                        ${objectionsHtml}
-                    </div>
-                </div>
-
-                <!-- FOOTER & BOTÓN PDF -->
-                <div class="mt-12 pt-6 border-t border-white/10 print:border-gray-300 flex flex-col items-center justify-center">
-                    <p class="text-xs text-gray-500 print:text-black mb-4 print:block hidden">
-                        Generado el ${new Date().toLocaleDateString('es-MX')} - Kaezyn Sales Intelligence
-                    </p>
-                    
+                <!-- BOTÓN DE IMPRESIÓN PDF -->
+                <div class="mt-8 pt-6 border-t border-white/10 print:border-none flex justify-center">
                     <button 
                         onclick="window.print()"
                         class="print:hidden bg-gradient-to-r from-blue-600 to-violet hover:from-blue-700 hover:to-purple-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-transform transform hover:scale-105 flex items-center gap-2"
                     >
-                        <i class="fas fa-file-pdf"></i>
-                        Descargar Reporte PDF
+                        <i class="fas fa-file-pdf"></i> Generar PDF para Cliente
                     </button>
                 </div>
             </div>
         `;
-
-        // Efecto visual: Scroll suave hacia los resultados
+        
         container.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
     
