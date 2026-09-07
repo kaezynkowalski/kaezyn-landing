@@ -1019,6 +1019,9 @@ const Portal = (() => {
                     <button onclick="Portal.logout()" class="text-xs text-gray-400 hover:text-white transition uppercase tracking-widest flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/5">
                         <i class="fas fa-sign-out-alt"></i> Cerrar sesión
                     </button>
+                    <button onclick="openHistoryModal()" class="text-xs text-gray-300 hover:text-white transition uppercase tracking-widest flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/5 bg-white/5 border border-white/10">
+                        <i class="fas fa-history text-gold"></i> Historial
+                    </button>
                 </div>
             </div>
 
@@ -1408,6 +1411,100 @@ const Portal = (() => {
         }
     }
 
+    // 1. Mostrar Modal de Historial
+    async function openHistoryModal() {
+        // Crear o buscar contenedor del modal
+        let modal = document.getElementById('history-modal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'history-modal';
+            modal.className = 'fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4';
+            document.body.appendChild(modal);
+        }
+
+        modal.innerHTML = `
+            <div class="bg-[#0b0f2a] border border-white/20 w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+                <div class="p-5 border-b border-white/10 flex justify-between items-center bg-white/5">
+                    <h3 class="text-white font-bold text-lg flex items-center gap-2">
+                        <i class="fas fa-history text-gold"></i> Historial de Prospectos Analizados
+                    </h3>
+                    <button onclick="document.getElementById('history-modal').remove()" class="text-gray-400 hover:text-white text-lg">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div id="history-list" class="p-6 overflow-y-auto space-y-3 flex-1">
+                    <p class="text-center text-gray-400 py-8"><i class="fas fa-spinner fa-spin text-gold"></i> Cargando historial...</p>
+                </div>
+            </div>
+        `;
+
+        // Consultar Supabase ordenado por fecha descendente
+        const { data: prospects, error } = await supabase
+            .from('sales_prospects')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(50);
+
+        const listContainer = document.getElementById('history-list');
+
+        if (error || !prospects || prospects.length === 0) {
+            listContainer.innerHTML = `<p class="text-center text-gray-500 py-8">No hay análisis previos registrados.</p>`;
+            return;
+        }
+
+        listContainer.innerHTML = prospects.map(p => {
+            const date = new Date(p.created_at).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' });
+            const risk = p.diagnosis?.risk_level || 'MEDIO';
+            const badgeColor = risk.toUpperCase() === 'CRÍTICO' || risk.toUpperCase() === 'ALTO' ? 'bg-red-500/20 text-red-400 border-red-500/30' : 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
+
+            return `
+                <div onclick="loadPastProspect('${p.id}')" class="bg-white/5 hover:bg-white/10 border border-white/10 p-4 rounded-xl cursor-pointer transition-all flex justify-between items-center group">
+                    <div>
+                        <h4 class="text-white font-bold group-hover:text-gold transition-colors">${p.business_name}</h4>
+                        <p class="text-xs text-gray-400 mt-1"><i class="fas fa-map-marker-alt text-violet"></i> ${p.city || 'N/D'} • Analizado el ${date}</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="text-[10px] font-bold px-3 py-1 rounded-full border ${badgeColor}">Riesgo: ${risk}</span>
+                        <i class="fas fa-chevron-right text-gray-500 group-hover:text-white transition-colors"></i>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // 2. Cargar un prospecto pasado al hacer clic
+    async function loadPastProspect(id) {
+        document.getElementById('history-modal')?.remove();
+        const statusDiv = document.getElementById('intel-status');
+        const statusText = document.getElementById('status-text');
+    
+        statusDiv.classList.remove('hidden');
+        if(statusText) statusText.innerText = 'Cargando auditoría guardada...';
+
+        const { data: prospect, error } = await supabase
+            .from('sales_prospects')
+            .select('*')
+            .eq('id', id)
+            .single();
+
+        statusDiv.classList.add('hidden');
+
+        if (error || !prospect) {
+            alert("Error al cargar el prospecto.");
+            return;
+        }
+
+        // Normalizar JSON si viene como texto
+        if (typeof prospect.diagnosis === 'string') {
+            try { prospect.diagnosis = JSON.parse(prospect.diagnosis); } catch (e) {}
+        }
+        if (typeof prospect.reseñas === 'string') {
+            try { prospect.reseñas = JSON.parse(prospect.reseñas); } catch (e) {}
+        }
+
+        renderDiagnosis(prospect);
+    }
+    
     /* ================= SMART INBOX ================= */
     
     function connectGoogle() {
