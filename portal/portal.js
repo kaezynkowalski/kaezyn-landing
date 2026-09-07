@@ -1443,33 +1443,34 @@ const Portal = (() => {
 
     // 2. Cargar un prospecto pasado al hacer clic
     async function loadPastProspect(id) {
-        // Cerrar el modal correctamente
         document.getElementById('history-modal')?.remove();
-        
         const statusDiv = document.getElementById('intel-status');
         const statusText = document.getElementById('status-text');
-        
-        // Mostrar loader
-        if (statusDiv) statusDiv.classList.remove('hidden');
-        if (statusText) statusText.innerText = 'Cargando auditoría guardada...';
+    
+        statusDiv.classList.remove('hidden');
+        if(statusText) statusText.innerText = 'Cargando auditoría guardada...';
 
-        // Consulta a Supabase
         const { data: prospect, error } = await supabase
             .from('sales_prospects')
             .select('*')
             .eq('id', id)
             .single();
 
-        // Ocultar loader
-        if (statusDiv) statusDiv.classList.add('hidden');
+        statusDiv.classList.add('hidden');
 
         if (error || !prospect) {
-            console.error("Error cargando prospecto:", error);
             alert("Error al cargar el prospecto.");
             return;
         }
 
-        // Renderizar resultado
+        // Normalizar JSON si viene como texto
+        if (typeof prospect.diagnosis === 'string') {
+            try { prospect.diagnosis = JSON.parse(prospect.diagnosis); } catch (e) {}
+        }
+        if (typeof prospect.reseñas === 'string') {
+            try { prospect.reseñas = JSON.parse(prospect.reseñas); } catch (e) {}
+        }
+
         renderDiagnosis(prospect);
     }
     
