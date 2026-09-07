@@ -1092,144 +1092,157 @@ const Portal = (() => {
         `;
     } // ✅ ERROR CORREGIDO: Solo se cierra la función
 
-    function renderDiagnosis(data) {
-        const container = document.getElementById('intel-result');
+    function renderDiagnosis(prospect) {
+        const container = document.getElementById('intel-result'); // Asegúrate que tu div tenga este ID en el HTML
         if (!container) return;
 
-        // A. Parsear de forma segura la columna 'diagnosis'
-        let diag = data.diagnosis;
-        if (typeof diag === 'string') {
-            try { diag = JSON.parse(diag); } catch (e) { diag = {}; }
-        } else if (!diag) {
-            diag = {};
+        // 1. Manejo si no hay datos
+        if (!prospect || !prospect.diagnosis) {
+            container.innerHTML = `<div class="p-6 text-center text-gray-500 bg-[#0b0f2a]/80 rounded-xl">No hay un diagnóstico disponible para este prospecto aún.</div>`;
+            return;
         }
 
-        // B. Parsear de forma segura la columna 'reseñas' (Buscamos en data y también dentro de diag por seguridad)
-        let reviewsList = data.reseñas || data.reviews || diag.reseñas || diag.reviews;
-        if (typeof reviewsList === 'string') {
-            try { reviewsList = JSON.parse(reviewsList); } catch (e) { reviewsList = []; }
-        } else if (!reviewsList || !Array.isArray(reviewsList)) {
-            // Si no es un array válido, forzamos a que sea un array vacío para evitar errores
-            reviewsList = [];
+        // 2. Parsear el JSON guardado en la columna de la base de datos
+        let diagnosisData = {};
+        try {
+            diagnosisData = typeof prospect.diagnosis === 'string' 
+                ? JSON.parse(prospect.diagnosis) 
+                : prospect.diagnosis;
+        } catch (error) {
+            container.innerHTML = `<div class="p-4 bg-red-500/20 text-red-400 border border-red-500/30 rounded-lg">Error al leer el diagnóstico. El formato de la IA no es un JSON válido.</div>`;
+            return;
         }
 
-        // C. Extraer Variables Principales (Agregamos más opciones de respaldo/fallback)
-        const businessName = data.business_name || data.name || diag.business_name || 'Negocio Sin Nombre';
-        const city = data.city || diag.city || 'Ubicación no especificada';
-        // Buscamos la dirección en múltiples posibles nombres de variables
-        const address = data.direccion || data.address || data.formatted_address || diag.direccion || diag.address || 'Dirección no registrada';
-        const rating = data.google_rating ?? data.rating ?? diag.rating ?? 'N/A';
-        // Ampliamos la búsqueda para la cantidad de reseñas
-        const reviewCount = data.google_review_count ?? data.reviews_count ?? data.user_ratings_total ?? diag.review_count ?? 0;
-        const dateStr = data.created_at ? new Date(data.created_at).toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' }) : new Date().toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' });
+        // 3. Extraer Variables Clave del JSON (puedes ajustar los nombres si tu IA los manda distinto)
+        const riskLevel = diagnosisData.risk_level || 'MEDIO';
+        const executiveSummary = diagnosisData.executive_summary || 'Sin resumen disponible.';
+        const negativePatterns = diagnosisData.negative_patterns || [];
+        const salesImpact = diagnosisData.sales_impact || 'Impacto no calculado.';
+        const recommendations = diagnosisData.recommendations || [];
+        const objectionHandling = diagnosisData.objection_handling || [];
 
-        // D. Extraer Variables del Diagnóstico (IA)
-        const riskLevel = diag.risk_level || 'ALTO';
-        const patterns = diag.patterns || [];
-        const customerVoice = diag.customer_voice || '';
-        const playbook = diag.playbook || '';
+        // 4. Variables Generales del Prospecto
+        const businessName = prospect.business_name || prospect.name || 'Prospecto Confidencial';
+        const address = prospect.direccion || prospect.address || prospect.formatted_address || 'Dirección no registrada';
 
-        // E. Estilos dinámicos según el nivel de riesgo
-        let riskBadgeColor = 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
-        if (String(riskLevel).toUpperCase() === 'CRÍTICO' || String(riskLevel).toUpperCase() === 'ALTO') {
-            riskBadgeColor = 'bg-red-500/20 text-red-400 border-red-500/30';
-        } else if (String(riskLevel).toUpperCase() === 'BAJO') {
-            riskBadgeColor = 'bg-green-500/20 text-green-400 border-green-500/30';
+        // 5. Estilo dinámico de riesgo (Kaezyn Dark Mode)
+        let riskBadgeColor = 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30 print:bg-yellow-100 print:text-yellow-800';
+        const rl = String(riskLevel).toUpperCase();
+        if (rl.includes('CRÍTICO') || rl.includes('ALTO')) {
+            riskBadgeColor = 'bg-red-500/20 text-red-400 border-red-500/30 print:bg-red-100 print:text-red-800';
+        } else if (rl.includes('BAJO')) {
+            riskBadgeColor = 'bg-green-500/20 text-green-400 border-green-500/30 print:bg-green-100 print:text-green-800';
         }
 
-        // F. Generar el HTML (Estilo Kaezyn Dark Mode)
+        // 6. Generar las listas (Map a Strings de HTML)
+        const patternsHtml = negativePatterns.length > 0 
+            ? negativePatterns.map(p => `<li class="flex items-start bg-red-500/10 p-3 rounded-md border border-red-500/20 print:bg-red-50 print:border-red-200"><span class="text-red-500 mr-2">▪</span><span class="text-sm text-gray-300 print:text-gray-700">${p}</span></li>`).join('')
+            : `<p class="text-sm text-gray-500">No se detectaron patrones negativos graves.</p>`;
+
+        const recommendationsHtml = recommendations.length > 0
+            ? recommendations.map(r => `<div class="bg-green-500/10 border border-green-500/20 print:bg-green-50 print:border-green-200 p-4 rounded-lg shadow-sm"><p class="text-sm text-gray-300 print:text-gray-800 font-medium">${r}</p></div>`).join('')
+            : `<p class="text-sm text-gray-500">Generando recomendaciones estratégicas...</p>`;
+
+        const objectionsHtml = objectionHandling.length > 0
+            ? objectionHandling.map(obj => `
+                <div class="bg-purple-500/10 border border-purple-500/20 print:bg-purple-50 print:border-purple-200 p-4 rounded-lg">
+                    <p class="text-sm font-bold text-purple-400 print:text-purple-800 mb-1">Cliente: "${obj.objection || obj.objecion || '?'}"</p>
+                    <p class="text-sm text-gray-300 print:text-gray-700"><span class="font-semibold text-purple-500 print:text-purple-600">Respuesta: </span>${obj.response || obj.respuesta || '?'}</p>
+                </div>
+            `).join('')
+            : `<p class="text-sm text-gray-500">Sin objeciones pre-cargadas.</p>`;
+
+        // 7. Inyectar al HTML (Vanilla JS)
         container.innerHTML = `
-            <div class="bg-[#0b0f2a]/80 backdrop-blur-md border border-white/10 rounded-2xl p-6 text-white space-y-6 shadow-2xl mt-8">
-            
-                <div class="border-b border-white/10 pb-5">
-                    <div class="flex flex-col md:flex-row md:justify-between md:items-start gap-4 mb-3">
-                        <div>
-                            <span class="text-[10px] uppercase tracking-widest text-gold font-semibold flex items-center gap-2">
-                                <i class="fas fa-search-chart"></i> Auditoría de Reputación Digital
-                            </span>
-                            <h2 class="text-2xl font-extrabold text-white mt-1">${businessName}</h2>
-                        </div>
-                        <span class="px-4 py-1.5 rounded-full text-xs font-bold border tracking-wider uppercase text-center ${riskBadgeColor}">
-                            Riesgo Operativo: ${riskLevel}
-                        </span>
+            <div class="bg-[#0b0f2a]/90 backdrop-blur-md border border-white/10 rounded-2xl p-8 text-white shadow-2xl mt-8 print:bg-white print:text-black print:border-none print:shadow-none" id="diagnosis-report">
+                
+                <!-- HEADER DEL REPORTE -->
+                <div class="flex flex-col md:flex-row md:justify-between md:items-start border-b border-white/10 print:border-gray-300 pb-6 mb-6">
+                    <div>
+                        <h1 class="text-xs font-bold text-gold uppercase tracking-widest flex items-center gap-2 mb-2">
+                            <i class="fas fa-search-chart"></i> Reporte de Inteligencia Comercial
+                        </h1>
+                        <h2 class="text-3xl font-extrabold text-white print:text-black mt-1">
+                            ${businessName}
+                        </h2>
+                        <p class="text-gray-400 print:text-gray-500 text-sm mt-2">
+                            <i class="fas fa-map-marker-alt text-violet"></i> ${address}
+                        </p>
+                    </div>
+                    <div class="mt-4 md:mt-0 px-4 py-2 rounded-full border font-bold text-sm tracking-wider uppercase ${riskBadgeColor}">
+                        Riesgo: ${riskLevel}
+                    </div>
+                </div>
+
+                <!-- 1. RESUMEN EJECUTIVO -->
+                <div class="mb-8 block break-inside-avoid">
+                    <h3 class="text-lg font-bold text-gray-200 print:text-gray-800 border-l-4 border-blue-500 pl-3 mb-3">
+                        Resumen Ejecutivo
+                    </h3>
+                    <p class="text-gray-300 print:text-gray-700 leading-relaxed bg-white/5 print:bg-gray-50 p-4 rounded-lg border border-white/5 print:border-gray-200">
+                        ${executiveSummary}
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                    <!-- 2. PUNTOS DE DOLOR -->
+                    <div class="break-inside-avoid">
+                        <h3 class="text-lg font-bold text-red-400 print:text-red-600 border-l-4 border-red-500 pl-3 mb-3">
+                            <i class="fas fa-exclamation-triangle mr-1"></i> Áreas de Alerta
+                        </h3>
+                        <ul class="space-y-2">
+                            ${patternsHtml}
+                        </ul>
                     </div>
 
-                    <div class="text-sm text-gray-300 space-y-2 mt-4">
-                        <div class="flex items-center gap-2 text-gray-400 text-xs">
-                            <i class="fas fa-calendar-alt w-4 text-center"></i>
-                            <span>${city} • Analizado el ${dateStr}</span>
+                    <!-- 3. IMPACTO FINANCIERO -->
+                    <div class="break-inside-avoid">
+                        <h3 class="text-lg font-bold text-orange-400 print:text-orange-600 border-l-4 border-orange-500 pl-3 mb-3">
+                            <i class="fas fa-chart-line mr-1"></i> Impacto Financiero
+                        </h3>
+                        <div class="bg-orange-500/10 border border-orange-500/20 print:bg-orange-50 print:border-orange-200 p-4 rounded-lg h-full">
+                            <p class="text-gray-300 print:text-gray-700 text-sm leading-relaxed">${salesImpact}</p>
                         </div>
+                    </div>
+                </div>
+
+                <!-- 4. RECOMENDACIONES -->
+                <div class="mb-8 break-inside-avoid">
+                    <h3 class="text-lg font-bold text-green-400 print:text-green-600 border-l-4 border-green-500 pl-3 mb-3">
+                        <i class="fas fa-check-circle mr-1"></i> Plan de Acción
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        ${recommendationsHtml}
+                    </div>
+                </div>
+
+                <!-- 5. MANEJO DE OBJECIONES -->
+                <div class="mb-8 break-inside-avoid">
+                    <h3 class="text-lg font-bold text-purple-400 print:text-purple-600 border-l-4 border-purple-500 pl-3 mb-3">
+                        <i class="fas fa-shield-alt mr-1"></i> Manejo de Objeciones
+                    </h3>
+                    <div class="space-y-3">
+                        ${objectionsHtml}
+                    </div>
+                </div>
+
+                <!-- FOOTER & BOTÓN PDF -->
+                <div class="mt-12 pt-6 border-t border-white/10 print:border-gray-300 flex flex-col items-center justify-center">
+                    <p class="text-xs text-gray-500 print:text-black mb-4 print:block hidden">
+                        Generado el ${new Date().toLocaleDateString('es-MX')} - Kaezyn Sales Intelligence
+                    </p>
                     
-                        <div class="flex items-start gap-2">
-                            <i class="fas fa-map-marker-alt w-4 text-center text-violet mt-1"></i>
-                            <span class="font-medium text-gray-200">${address}</span>
-                        </div>
-
-                        <div class="flex flex-wrap items-center gap-3 pt-2">
-                            <span class="inline-flex items-center gap-1.5 bg-yellow-500/10 text-yellow-400 px-3 py-1.5 rounded-lg text-xs font-bold border border-yellow-500/20">
-                                <i class="fas fa-star"></i> ${rating} / 5.0
-                            </span>
-                            <span class="inline-flex items-center gap-1.5 bg-white/5 text-gray-300 px-3 py-1.5 rounded-lg text-xs border border-white/10">
-                                <i class="fab fa-google text-white"></i> ${reviewCount} reseñas
-                            </span>
-                        </div>
-                    </div>
+                    <button 
+                        onclick="window.print()"
+                        class="print:hidden bg-gradient-to-r from-blue-600 to-violet hover:from-blue-700 hover:to-purple-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-transform transform hover:scale-105 flex items-center gap-2"
+                    >
+                        <i class="fas fa-file-pdf"></i>
+                        Descargar Reporte PDF
+                    </button>
                 </div>
-
-                <div class="space-y-3">
-                    <h3 class="text-xs font-bold uppercase tracking-widest text-gray-400 flex items-center gap-2">
-                        <i class="fas fa-brain text-gold"></i> Patrones Detectados
-                    </h3>
-                    <div class="bg-white/5 rounded-xl p-5 border border-white/10 text-sm text-gray-300">
-                        ${Array.isArray(patterns) && patterns.length > 0 
-                            ? `<ul class="list-disc list-inside space-y-2 marker:text-gold">${patterns.map(p => `<li>${p}</li>`).join('')}</ul>`
-                            : (typeof patterns === 'string' && patterns ? `<p>${patterns}</p>` : '<p class="text-gray-500 italic">No se detectaron patrones específicos en las reseñas.</p>')}
-                    </div>
-                </div>
-
-                <div class="space-y-3">
-                    <h3 class="text-xs font-bold uppercase tracking-widest text-gray-400 flex items-center gap-2">
-                        <i class="fas fa-comments text-gold"></i> La Voz del Cliente
-                    </h3>
-                    <div class="bg-white/5 rounded-xl p-5 border border-white/10 text-sm space-y-4">
-                        ${customerVoice ? `<div class="italic text-gray-200 bg-black/30 p-4 rounded-lg border border-white/5 border-l-2 border-l-gold">"${customerVoice}"</div>` : ''}
-                    
-                        ${Array.isArray(reviewsList) && reviewsList.length > 0 ? `
-                            <div class="space-y-3 mt-4">
-                                <p class="text-[10px] font-semibold text-gray-500 uppercase tracking-widest">Reseñas Relevantes Indexadas:</p>
-                                <div class="grid gap-3">
-                                    ${reviewsList.map(r => `
-                                        <div class="bg-[#0b0f2a]/50 p-4 rounded-lg border border-white/5 text-xs text-gray-300 shadow-inner">
-                                            <div class="flex justify-between items-center text-gray-400 mb-2">
-                                                <span class="font-bold text-white flex items-center gap-2">
-                                                    <i class="fas fa-user-circle text-gray-500"></i> 
-                                                    ${r.author_name || r.author || 'Usuario Google'}
-                                                </span>
-                                                <span class="text-yellow-400 text-[10px] tracking-widest">
-                                                    ${'★'.repeat(r.rating || 5)}${'☆'.repeat(5 - (r.rating || 5))}
-                                                </span>
-                                            </div>
-                                            <p class="italic leading-relaxed">"${r.text || r.texto || r}"</p>
-                                        </div>
-                                    `).join('')}
-                                </div>
-                            </div>
-                        ` : '<p class="text-xs text-gray-500 italic mt-2">No hay suficientes reseñas indexadas para mostrar en detalle.</p>'}
-                    </div>
-                </div>
-
-                <div class="space-y-3">
-                    <h3 class="text-xs font-bold uppercase tracking-widest text-gold flex items-center gap-2">
-                        <i class="fas fa-crosshairs text-gold"></i> Kaezyn Sales Playbook
-                    </h3>
-                    <div class="bg-gradient-to-br from-gold/10 to-transparent border border-gold/20 rounded-xl p-5 text-sm text-gray-100 leading-relaxed whitespace-pre-line shadow-[0_0_15px_rgba(212,175,55,0.1)]">
-                        ${playbook || 'Generando ángulo de venta...'}
-                    </div>
-                </div>
-
             </div>
         `;
-    
+
         // Efecto visual: Scroll suave hacia los resultados
         container.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
