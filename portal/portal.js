@@ -1094,17 +1094,18 @@ const Portal = (() => {
 
     function renderDiagnosis(prospect) {
         const diag = prospect.diagnosis || {};
+        const data = prospect; // Solución al error de 'data' no definido
         const resultDiv = document.getElementById('intel-result');
         const statusDiv = document.getElementById('intel-status');
-        
+    
         // Ocultar el loader
         if (statusDiv) statusDiv.classList.add('hidden');
 
         // 1. Lógica de Nivel de Riesgo (Colores dinámicos)
-        const riskLevel = diag.risk_level?.toUpperCase() || 'ALTO';
+        const riskLevel = (diag.risk_level || 'ALTO').toUpperCase();
         let riskBadgeStyle = 'bg-red-500/20 text-red-400 border-red-500/30 shadow-[0_0_15px_rgba(239,68,68,0.2)]';
         let riskIcon = '<i class="fas fa-exclamation-triangle"></i>';
-        
+    
         if (riskLevel === 'MEDIO') {
             riskBadgeStyle = 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30 shadow-[0_0_15px_rgba(234,179,8,0.2)]';
             riskIcon = '<i class="fas fa-exclamation-circle"></i>';
@@ -1119,21 +1120,20 @@ const Portal = (() => {
         const address = data.direccion || data.address || 'Dirección no registrada';
         const rating = data.google_rating ?? 'N/A';
         const reviewCount = data.google_review_count ?? 0;
-        const dateStr = data.created_at ? new Date(data.created_at).toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' }) : '';
+        const dateStr = data.created_at ? new Date(data.created_at).toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' }) : new Date().toLocaleDateString('es-MX');
 
-        // D. Extraer Variables del Diagnóstico (IA)
-        const riskLevel = diag.risk_level || 'ALTO';
+        // Extraer Variables del Diagnóstico (IA)
         const patterns = diag.patterns || [];
         const customerVoice = diag.customer_voice || '';
         const playbook = diag.playbook || '';
 
-        // 2. Renderizar Patrones de Fricción Negativos (Tu diseño original premium)
+        // 2. Renderizar Patrones de Fricción Negativos (Diseño premium conservado)
         let patternsHtml = '<p class="text-gray-500 text-sm italic">No se detectaron patrones críticos.</p>';
         if (diag.negative_patterns && Array.isArray(diag.negative_patterns) && diag.negative_patterns.length > 0) {
             patternsHtml = `
                 <div class="grid grid-cols-1 gap-4">
                     ${diag.negative_patterns.map(pat => `
-                        <div class="bg-white/5 border border-white/10 p-4 rounded-xl hover:bg-white/10 transition-colors">
+                        <div class="bg-white/5 border border-white/10 p-4 rounded-xl hover:bg-white/10 transition-colors avoid-break">
                             <div class="flex justify-between items-start md:items-center mb-2 flex-col md:flex-row gap-2">
                                 <span class="font-semibold text-white text-sm flex items-center gap-2">
                                     <i class="fas fa-bullseye text-red-400"></i> ${pat.pattern || ''}
@@ -1151,21 +1151,59 @@ const Portal = (() => {
             `;
         }
 
-        // 3. Renderizar Reseñas Crudas (La nueva función de Voz del Cliente)
+        // 3. Renderizar Reseñas Crudas (Voz del Cliente robusta con Try-Catch)
         let reviewsHtml = '<p class="text-sm text-gray-500 italic">No hay reseñas indexadas recientes.</p>';
         if (prospect.reseñas) {
-            let reviewsArray = typeof prospect.reseñas === 'string' ? JSON.parse(prospect.reseñas) : prospect.reseñas;
-            if (Array.isArray(reviewsArray) && reviewsArray.length > 0) {
-                reviewsHtml = reviewsArray.map((rev, index) => `
-                    <div class="bg-white/5 border-l-2 border-gold/50 p-3 mb-3 rounded-r-lg hover:bg-white/10 transition-colors">
-                        <p class="m-0 text-xs italic text-gray-300 leading-relaxed">"${rev.text || rev}"</p>
-                    </div>
-                `).join('');
+            try {
+                let reviewsArray = typeof prospect.reseñas === 'string' ? JSON.parse(prospect.reseñas) : prospect.reseñas;
+                if (Array.isArray(reviewsArray) && reviewsArray.length > 0) {
+                    reviewsHtml = reviewsArray.map((rev) => `
+                        <div class="bg-white/5 border-l-2 border-gold/50 p-3 mb-3 rounded-r-lg hover:bg-white/10 transition-colors avoid-break">
+                            <p class="m-0 text-xs italic text-gray-300 leading-relaxed">"${rev.text || rev}"</p>
+                        </div>
+                    `).join('');
+                }
+            } catch(e) {
+                console.error("Error al parsear reseñas para el reporte:", e);
             }
         }
 
-        // 4. Inyectar HTML del Dashboard Híbrido (Auditoría + Ventas + PDF)
+        // 4. Inyectar HTML del Dashboard Híbrido (Auditoría + Ventas + PDF Setup)
         resultDiv.innerHTML = `
+            <!-- ESTILOS EXCLUSIVOS PARA LA IMPRESIÓN (PDF) -->
+            <style>
+                @media print {
+                    /* Oculta toda la app, excepto el reporte */
+                    body * { visibility: hidden; }
+                    #pdf-report, #pdf-report * { visibility: visible; }
+                
+                    /* Posiciona el reporte en la esquina superior */
+                    #pdf-report { 
+                        position: absolute; 
+                        left: 0; 
+                        top: 0; 
+                        width: 100%; 
+                        box-shadow: none !important; 
+                        border: none !important; 
+                    }
+                
+                    /* Fuerza la impresión de colores y fondos en navegadores modernos */
+                    * {
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                    }
+                
+                    /* Evita que un bloque se corte por la mitad en el PDF */
+                    .avoid-break {
+                        page-break-inside: avoid;
+                        break-inside: avoid;
+                    }
+                
+                    /* Ocultar elementos de UI no deseados */
+                    .print\\:hidden { display: none !important; }
+                }
+            </style>
+
             <!-- Botón de Exportación -->
             <div class="flex justify-end mb-4 print:hidden mt-8">
                 <button onclick="window.print()" class="px-5 py-2.5 bg-gradient-to-r from-red-500/20 to-red-600/10 hover:from-red-500/30 hover:to-red-600/20 text-white rounded-lg text-sm font-bold flex items-center gap-2 transition-all border border-red-500/30 shadow-lg">
@@ -1175,53 +1213,33 @@ const Portal = (() => {
 
             <!-- CONTENEDOR PRINCIPAL DEL REPORTE -->
             <div id="pdf-report" class="bg-[#0b0f2a] rounded-2xl overflow-hidden shadow-2xl max-w-4xl mx-auto font-sans text-gray-200 border border-white/10">
-                
+            
                 <!-- Header del Diagnóstico -->
-                <div class="bg-gradient-to-br from-[#0b0f2a] to-[#12183b] p-6 md:p-8 border-b-4 border-gold flex flex-col md:flex-row justify-between items-start md:items-center gap-4 relative overflow-hidden">
-                    <!-- Logo / Marca de agua sutil de fondo -->
+                <div class="bg-gradient-to-br from-[#0b0f2a] to-[#12183b] p-6 md:p-8 border-b-4 border-gold flex flex-col md:flex-row justify-between items-start md:items-center gap-4 relative overflow-hidden avoid-break">
+                    <!-- Marca de agua sutil de fondo -->
                     <div class="absolute -right-10 -top-10 opacity-5 pointer-events-none">
                         <i class="fas fa-chart-line text-[150px] text-white"></i>
                     </div>
-                    
+                
                     <div class="relative z-10">
                         <p class="text-gold text-[10px] uppercase tracking-[3px] font-bold m-0 mb-2">Auditoría de Reputación Digital</p>
-                        <h2 class="text-2xl md:text-3xl font-extrabold text-white m-0">${prospect.business_name}</h2>
+                        <h2 class="text-2xl md:text-3xl font-extrabold text-white m-0">${businessName}</h2>
                         <p class="text-xs text-gray-400 flex items-center gap-2 mt-2 m-0">
-                            <i class="fas fa-map-marker-alt text-violet"></i> ${prospect.city || 'Ubicación no especificada'} • ${new Date().toLocaleDateString('es-MX')}
+                            <i class="fas fa-map-marker-alt text-violet"></i> ${city} • Analizado el ${dateStr}
                         </p>
                     </div>
-                    
+                
                     <div class="relative z-10 px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-wider border flex items-center gap-2 ${riskBadgeStyle} backdrop-blur-sm">
                         ${riskIcon}
                         Riesgo Operativo: ${riskLevel}
                     </div>
-                    <div class="text-sm text-gray-300 space-y-2 mt-4">
-                        <div class="flex items-center gap-2 text-gray-400 text-xs">
-                            <i class="fas fa-calendar-alt w-4 text-center"></i>
-                            <span>${city} • Analizado el ${dateStr}</span>
-                        </div>
-                        
-                        <div class="flex items-start gap-2">
-                            <i class="fas fa-map-marker-alt w-4 text-center text-violet mt-1"></i>
-                            <span class="font-medium text-gray-200">${address}</span>
-                        </div>
-
-                        <div class="flex flex-wrap items-center gap-3 pt-2">
-                            <span class="inline-flex items-center gap-1.5 bg-yellow-500/10 text-yellow-400 px-3 py-1.5 rounded-lg text-xs font-bold border border-yellow-500/20">
-                                <i class="fas fa-star"></i> ${rating} / 5.0
-                            </span>
-                            <span class="inline-flex items-center gap-1.5 bg-white/5 text-gray-300 px-3 py-1.5 rounded-lg text-xs border border-white/10">
-                                <i class="fab fa-google text-white"></i> ${reviewCount} reseñas
-                            </span>
-                        </div>
-                    </div>
                 </div>
-                
+            
                 <div class="p-6 md:p-8 space-y-8 bg-[#0b0f2a]">
-                    
+                
                     <!-- Resumen / Titular IA -->
                     ${diag.headline ? `
-                    <div class="bg-red-500/10 border-l-4 border-red-500 p-5 rounded-r-xl shadow-lg">
+                    <div class="bg-red-500/10 border-l-4 border-red-500 p-5 rounded-r-xl shadow-lg avoid-break">
                         <h3 class="font-bold text-red-400 text-lg md:text-xl mb-2 flex items-center gap-2">
                             <i class="fas fa-fire-alt"></i> ${diag.headline}
                         </h3>
@@ -1231,10 +1249,10 @@ const Portal = (() => {
 
                     <!-- Zona de Evidencia Dividida (Patrones vs Reseñas Reales) -->
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        
+                    
                         <!-- Columna Izquierda: Patrones -->
                         <div>
-                            <h4 class="font-bold text-light-gray mb-4 text-xs md:text-sm uppercase tracking-widest flex items-center gap-2">
+                            <h4 class="font-bold text-gray-400 mb-4 text-xs md:text-sm uppercase tracking-widest flex items-center gap-2">
                                 <i class="fas fa-chart-line text-violet"></i> Patrones Detectados por IA
                             </h4>
                             ${patternsHtml}
@@ -1242,7 +1260,7 @@ const Portal = (() => {
 
                         <!-- Columna Derecha: Evidencia (Reseñas) -->
                         <div>
-                            <h4 class="font-bold text-light-gray mb-4 text-xs md:text-sm uppercase tracking-widest flex items-center gap-2">
+                            <h4 class="font-bold text-gray-400 mb-4 text-xs md:text-sm uppercase tracking-widest flex items-center gap-2">
                                 <i class="fas fa-quote-left text-gold"></i> La Voz del Cliente
                             </h4>
                             <div class="bg-black/20 p-4 rounded-xl border border-white/5 h-full">
@@ -1253,16 +1271,16 @@ const Portal = (() => {
                     </div>
 
                     <!-- KAEZYN PLAYBOOK: Estrategia de Cierre -->
-                    <div class="border-t border-white/10 pt-8 mt-4 page-break-inside-avoid">
+                    <div class="border-t border-white/10 pt-8 mt-4 avoid-break">
                         <h4 class="font-bold text-white text-sm mb-4 flex items-center gap-2 uppercase tracking-widest">
                             <i class="fas fa-chess-knight text-gold"></i> Kaezyn Sales Playbook
                         </h4>
-                        
+                    
                         <div class="grid grid-cols-1 gap-4">
-                            
+                        
                             <!-- Script de Apertura -->
                             ${diag.sales_hook ? `
-                            <div class="bg-night-blue border border-gold/30 p-6 rounded-xl relative overflow-hidden shadow-lg shadow-gold/5">
+                            <div class="bg-night-blue border border-gold/30 p-6 rounded-xl relative overflow-hidden shadow-lg shadow-gold/5 avoid-break">
                                 <span class="text-[10px] font-bold tracking-widest text-gold uppercase flex items-center gap-2 mb-3">
                                     <i class="fas fa-comment-dots"></i> Script de Apertura Sugerido
                                 </span>
@@ -1274,7 +1292,7 @@ const Portal = (() => {
 
                             <!-- Posicionamiento de Venta -->
                             ${diag.kaezyn_opportunity ? `
-                            <div class="bg-violet/10 border border-violet/30 p-5 rounded-xl">
+                            <div class="bg-violet/10 border border-violet/30 p-5 rounded-xl avoid-break">
                                 <span class="text-[10px] font-bold tracking-widest text-violet uppercase flex items-center gap-2 mb-2">
                                     <i class="fas fa-lightbulb"></i> Ángulo de Venta
                                 </span>
@@ -1283,22 +1301,22 @@ const Portal = (() => {
                                 </p>
                             </div>
                             ` : ''}
-                            
+                        
                         </div>
                     </div>
 
                 </div>
-                
+            
                 <!-- Footer PDF -->
-                <div class="bg-black/40 p-4 border-t border-white/5 text-center flex justify-between items-center px-8">
-                    <img src="/assets/KAEZYN LOGO.png" class="h-4 opacity-50 filter grayscale invert" alt="Kaezyn">
+                <div class="bg-black/40 p-4 border-t border-white/5 text-center flex justify-between items-center px-8 avoid-break">
+                    <img src="/assets/KAEZYN LOGO.png" class="h-4 opacity-50 filter grayscale invert" alt="Kaezyn" onerror="this.style.display='none'">
                     <p class="text-[9px] text-gray-600 uppercase tracking-widest m-0">Documento Confidencial • Propiedad de Kaezyn</p>
                 </div>
 
             </div>
         `;
     }
-
+    
     async function analyzeProspect(event) {
         if (event) event.preventDefault(); // Evita recargas de página
         
