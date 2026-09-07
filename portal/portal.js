@@ -1092,202 +1092,138 @@ const Portal = (() => {
         `;
     } // ✅ ERROR CORREGIDO: Solo se cierra la función
 
-    function renderDiagnosis(prospect) {
-        // ---------------------------------------------------------
-        // AJUSTE 2: PARSEO SEGURO DE DATOS (Evita errores de lectura)
-        // ---------------------------------------------------------
-        let diag = {};
-        if (typeof prospect.diagnosis === 'string') {
-            try { diag = JSON.parse(prospect.diagnosis); } 
-            catch (e) { console.error("Error parseando diagnosis:", e); }
-        } else {
-            diag = prospect.diagnosis || {};
+    function renderDiagnosis(data) {
+        const container = document.getElementById('intel-result');
+        if (!container) return;
+
+        // A. Parsear de forma segura la columna 'diagnosis'
+        let diag = data.diagnosis;
+        if (typeof diag === 'string') {
+            try { diag = JSON.parse(diag); } catch (e) { diag = {}; }
+        } else if (!diag) {
+            diag = {};
         }
 
-        const resultDiv = document.getElementById('intel-result');
-        const statusDiv = document.getElementById('intel-status');
-        
-        // Ocultar el loader
-        if (statusDiv) statusDiv.classList.add('hidden');
-
-        // 1. Lógica de Nivel de Riesgo (Colores dinámicos)
-        const riskLevel = diag.risk_level?.toUpperCase() || 'ALTO';
-        let riskBadgeStyle = 'bg-red-500/20 text-red-400 border-red-500/30 shadow-[0_0_15px_rgba(239,68,68,0.2)]';
-        let riskIcon = '<i class="fas fa-exclamation-triangle"></i>';
-        
-        if (riskLevel === 'MEDIO') {
-            riskBadgeStyle = 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30 shadow-[0_0_15px_rgba(234,179,8,0.2)]';
-            riskIcon = '<i class="fas fa-exclamation-circle"></i>';
-        } else if (riskLevel === 'BAJO') {
-            riskBadgeStyle = 'bg-green-500/20 text-green-400 border-green-500/30 shadow-[0_0_15px_rgba(34,197,94,0.2)]';
-            riskIcon = '<i class="fas fa-check-circle"></i>';
+        // B. Parsear de forma segura la columna 'reseñas'
+        let reviewsList = data.reseñas || data.reviews;
+        if (typeof reviewsList === 'string') {
+            try { reviewsList = JSON.parse(reviewsList); } catch (e) { reviewsList = []; }
+        } else if (!reviewsList) {
+            reviewsList = [];
         }
 
-        // 2. Renderizar Patrones de Fricción Negativos (Parseo Seguro)
-        let patternsArray = [];
-        if (typeof diag.negative_patterns === 'string') {
-            try { patternsArray = JSON.parse(diag.negative_patterns); } 
-            catch(e) { console.error("Error parseando patrones:", e); }
-        } else if (Array.isArray(diag.negative_patterns)) {
-            patternsArray = diag.negative_patterns;
+        // C. Extraer Variables Principales
+        const businessName = data.business_name || 'Negocio Sin Nombre';
+        const city = data.city || 'Ubicación no especificada';
+        const address = data.direccion || data.address || 'Dirección no registrada';
+        const rating = data.google_rating ?? 'N/A';
+        const reviewCount = data.google_review_count ?? 0;
+        const dateStr = data.created_at ? new Date(data.created_at).toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' }) : '';
+
+        // D. Extraer Variables del Diagnóstico (IA)
+        const riskLevel = diag.risk_level || 'ALTO';
+        const patterns = diag.patterns || [];
+        const customerVoice = diag.customer_voice || '';
+        const playbook = diag.playbook || '';
+
+        // E. Estilos dinámicos según el nivel de riesgo
+        let riskBadgeColor = 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
+        if (String(riskLevel).toUpperCase() === 'CRÍTICO' || String(riskLevel).toUpperCase() === 'ALTO') {
+            riskBadgeColor = 'bg-red-500/20 text-red-400 border-red-500/30';
+        } else if (String(riskLevel).toUpperCase() === 'BAJO') {
+            riskBadgeColor = 'bg-green-500/20 text-green-400 border-green-500/30';
         }
 
-        let patternsHtml = '<p class="text-gray-500 text-sm italic">No se detectaron patrones críticos.</p>';
-        if (patternsArray.length > 0) {
-            patternsHtml = `
-                <div class="grid grid-cols-1 gap-4">
-                    ${patternsArray.map(pat => `
-                        <div class="bg-white/5 border border-white/10 p-4 rounded-xl hover:bg-white/10 transition-colors">
-                            <div class="flex justify-between items-start md:items-center mb-2 flex-col md:flex-row gap-2">
-                                <span class="font-semibold text-white text-sm flex items-center gap-2">
-                                    <i class="fas fa-bullseye text-red-400"></i> ${pat.pattern || ''}
-                                </span>
-                                <span class="text-xs font-bold bg-red-500/20 border border-red-500/30 text-red-400 px-3 py-1 rounded-full whitespace-nowrap">
-                                    Impacto: ${pat.percentage || ''}
-                                </span>
-                            </div>
-                            <p class="text-xs text-gray-400 italic bg-black/30 p-3 rounded-lg border border-white/5 m-0 mt-2">
-                                "${pat.evidence || ''}"
-                            </p>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-        }
-
-        // 3. Renderizar Reseñas Crudas (Parseo Seguro)
-        let reviewsArray = [];
-        if (typeof prospect.reseñas === 'string') {
-            try { reviewsArray = JSON.parse(prospect.reseñas); } 
-            catch(e) { console.error("Error parseando reseñas:", e); }
-        } else if (Array.isArray(prospect.reseñas)) {
-            reviewsArray = prospect.reseñas;
-        }
-
-        let reviewsHtml = '<p class="text-sm text-gray-500 italic">No hay reseñas indexadas recientes.</p>';
-        if (reviewsArray.length > 0) {
-            reviewsHtml = reviewsArray.map((rev, index) => `
-                <div class="bg-white/5 border-l-2 border-gold/50 p-3 mb-3 rounded-r-lg hover:bg-white/10 transition-colors">
-                    <p class="m-0 text-xs italic text-gray-300 leading-relaxed">"${rev.text || rev}"</p>
-                </div>
-            `).join('');
-        }
-
-        // ---------------------------------------------------------
-        // 4. Inyectar HTML del Dashboard Híbrido (100% TU DISEÑO ORIGINAL)
-        // ---------------------------------------------------------
-        resultDiv.innerHTML = `
-            <!-- Botón de Exportación -->
-            <div class="flex justify-end mb-4 print:hidden mt-8">
-                <button onclick="window.print()" class="px-5 py-2.5 bg-gradient-to-r from-red-500/20 to-red-600/10 hover:from-red-500/30 hover:to-red-600/20 text-white rounded-lg text-sm font-bold flex items-center gap-2 transition-all border border-red-500/30 shadow-lg">
-                    <i class="fas fa-file-pdf text-red-400"></i> Generar PDF para Cliente
-                </button>
-            </div>
-
-            <!-- CONTENEDOR PRINCIPAL DEL REPORTE -->
-            <div id="pdf-report" class="bg-[#0b0f2a] rounded-2xl overflow-hidden shadow-2xl max-w-4xl mx-auto font-sans text-gray-200 border border-white/10">
+        // F. Generar el HTML (Estilo Kaezyn Dark Mode)
+        container.innerHTML = `
+            <div class="bg-[#0b0f2a]/80 backdrop-blur-md border border-white/10 rounded-2xl p-6 text-white space-y-6 shadow-2xl mt-8">
                 
-                <!-- Header del Diagnóstico -->
-                <div class="bg-gradient-to-br from-[#0b0f2a] to-[#12183b] p-6 md:p-8 border-b-4 border-gold flex flex-col md:flex-row justify-between items-start md:items-center gap-4 relative overflow-hidden">
-                    <!-- Logo / Marca de agua sutil de fondo -->
-                    <div class="absolute -right-10 -top-10 opacity-5 pointer-events-none">
-                        <i class="fas fa-chart-line text-[150px] text-white"></i>
+                <div class="border-b border-white/10 pb-5">
+                    <div class="flex flex-col md:flex-row md:justify-between md:items-start gap-4 mb-3">
+                        <div>
+                            <span class="text-[10px] uppercase tracking-widest text-gold font-semibold flex items-center gap-2">
+                                <i class="fas fa-search-chart"></i> Auditoría de Reputación Digital
+                            </span>
+                            <h2 class="text-2xl font-extrabold text-white mt-1">${businessName}</h2>
+                        </div>
+                        <span class="px-4 py-1.5 rounded-full text-xs font-bold border tracking-wider uppercase text-center ${riskBadgeColor}">
+                            Riesgo Operativo: ${riskLevel}
+                        </span>
                     </div>
-                    
-                    <div class="relative z-10">
-                        <p class="text-gold text-[10px] uppercase tracking-[3px] font-bold m-0 mb-2">Auditoría de Reputación Digital</p>
-                        <h2 class="text-2xl md:text-3xl font-extrabold text-white m-0">${prospect.business_name || 'Prospecto'}</h2>
-                        <p class="text-xs text-gray-400 flex items-center gap-2 mt-2 m-0">
-                            <i class="fas fa-map-marker-alt text-violet"></i> ${prospect.city || 'Ubicación no especificada'} • ${new Date().toLocaleDateString('es-MX')}
-                        </p>
-                    </div>
-                    
-                    <div class="relative z-10 px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-wider border flex items-center gap-2 ${riskBadgeStyle} backdrop-blur-sm">
-                        ${riskIcon}
-                        Riesgo Operativo: ${riskLevel}
+
+                    <div class="text-sm text-gray-300 space-y-2 mt-4">
+                        <div class="flex items-center gap-2 text-gray-400 text-xs">
+                            <i class="fas fa-calendar-alt w-4 text-center"></i>
+                            <span>${city} • Analizado el ${dateStr}</span>
+                        </div>
+                        
+                        <div class="flex items-start gap-2">
+                            <i class="fas fa-map-marker-alt w-4 text-center text-violet mt-1"></i>
+                            <span class="font-medium text-gray-200">${address}</span>
+                        </div>
+
+                        <div class="flex flex-wrap items-center gap-3 pt-2">
+                            <span class="inline-flex items-center gap-1.5 bg-yellow-500/10 text-yellow-400 px-3 py-1.5 rounded-lg text-xs font-bold border border-yellow-500/20">
+                                <i class="fas fa-star"></i> ${rating} / 5.0
+                            </span>
+                            <span class="inline-flex items-center gap-1.5 bg-white/5 text-gray-300 px-3 py-1.5 rounded-lg text-xs border border-white/10">
+                                <i class="fab fa-google text-white"></i> ${reviewCount} reseñas
+                            </span>
+                        </div>
                     </div>
                 </div>
 
-                <div class="p-6 md:p-8 space-y-8 bg-[#0b0f2a]">
-                    
-                    <!-- Resumen / Titular IA -->
-                    ${diag.headline ? `
-                    <div class="bg-red-500/10 border-l-4 border-red-500 p-5 rounded-r-xl shadow-lg">
-                        <h3 class="font-bold text-red-400 text-lg md:text-xl mb-2 flex items-center gap-2">
-                            <i class="fas fa-fire-alt"></i> ${diag.headline}
-                        </h3>
-                        <p class="text-sm text-gray-300 leading-relaxed m-0">${diag.summary || ''}</p>
+                <div class="space-y-3">
+                    <h3 class="text-xs font-bold uppercase tracking-widest text-gray-400 flex items-center gap-2">
+                        <i class="fas fa-brain text-gold"></i> Patrones Detectados
+                    </h3>
+                    <div class="bg-white/5 rounded-xl p-5 border border-white/10 text-sm text-gray-300">
+                        ${Array.isArray(patterns) && patterns.length > 0 
+                            ? `<ul class="list-disc list-inside space-y-2 marker:text-gold">${patterns.map(p => `<li>${p}</li>`).join('')}</ul>`
+                            : (typeof patterns === 'string' && patterns ? `<p>${patterns}</p>` : '<p class="text-gray-500 italic">No se detectaron patrones específicos en las reseñas.</p>')}
                     </div>
-                    ` : ''}
-
-                    <!-- Zona de Evidencia Dividida (Patrones vs Reseñas Reales) -->
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        
-                        <!-- Columna Izquierda: Patrones -->
-                        <div>
-                            <h4 class="font-bold text-light-gray mb-4 text-xs md:text-sm uppercase tracking-widest flex items-center gap-2">
-                                <i class="fas fa-chart-line text-violet"></i> Patrones Detectados por IA
-                            </h4>
-                            ${patternsHtml}
-                        </div>
-
-                        <!-- Columna Derecha: Evidencia (Reseñas) -->
-                        <div>
-                            <h4 class="font-bold text-light-gray mb-4 text-xs md:text-sm uppercase tracking-widest flex items-center gap-2">
-                                <i class="fas fa-quote-left text-gold"></i> La Voz del Cliente
-                            </h4>
-                            <div class="bg-black/20 p-4 rounded-xl border border-white/5 h-full">
-                                ${reviewsHtml}
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <!-- KAEZYN PLAYBOOK: Estrategia de Cierre -->
-                    <div class="border-t border-white/10 pt-8 mt-4 page-break-inside-avoid">
-                        <h4 class="font-bold text-white text-sm mb-4 flex items-center gap-2 uppercase tracking-widest">
-                            <i class="fas fa-chess-knight text-gold"></i> Kaezyn Sales Playbook
-                        </h4>
-                        
-                        <div class="grid grid-cols-1 gap-4">
-                            
-                            <!-- Script de Apertura -->
-                            ${diag.sales_hook ? `
-                            <div class="bg-night-blue border border-gold/30 p-6 rounded-xl relative overflow-hidden shadow-lg shadow-gold/5">
-                                <span class="text-[10px] font-bold tracking-widest text-gold uppercase flex items-center gap-2 mb-3">
-                                    <i class="fas fa-comment-dots"></i> Script de Apertura Sugerido
-                                </span>
-                                <p class="text-base md:text-lg font-medium leading-relaxed text-white relative z-10 italic m-0">
-                                    "${diag.sales_hook}"
-                                </p>
-                            </div>
-                            ` : ''}
-
-                            <!-- Posicionamiento de Venta -->
-                            ${diag.kaezyn_opportunity ? `
-                            <div class="bg-violet/10 border border-violet/30 p-5 rounded-xl">
-                                <span class="text-[10px] font-bold tracking-widest text-violet uppercase flex items-center gap-2 mb-2">
-                                    <i class="fas fa-lightbulb"></i> Ángulo de Venta
-                                </span>
-                                <p class="text-sm text-gray-300 leading-relaxed m-0">
-                                    ${diag.kaezyn_opportunity}
-                                </p>
-                            </div>
-                            ` : ''}
-                            
-                        </div>
-                    </div>
-
                 </div>
-                
-                <!-- Footer PDF -->
-                <div class="bg-black/40 p-4 border-t border-white/5 text-center flex justify-between items-center px-8">
-                    <img src="/assets/KAEZYN LOGO.png" class="h-4 opacity-50 filter grayscale invert" alt="Kaezyn">
-                    <p class="text-[9px] text-gray-600 uppercase tracking-widest m-0">Documento Confidencial • Propiedad de Kaezyn</p>
+
+                <div class="space-y-3">
+                    <h3 class="text-xs font-bold uppercase tracking-widest text-gray-400 flex items-center gap-2">
+                        <i class="fas fa-comments text-gold"></i> La Voz del Cliente
+                    </h3>
+                    <div class="bg-white/5 rounded-xl p-5 border border-white/10 text-sm space-y-4">
+                        ${customerVoice ? `<div class="italic text-gray-200 bg-black/30 p-4 rounded-lg border border-white/5 border-l-2 border-l-gold">"${customerVoice}"</div>` : ''}
+                        
+                        ${Array.isArray(reviewsList) && reviewsList.length > 0 ? `
+                            <div class="space-y-3 mt-4">
+                                <p class="text-[10px] font-semibold text-gray-500 uppercase tracking-widest">Reseñas Relevantes Indexadas:</p>
+                                <div class="grid gap-3">
+                                    ${reviewsList.map(r => `
+                                        <div class="bg-[#0b0f2a]/50 p-4 rounded-lg border border-white/5 text-xs text-gray-300 shadow-inner">
+                                            <div class="flex justify-between items-center text-gray-400 mb-2">
+                                                <span class="font-bold text-white flex items-center gap-2"><i class="fas fa-user-circle text-gray-500"></i> ${r.author_name || r.author || 'Usuario Google'}</span>
+                                                <span class="text-yellow-400 text-[10px] tracking-widest">${'★'.repeat(r.rating || 5)}${'☆'.repeat(5 - (r.rating || 5))}</span>
+                                            </div>
+                                            <p class="italic leading-relaxed">"${r.text || r.texto || r}"</p>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : (!customerVoice ? '<p class="text-xs text-gray-500 italic">No hay suficientes reseñas indexadas para mostrar.</p>' : '')}
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <h3 class="text-xs font-bold uppercase tracking-widest text-gold flex items-center gap-2">
+                        <i class="fas fa-crosshairs text-gold"></i> Kaezyn Sales Playbook
+                    </h3>
+                    <div class="bg-gradient-to-br from-gold/10 to-transparent border border-gold/20 rounded-xl p-5 text-sm text-gray-100 leading-relaxed whitespace-pre-line shadow-[0_0_15px_rgba(212,175,55,0.1)]">
+                        ${playbook || 'Generando ángulo de venta...'}
+                    </div>
                 </div>
 
             </div>
         `;
+        
+        // Efecto visual: Scroll suave hacia los resultados
+        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     async function analyzeProspect(event) {
@@ -1499,34 +1435,33 @@ const Portal = (() => {
 
     // 2. Cargar un prospecto pasado al hacer clic
     async function loadPastProspect(id) {
+        // Cerrar el modal correctamente
         document.getElementById('history-modal')?.remove();
+        
         const statusDiv = document.getElementById('intel-status');
         const statusText = document.getElementById('status-text');
-    
-        statusDiv.classList.remove('hidden');
-        if(statusText) statusText.innerText = 'Cargando auditoría guardada...';
+        
+        // Mostrar loader
+        if (statusDiv) statusDiv.classList.remove('hidden');
+        if (statusText) statusText.innerText = 'Cargando auditoría guardada...';
 
+        // Consulta a Supabase
         const { data: prospect, error } = await supabase
             .from('sales_prospects')
             .select('*')
             .eq('id', id)
             .single();
 
-        statusDiv.classList.add('hidden');
+        // Ocultar loader
+        if (statusDiv) statusDiv.classList.add('hidden');
 
         if (error || !prospect) {
+            console.error("Error cargando prospecto:", error);
             alert("Error al cargar el prospecto.");
             return;
         }
 
-        // Normalizar JSON si viene como texto
-        if (typeof prospect.diagnosis === 'string') {
-            try { prospect.diagnosis = JSON.parse(prospect.diagnosis); } catch (e) {}
-        }
-        if (typeof prospect.reseñas === 'string') {
-            try { prospect.reseñas = JSON.parse(prospect.reseñas); } catch (e) {}
-        }
-
+        // Renderizar resultado
         renderDiagnosis(prospect);
     }
     
