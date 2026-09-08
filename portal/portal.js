@@ -1102,7 +1102,7 @@ const Portal = (() => {
         }
 
         // ==========================================
-        // 1. PARSER ANTI-BOMBAS (Para el Diagnóstico)
+        // 1. PARSER ANTI-BOMBAS (Súper optimizado)
         // ==========================================
         let diagnosisData = {};
         let rawTextFallback = "";
@@ -1116,46 +1116,86 @@ const Portal = (() => {
                     diagnosisData = {};
                 }
             } catch (e) {
-                // Falló el parseo porque la IA mandó texto mezclado en vez de JSON
+                // Falló el parseo porque la IA mandó texto mezclado
                 rawTextFallback = prospect.diagnosis;
             }
         } else if (prospect.diagnosis && typeof prospect.diagnosis === 'object') {
             diagnosisData = prospect.diagnosis;
+            // Rescate por si un intento previo lo guardó mal en el objeto
+            if (diagnosisData.summary && typeof diagnosisData.summary === 'string' && diagnosisData.summary.includes('{')) {
+                rawTextFallback = diagnosisData.summary;
+            } else if (diagnosisData.summary && !diagnosisData.executive_summary) {
+                diagnosisData.executive_summary = diagnosisData.summary;
+            }
         }
 
         // Variables por defecto
         let riskLevel = diagnosisData.risk_level || 'MEDIO';
         let executiveSummary = diagnosisData.executive_summary || diagnosisData.resumen || '';
         let negativePatterns = diagnosisData.negative_patterns || diagnosisData.patterns || [];
-        let salesImpact = diagnosisData.sales_impact || '';
         let playbook = diagnosisData.playbook || '';
 
-        // Si la IA mandó texto crudo (el caso de tu error), lo rescatamos:
+        // Si la IA mandó el texto crudo mezclado, lo separamos quirúrgicamente:
         if (rawTextFallback) {
-            // 1. Cazar los fragmentos de JSON dentro del texto (ej. {"pattern":"Comida fría"...})
-            const jsonRegex = /\{.*?\}/g;
+            rawTextFallback = rawTextFallback.trim();
+
+            // 1. Extraer el riesgo de la primera palabra
+            const riskMatch = rawTextFallback.match(/^(ALTO|CR[IÍ]TICO|MEDIO|BAJO)\b/i);
+            if (riskMatch) {
+                riskLevel = riskMatch[1].toUpperCase();
+                rawTextFallback = rawTextFallback.substring(riskMatch[0].length).trim();
+            }
+
+            // 2. Extraer fragmentos de JSON
+            const jsonRegex = /\{[^{}]+\}/g;
             const matches = rawTextFallback.match(jsonRegex);
+            let extractedPlaybook = [];
+
             if (matches) {
                 matches.forEach(match => {
                     try {
-                        const parsedMatch = JSON.parse(match);
+                        // Limpiar caracteres extraños antes del parseo
+                        const cleanMatch = match.replace(/[\u0000-\u001F\u007F-\u009F]/g, "");
+                        const parsedMatch = JSON.parse(cleanMatch);
+                        
+                        // Si es un patrón operativo
                         if (parsedMatch.pattern) {
-                            negativePatterns.push(`${parsedMatch.pattern} (${parsedMatch.percentage || ''}): ${parsedMatch.evidence || ''}`);
+                            const count = parsedMatch.mention_count ? `(${parsedMatch.mention_count} menciones)` : '';
+                            const evidence = parsedMatch.evidence_quote || parsedMatch.evidence ? `"${parsedMatch.evidence_quote || parsedMatch.evidence}"` : '';
+                            const desc = [count, evidence].filter(Boolean).join(' - ');
+                            negativePatterns.push(`<strong>${parsedMatch.pattern}</strong>${desc ? '<br><span class="text-xs text-gray-400 mt-1 block">↳ ' + desc + '</span>' : ''}`);
                         }
-                    } catch (err) { /* ignorar si un fragmento no sirve */ }
+                        
+                        // Si es un servicio para el Playbook
+                        if (parsedMatch.service) {
+                            extractedPlaybook.push(`• <strong>${parsedMatch.service}</strong>: ${parsedMatch.strategic_reason || ''}`);
+                        }
+                    } catch (err) { 
+                        // Ignorar fragmentos irrelevantes
+                    }
                 });
-                // Quitamos los pedazos de código del texto para que el resumen se lea limpio
-                rawTextFallback = rawTextFallback.replace(jsonRegex, '').trim();
+                
+                // Remover los bloques JSON del texto original
+                rawTextFallback = rawTextFallback.replace(jsonRegex, '');
             }
 
-            // 2. Extraer el riesgo de la primera palabra si existe
-            const firstWord = rawTextFallback.split(' ')[0].toUpperCase();
-            if (['ALTO', 'CRÍTICO', 'MEDIO', 'BAJO'].includes(firstWord)) {
-                riskLevel = firstWord;
-                rawTextFallback = rawTextFallback.substring(firstWord.length).trim();
+            // 3. Limpiar restos de comas y dobles espacios que deja el Regex
+            rawTextFallback = rawTextFallback.replace(/(,\s*){2,}/g, ', '); // Múltiples comas
+            rawTextFallback = rawTextFallback.replace(/\s+,\s*/g, ' ');      // Comas sueltas
+            rawTextFallback = rawTextFallback.replace(/\s{2,}/g, ' ').trim();
+            rawTextFallback = rawTextFallback.replace(/^,\s*/, '').replace(/,\s*$/, '');
+
+            // Lo que queda del texto es puro resumen ejecutivo
+            if (!executiveSummary) {
+                executiveSummary = rawTextFallback;
+            } else {
+                executiveSummary += "\n\n" + rawTextFallback;
             }
 
-            if (!executiveSummary) executiveSummary = rawTextFallback;
+            // Guardamos el Playbook si logramos extraerlo
+            if (extractedPlaybook.length > 0 && !playbook) {
+                playbook = extractedPlaybook.join('\n\n');
+            }
         }
 
         // ==========================================
@@ -1178,7 +1218,6 @@ const Portal = (() => {
         const reviewCount = prospect.google_review_count ?? 0;
         const dateStr = prospect.created_at ? new Date(prospect.created_at).toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' }) : '';
 
-        // Estilos dinámicos según el nivel de riesgo
         let riskBadgeColor = 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30 print:bg-yellow-100 print:text-yellow-800 print:border-yellow-300';
         if (String(riskLevel).toUpperCase().includes('CRÍTICO') || String(riskLevel).toUpperCase().includes('ALTO')) {
             riskBadgeColor = 'bg-red-500/20 text-red-400 border-red-500/30 print:bg-red-100 print:text-red-800 print:border-red-300';
@@ -1186,9 +1225,18 @@ const Portal = (() => {
             riskBadgeColor = 'bg-green-500/20 text-green-400 border-green-500/30 print:bg-green-100 print:text-green-800 print:border-green-300';
         }
 
-        // Generar listas dinámicas
+        // Listas dinámicas con soporte para renderizado seguro (Objetos o HTML puro)
         const patternsHtml = negativePatterns.length > 0 
-            ? negativePatterns.map(p => `<li class="flex items-start bg-red-500/10 p-3 rounded-md border border-red-500/20 print:bg-red-50 print:border-red-200"><span class="text-red-500 mr-2">▪</span><span class="text-sm text-gray-300 print:text-gray-700">${p}</span></li>`).join('')
+            ? negativePatterns.map(p => {
+                let content = p;
+                if (typeof p === 'object') {
+                    const count = p.mention_count ? `(${p.mention_count} menciones)` : (p.percentage ? `(${p.percentage})` : '');
+                    const evidence = p.evidence_quote || p.evidence ? `"${p.evidence_quote || p.evidence}"` : '';
+                    const desc = [count, evidence].filter(Boolean).join(' - ');
+                    content = `<strong>${p.pattern}</strong>${desc ? '<br><span class="text-xs text-gray-400 mt-1 block">↳ ' + desc + '</span>' : ''}`;
+                }
+                return `<li class="flex items-start bg-red-500/10 p-3 rounded-md border border-red-500/20 print:bg-red-50 print:border-red-200"><span class="text-red-500 mr-2 mt-0.5">▪</span><div class="text-sm text-gray-300 print:text-gray-700 w-full">${content}</div></li>`;
+            }).join('')
             : `<p class="text-sm text-gray-500">No se detectaron patrones negativos específicos.</p>`;
 
         const reviewsHtml = reviewsList.length > 0
@@ -1209,7 +1257,6 @@ const Portal = (() => {
         container.innerHTML = `
             <div class="bg-[#0b0f2a]/90 backdrop-blur-md border border-white/10 rounded-2xl p-6 text-white space-y-6 shadow-2xl mt-8 print:bg-white print:text-black print:border-none print:shadow-none" id="diagnosis-report">
                 
-                <!-- HEADER (Exactamente como el diseño anterior) -->
                 <div class="border-b border-white/10 print:border-gray-300 pb-5">
                     <div class="flex flex-col md:flex-row md:justify-between md:items-start gap-4 mb-3">
                         <div>
@@ -1245,20 +1292,18 @@ const Portal = (() => {
                     </div>
                 </div>
 
-                <!-- RESUMEN EJECUTIVO (Texto recuperado de la IA) -->
                 ${executiveSummary ? `
                 <div class="space-y-3 break-inside-avoid">
                     <h3 class="text-xs font-bold uppercase tracking-widest text-blue-400 print:text-blue-600 flex items-center gap-2">
                         <i class="fas fa-info-circle text-blue-400"></i> Resumen de Situación
                     </h3>
-                    <div class="bg-white/5 print:bg-gray-50 rounded-xl p-5 border border-white/10 print:border-gray-200 text-sm text-gray-300 print:text-gray-700 leading-relaxed">
-                        <p>${executiveSummary}</p>
+                    <div class="bg-white/5 print:bg-gray-50 rounded-xl p-5 border border-white/10 print:border-gray-200 text-sm text-gray-300 print:text-gray-700 leading-relaxed whitespace-pre-line">
+                        ${executiveSummary}
                     </div>
                 </div>
                 ` : ''}
 
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <!-- PATRONES NEGATIVOS -->
                     <div class="space-y-3 break-inside-avoid">
                         <h3 class="text-xs font-bold uppercase tracking-widest text-gray-400 print:text-gray-600 flex items-center gap-2">
                             <i class="fas fa-brain text-gold"></i> Patrones Detectados
@@ -1268,7 +1313,6 @@ const Portal = (() => {
                         </ul>
                     </div>
 
-                    <!-- LA VOZ DEL CLIENTE (Muestra hasta 5 reseñas) -->
                     <div class="space-y-3 break-inside-avoid">
                         <h3 class="text-xs font-bold uppercase tracking-widest text-gray-400 print:text-gray-600 flex items-center gap-2">
                             <i class="fas fa-comments text-gold"></i> La Voz del Cliente
@@ -1279,7 +1323,6 @@ const Portal = (() => {
                     </div>
                 </div>
 
-                <!-- KAEZYN PLAYBOOK (Ángulo de venta) -->
                 ${playbook ? `
                 <div class="space-y-3 break-inside-avoid">
                     <h3 class="text-xs font-bold uppercase tracking-widest text-gold print:text-gray-700 flex items-center gap-2">
@@ -1291,7 +1334,6 @@ const Portal = (() => {
                 </div>
                 ` : ''}
 
-                <!-- BOTÓN DE IMPRESIÓN PDF -->
                 <div class="mt-8 pt-6 border-t border-white/10 print:border-none flex justify-center">
                     <button 
                         onclick="window.print()"
@@ -1307,9 +1349,8 @@ const Portal = (() => {
     }
     
     async function analyzeProspect(event) {
-        if (event) event.preventDefault(); // Evita recargas de página
+        if (event) event.preventDefault(); 
         
-        // Ajusta estos IDs si en tu HTML inyectado se llaman diferente
         const nameInput = document.getElementById('business_name');
         const cityInput = document.getElementById('city');
         const btn = document.getElementById('btn-analyze');
@@ -1317,15 +1358,11 @@ const Portal = (() => {
         const statusText = document.getElementById('status-text');
         const resultDiv = document.getElementById('intel-result');
         
-        if (!nameInput || !cityInput) {
-            console.error("No se encontraron los inputs de nombre y ciudad.");
-            return;
-        }
+        if (!nameInput || !cityInput) return;
 
         const businessName = nameInput.value;
         const city = cityInput.value;
 
-        // Mostrar estado inicial, deshabilitar botón y activar animaciones
         if (btn) {
             btn.disabled = true;
             btn.classList.add('opacity-50', 'cursor-not-allowed');
@@ -1335,14 +1372,11 @@ const Portal = (() => {
         statusDiv.classList.remove('hidden');
         if (statusText) statusText.innerText = 'Creando registro y conectando con IA...';
         resultDiv.innerHTML = '';
-        console.log("🚀 Iniciando análisis para:", businessName);
 
         try {
-            // 1. Obtener usuario (CRÍTICO para RLS)
             const { data: { user }, error: authErr } = await supabase.auth.getUser();
             if (authErr || !user) throw new Error("No hay usuario autenticado.");
 
-            // 2. Crear el registro
             const { data: insertData, error: insertErr } = await supabase
                 .from('sales_prospects')
                 .insert([{ 
@@ -1354,34 +1388,26 @@ const Portal = (() => {
                 .single();
 
             if (insertErr) throw insertErr;
-            
             const recordId = insertData.id;
-            console.log("✅ Fila creada en Supabase. ID:", recordId, "Esperando a Make...");
 
-            // 2.5 NOTIFICAR A MAKE
-            // ⚠️ IMPORTANTE: Aquí está tu Webhook de Make
             const MAKE_WEBHOOK_URL = 'https://hook.us2.make.com/vu0yj4qmn650tpulb0i73wn14d33mczw'; 
-            
             if (statusText) statusText.innerText = 'Scrapeando reseñas y analizando patrones con IA (aprox 30 seg)...';
 
-            console.log("📡 Enviando datos a Make...");
             await fetch(MAKE_WEBHOOK_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    prospect_id: recordId, // Envia el ID exacto que acabamos de crear
+                    prospect_id: recordId,
                     business_name: businessName,
                     city: city
                 })
             });
 
-            // 3. Polling (Consultar a Supabase cada 3 segundos)
             let attempts = 0;
-            const maxAttempts = 30; // 90 segundos máximo
+            const maxAttempts = 30;
 
             const pollInterval = setInterval(async () => {
                 attempts++;
-                console.log(`⏳ Intento ${attempts}/30: Consultando si Make ya terminó...`);
                 
                 const { data: prospect, error: fetchErr } = await supabase
                     .from('sales_prospects')
@@ -1389,28 +1415,18 @@ const Portal = (() => {
                     .eq('id', recordId)
                     .single();
 
-                if (fetchErr) {
-                    console.error("❌ Error leyendo Supabase:", fetchErr);
-                    return;
-                }
+                if (fetchErr) return;
 
-                // 4. Si Make ya actualizó el estado a 'completed' (o si llenó el diagnosis)
                 if (prospect && (prospect.status === 'completed' || prospect.diagnosis)) {
-                    console.log("🎉 ¡Diagnóstico recibido de Make!");
                     clearInterval(pollInterval);
                     
                     if (typeof prospect.diagnosis === 'string') {
                         try {
-                            // Intentamos leerlo como JSON estructurado
                             prospect.diagnosis = JSON.parse(prospect.diagnosis);
                         } catch (parseError) {
-                            console.warn("⚠️ Make guardó texto plano en lugar de JSON. Adaptando formato de emergencia...");
-                            // Si Make mandó texto crudo, lo empaquetamos para que el diseño no explote
-                            prospect.diagnosis = {
-                                risk_level: "MEDIO", 
-                                headline: "Análisis de Reputación Completado",
-                                summary: prospect.diagnosis // Mostramos el texto crudo aquí
-                            };
+                            // ✅ FIX: Dejamos pasar el string puro para que el Anti-Bombas actúe, 
+                            // sin empaquetarlo erróneamente.
+                            console.warn("⚠️ Make guardó texto plano. Se dejará como string para el Parser Anti-Bombas.");
                         }
                     }
                     
@@ -1418,7 +1434,6 @@ const Portal = (() => {
                         try { prospect.reseñas = JSON.parse(prospect.reseñas); } catch (e) { prospect.reseñas = []; }
                     }
                     
-                    // Restaurar el botón a la normalidad
                     if (btn) {
                         btn.disabled = false;
                         btn.classList.remove('opacity-50', 'cursor-not-allowed');
@@ -1426,10 +1441,9 @@ const Portal = (() => {
                     }
                     
                     statusDiv.classList.add('hidden'); 
-                    renderDiagnosis(prospect); // Disparar el diseño
+                    renderDiagnosis(prospect);
                     
                 } else if (attempts >= maxAttempts) {
-                    console.warn("⚠️ Tiempo de espera agotado.");
                     clearInterval(pollInterval);
                     
                     if (btn) {
